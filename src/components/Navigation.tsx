@@ -1,0 +1,87 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Menu, X, Github, BookOpen, Users, Zap } from 'lucide-react';
+
+export default function Navigation() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navItems = [
+    { name: 'Home', href: '/', icon: null },
+    { name: 'Features', href: '/#features', icon: Zap },
+    { name: 'Manual', href: '/manual', icon: BookOpen },
+    { name: 'Authors', href: '/#authors', icon: Users },
+    { name: 'GitHub', href: '/#github', icon: Github },
+  ];
+
+  return (
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
+    }`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <span className="text-4xl font-bold text-soton-blue">PIVTOOLS</span>
+            </div>
+          </div>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:block">
+            <div className="ml-10 flex items-baseline space-x-8">
+              {navItems.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="text-gray-700 hover:text-soton-blue px-4 py-3 rounded-md text-lg font-semibold transition-colors duration-200 flex items-center gap-2 hover:bg-soton-lightblue"
+                >
+                  {item.icon && <item.icon size={20} />}
+                  {item.name}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-gray-700 hover:text-soton-blue p-2"
+            >
+              {isOpen ? <X size={28} /> : <Menu size={28} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white/95 backdrop-blur-md rounded-lg mt-2 shadow-lg">
+              {navItems.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="text-gray-700 hover:text-soton-blue px-4 py-3 rounded-md text-lg font-semibold transition-colors duration-200 flex items-center gap-2 hover:bg-soton-lightblue"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.icon && <item.icon size={20} />}
+                  {item.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}
