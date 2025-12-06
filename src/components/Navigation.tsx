@@ -1,33 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Menu, X, Github, BookOpen, Users, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { Menu, X, BookOpen, Users, Layers } from 'lucide-react';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const navItems = [
     { name: 'Home', href: '/', icon: null },
-    { name: 'Features', href: '/#features', icon: Zap },
+    { name: 'Capabilities', href: '/#capabilities', icon: Layers },
     { name: 'Manual', href: '/manual', icon: BookOpen },
-    { name: 'Authors', href: '/#authors', icon: Users },
-    { name: 'GitHub', href: '/#github', icon: Github },
+    { name: 'Research', href: '/#research', icon: Users },
   ];
 
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
-    }`}>
+    <nav className={"fixed top-0 w-full z-50 transition-all duration-300 bg-white/95 backdrop-blur-md shadow-lg"}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center">

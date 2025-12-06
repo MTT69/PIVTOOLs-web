@@ -7,22 +7,21 @@ export default function Footer() {
 
   const footerLinks = {
     product: [
-      { name: 'Features', href: '#features' },
-      { name: 'Documentation', href: '#documentation' },
-      { name: 'Downloads', href: '#github' },
-      { name: 'Examples', href: '#documentation' }
+      { name: 'Capabilities', href: '#capabilities' },
+      { name: 'Workflow', href: '#workflow' },
+      { name: 'Quick Start', href: '#quick-start' },
+      { name: 'Manual', href: '/manual' }
     ],
     resources: [
       { name: 'GitHub Repository', href: 'https://github.com/MTT69/PIVTOOLS' },
-      { name: 'Issue Tracker', href: 'https://github.com/MTT69/PIVTOOLS/issues' },
-      { name: 'Releases', href: 'https://github.com/MTT69/PIVTOOLS/releases' },
-      { name: 'Contributing', href: 'https://github.com/MTT69/PIVTOOLS/blob/main/CONTRIBUTING.md' }
+      { name: 'PyPI Package', href: 'https://pypi.org/project/pivtools/' },
+      { name: 'Cite PIVTOOLS', href: '#research' }
     ],
     university: [
       { name: 'University of Southampton', href: 'https://www.southampton.ac.uk' },
       { name: 'Faculty of Engineering', href: 'https://www.southampton.ac.uk/engineering' },
       { name: 'Research Groups', href: 'https://www.southampton.ac.uk/engineering/research' },
-      { name: 'Contact', href: 'mailto:contact@soton.ac.uk' }
+      { name: 'Contact', href: 'mailto:M.T.Taylor@soton.ac.uk' }
     ]
   };
 
@@ -36,7 +35,7 @@ export default function Footer() {
               <span className="text-2xl font-bold text-soton-gold">PIVTOOLS</span>
             </div>
             <p className="text-gray-300 mb-6 text-sm leading-relaxed">
-              High-performance PIV processing for fluid dynamics research. 
+              The complete open-source platform for PIV analysis.
               Developed at the University of Southampton.
             </p>
             <div className="flex space-x-4">
@@ -49,7 +48,7 @@ export default function Footer() {
                 <Github size={20} />
               </a>
               <a
-                href="mailto:contact@soton.ac.uk"
+                href="mailto:M.T.Taylor@soton.ac.uk"
                 className="text-gray-400 hover:text-soton-gold transition-colors duration-200"
               >
                 <Mail size={20} />
@@ -136,12 +135,6 @@ export default function Footer() {
               © {currentYear} University of Southampton. All rights reserved.
             </div>
             <div className="flex space-x-6 text-sm text-gray-400">
-              <a href="#" className="hover:text-soton-gold transition-colors duration-200">
-                Privacy Policy
-              </a>
-              <a href="#" className="hover:text-soton-gold transition-colors duration-200">
-                Terms of Use
-              </a>
               <a href="#" className="hover:text-soton-gold transition-colors duration-200">
                 MIT License
               </a>

@@ -1,0 +1,46 @@
+\section{Motivation and significance}
+
+Particle Image Velocimetry (PIV) is a widely used, non-intrusive technique for measuring fluid velocity fields by tracking the motion of seeding particles across sequential images. These particles are typically illuminated using precisely timed laser sheet pulses and recorded using high-resolution cameras, enabling measurements with both high spatial and temporal resolution \cite{PIV_book}. 
+PIV’s ability to resolve complex flow structures across a wide range of scales makes it the primary measurement technique for a large portion of experimental investigations in both academic research and industrial applications. 
+
+As PIV experiments grow in sophistication, modern campaigns can readily generate datasets reaching tens of terabytes in size due to the advances in imaging sensors, laser systems, and storage infrastructure. 
+However, despite HPC systems experiencing substantial gains in processing capability and memory bandwidth, these improvements are not yet routinely or freely harnessed for PIV workflows as the development of processing software has not kept pace. Consequently, many experiments are still processed on single workstations, with extended turnaround times that constrain experimental design and delay scientific outcomes.
+
+In many laboratories, commercial packages such as \emph{LaVision DaVis} remain the default for workstation based analysis; these offer robust performance and well-developed user interfaces but are not open source and require additional licensing for distributed computing on Linux based clusters, restricting broader access. 
+Open source alternatives such as OpenPIV, PIVLab, FluidImage, PAIRS, and Prana, amongst others, have made important contributions, each excelling in particular areas. However, none fully replicate the end-to-end capabilities of commercial systems while also offering documented, scalable execution on modern HPC clusters. In particular, support for stereoscopic PIV, ensemble processing, and integrated Reynolds stress computation is often absent or incomplete, and cluster compatibility is rarely tested or guaranteed.
+Moreover, their compatibility with high-performance computing (HPC) clusters or modern multi-node resources are often undocumented or constrained in scope. 
+Table~\ref{tab:piv_comparison} summarises several widely used PIV tools against key criteria, including being open source, graphical user interface (GUI) availability, and support for HPC execution, stereoscopic configurations, and ensemble analysis. In the Ensemble column, a secondary tick in brackets (\cmark) indicates whether ensemble based statistics, Reynolds stresses, can be computed. The table highlights that no single tool currently addresses all criteria, unlike the proposed \textbf{PIVTOOLS} framework.
+
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Selected PIV Processing Tools}
+\label{tab:piv_comparison}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Tool} & \textbf{OSS} & \textbf{GUI} & \textbf{HPC} & \textbf{Stereo} & \textbf{Ensemble} \\
+\hline
+DaVis~\cite{davis_software} & \xmark & \cmark & \$\$\$ & \cmark & \cmark~(\cmark) \\
+OpenPIV~\cite{openPIV} & \cmark & \xmark & \xmark & \xmark & \xmark~(\xmark) \\
+PIVLab~\cite{thielicke2014pivlab, thielicke2021particle} & \cmark & \cmark & \xmark & \xmark & \xmark~(\xmark) \\
+FluidImage~\cite{fluiddyn} & \cmark & \cmark & \cmark & \xmark & \xmark~(\xmark) \\
+PAIRS~\cite{pairs} & \cmark & \cmark & \cmark & \cmark & \xmark~(\xmark) \\
+Prana~\cite{prana2024} & \cmark & \cmark & \cmark & \cmark & \cmark~(\cmark) \\
+PIVTOOLS & \cmark & \cmark & \cmark & \cmark & \cmark~(\cmark) \\
+\hline
+\end{tabular}
+\end{table}
+
+To address these limitations, \textbf{PIVTOOLS} is introduced as an open source, Python based, end to end PIV processing suite supporting standard frame pair PIV, stereoscopic PIV, and ensemble PIV. 
+The ensemble workflow includes direct computation of Reynolds stresses in planar configurations, with stereoscopic Reynolds stress extraction under active development.
+Despite being Python based, PIVTOOLS is designed for high performance, by implementing performance critical operations, such as the cross correlation and peak fitting routines, in OpenMP parallelised C executables. 
+Integration with the Dask framework enables memory efficient lazy parallelisation across multiple nodes, when required, allowing large datasets to be processed while minimising memory overhead.
+
+A modern Tauri based graphical user interface (GUI) provides a unified platform for processing parameters to be selected, interactive calibration of planar or stereo calibration boards, realtime reviewing of processing scripts, and analysis of PIV outputs. The combination of open licensing, stereo, ensemble, and frame-pair algorithms, and tested multi-node scalability positions PIVTOOLS as a unique resource for the experimental fluid mechanics community, capable of bridging the gap between modern acquisition capabilities and accurate, scaleable, data processing.
+
+
+
+
+
+
+
