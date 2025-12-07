@@ -27,7 +27,14 @@ import {
   Info,
   ArrowRight,
   CheckCircle,
-  FileText
+  FileText,
+  Download,
+  Image,
+  Palette,
+  Settings2,
+  ArrowUp,
+  ArrowDown,
+  Trash2
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -123,23 +130,6 @@ const YamlDropdown = ({ title = "YAML Reference", code, defaultOpen = false }: Y
   );
 };
 
-interface ScreenshotPlaceholderProps {
-  caption: string;
-  alt: string;
-}
-
-const ScreenshotPlaceholder = ({ caption, alt }: ScreenshotPlaceholderProps) => (
-  <div className="my-6">
-    <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center min-h-[200px]">
-      <div className="text-gray-400 mb-2">
-        <Camera size={48} />
-      </div>
-      <p className="text-gray-500 text-sm text-center">[Screenshot: {alt}]</p>
-    </div>
-    <p className="text-center text-sm text-gray-600 mt-2 italic">{caption}</p>
-  </div>
-);
-
 interface FeatureListProps {
   items: string[];
 }
@@ -196,8 +186,9 @@ export default function PreprocessingPage() {
               Image <span className="text-soton-gold">Pre-Processing</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Build and test filter stacks interactively with the ImagePairViewer. 
-              See real-time results before committing to full processing.
+              Build and test filter stacks interactively with the ImagePairViewer.
+              See real-time results before committing to full processing, with
+              side-by-side comparison of raw and filtered images.
             </p>
           </motion.div>
 
@@ -205,15 +196,16 @@ export default function PreprocessingPage() {
           <div className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white mb-16">
             <h3 className="text-2xl font-bold mb-4">Getting Started</h3>
             <p className="text-gray-200 mb-6 text-lg">
-              The <strong>Pre-Processing</strong> panel lets you build filter stacks and test them 
-              on individual frames before running full PIV processing.
+              The <strong>Pre-Processing</strong> panel provides a complete workspace for developing
+              and testing image filter pipelines. Build filter stacks, see results instantly,
+              and iterate until you achieve optimal particle visibility and background removal.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
-                { label: "1. Add Filters", desc: "Build your filter stack" },
-                { label: "2. Test", desc: "Apply to current frame" },
-                { label: "3. Compare", desc: "Raw vs processed view" },
-                { label: "4. Iterate", desc: "Adjust and re-test" }
+                { label: "1. Add Filters", desc: "Build your filter stack from temporal and spatial options" },
+                { label: "2. Test", desc: "Apply filters to the current frame with one click" },
+                { label: "3. Compare", desc: "View raw vs processed side-by-side" },
+                { label: "4. Iterate", desc: "Adjust parameters and playback through frames to verify" }
               ].map((item, index) => (
                 <div key={index} className="bg-white/10 rounded-lg p-4 text-center">
                   <p className="font-semibold text-soton-gold">{item.label}</p>
@@ -226,8 +218,11 @@ export default function PreprocessingPage() {
           {/* Why Pre-process */}
           <Section title="Why Pre-process?" icon={<Info size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Image pre-processing improves PIV quality by removing noise, correcting uneven illumination, 
-              and subtracting stationary backgrounds. PIVTools provides two types of filters:
+              Image pre-processing is a critical step in PIV analysis that significantly improves
+              cross-correlation accuracy and vector quality. By removing noise, correcting uneven
+              illumination, and subtracting stationary backgrounds, you can enhance particle visibility
+              and reduce spurious vectors. PIVTools provides two categories of filters, each serving
+              distinct purposes in the preprocessing pipeline:
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -237,12 +232,20 @@ export default function PreprocessingPage() {
                   <h4 className="text-xl font-semibold text-gray-900">Temporal Filters</h4>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  Work across multiple frames (batches). Great for removing static backgrounds 
-                  and slow-varying features.
+                  Temporal filters analyze patterns across multiple consecutive frames (batches) to
+                  identify and remove features that persist over time. These are particularly effective
+                  for eliminating static backgrounds, reflections, and slowly-varying illumination
+                  patterns that would otherwise contaminate cross-correlation results.
                 </p>
-                <ul className="text-gray-600 text-sm space-y-1">
-                  <li>• <strong>Time Filter:</strong> Subtracts local minimum</li>
-                  <li>• <strong>POD Filter:</strong> Removes coherent structures</li>
+                <ul className="text-gray-600 text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 font-bold">time:</span>
+                    <span>Subtracts the local minimum intensity across the batch, removing static features</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-600 font-bold">pod:</span>
+                    <span>Uses Proper Orthogonal Decomposition to remove coherent large-scale structures</span>
+                  </li>
                 </ul>
               </div>
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
@@ -251,35 +254,36 @@ export default function PreprocessingPage() {
                   <h4 className="text-xl font-semibold text-gray-900">Spatial Filters</h4>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  Work on individual frames. Use for smoothing, noise removal, 
-                  and contrast normalization.
+                  Spatial filters operate on individual frames, modifying pixel intensities based on
+                  local neighbourhoods. Use these for smoothing high-frequency noise, enhancing particle
+                  contrast, normalising intensity variations, and preparing images for optimal
+                  cross-correlation performance.
                 </p>
                 <ul className="text-gray-600 text-sm space-y-1">
-                  <li>• Gaussian, Median, Clip</li>
-                  <li>• Normalize, Max-Norm, Local Max</li>
-                  <li>• Invert, Background Subtract, Levelize</li>
+                  <li><strong>Smoothing:</strong> Gaussian, Median</li>
+                  <li><strong>Contrast:</strong> Clip, Normalise, Max-Norm, Local Max</li>
+                  <li><strong>Correction:</strong> Invert, Background Subtract, Levelize</li>
+                  <li><strong>Geometric:</strong> Transpose</li>
                 </ul>
               </div>
             </div>
 
-            <ScreenshotPlaceholder
-              alt="Pre-Processing panel showing the filter stack builder and ImagePairViewer"
-              caption="Figure 1: The Pre-Processing panel with filter stack builder (left) and ImagePairViewer (right)"
-            />
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-800">
+                <strong>Processing Order:</strong> Filters are applied sequentially from top to bottom
+                in your filter stack. Temporal filters should typically come first to remove background
+                features, followed by spatial filters for noise reduction and contrast enhancement.
+              </p>
+            </div>
           </Section>
 
           {/* The ImagePairViewer */}
           <Section title="The ImagePairViewer" icon={<Eye size={32} />} id="viewer">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The <strong>ImagePairViewer</strong> is your interactive workspace for developing filter stacks. 
-              It shows raw and processed images side-by-side, lets you play through frames, and overlay a grid 
-              to visualize interrogation window sizes.
+              The <strong>ImagePairViewer</strong> is your interactive workspace for developing and
+              refining filter stacks. It displays raw and processed images in a synchronised side-by-side
+              layout, with shared zoom and pan controls for precise comparison.
             </p>
-
-            <ScreenshotPlaceholder
-              alt="ImagePairViewer showing raw image (left) and processed image (right) with grid overlay"
-              caption="Figure 2: The ImagePairViewer with raw vs processed comparison and grid overlay enabled"
-            />
 
             {/* Viewer Layout */}
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
@@ -287,19 +291,35 @@ export default function PreprocessingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h5 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <Eye size={18} className="text-gray-500" /> Left Panel — Raw Image
+                    <Eye size={18} className="text-gray-500" /> Left Panel &mdash; Raw Image
                   </h5>
-                  <p className="text-gray-600 text-sm">
-                    Shows the original, unprocessed image. Use as your reference.
+                  <p className="text-gray-600 text-sm mb-2">
+                    Displays the original, unprocessed image from your source data. This panel
+                    serves as your reference point for evaluating filter effectiveness. All contrast
+                    adjustments and zoom operations are independent from the processed view, but
+                    pan and zoom can be synchronized for direct comparison.
                   </p>
+                  <ul className="text-gray-500 text-xs space-y-1">
+                    <li>&bull; Frame A/B toggle to view either image of the pair</li>
+                    <li>&bull; Independent contrast controls with auto-scale option</li>
+                    <li>&bull; Download buttons for exporting raw images</li>
+                  </ul>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h5 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <Sparkles size={18} className="text-blue-500" /> Right Panel — Processed Image
+                    <Sparkles size={18} className="text-blue-500" /> Right Panel &mdash; Processed Image
                   </h5>
-                  <p className="text-gray-600 text-sm">
-                    Shows the result after applying your filter stack. Updates when you click &quot;Test Filters&quot;.
+                  <p className="text-gray-600 text-sm mb-2">
+                    Shows the result after applying your complete filter stack. This panel updates
+                    when you click &quot;Test Filters&quot; and allows you to evaluate how each filter
+                    affects particle visibility and background removal. For temporal filters,
+                    processing includes the entire batch of frames.
                   </p>
+                  <ul className="text-gray-500 text-xs space-y-1">
+                    <li>&bull; Frame A/B toggle matching the raw panel</li>
+                    <li>&bull; Processing status indicator during batch operations</li>
+                    <li>&bull; Download buttons for exporting processed results</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -310,14 +330,34 @@ export default function PreprocessingPage() {
                 <Play size={24} className="text-green-600" /> Frame Playback Controls
               </h4>
               <p className="text-gray-600 mb-4">
-                Navigate through your image sequence to see how filters perform across different frames.
+                Navigate through your image sequence to verify that filters perform consistently
+                across all frames.
               </p>
-              <FeatureList items={[
-                "Play button cycles through frames automatically",
-                "Previous/Next buttons step through frames one at a time",
-                "Frame slider lets you jump to any frame instantly",
-                "Both panels (raw and processed) update together"
-              ]} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-800 mb-2">Navigation Controls</h5>
+                  <ul className="text-gray-600 text-sm space-y-2">
+                    <li><strong>Frame Slider:</strong> Drag to jump to any frame in your sequence</li>
+                    <li><strong>Direct Input:</strong> Type a specific frame number for precise navigation</li>
+                    <li><strong>Previous/Next Buttons:</strong> Step through frames one at a time</li>
+                    <li><strong>Frame Counter:</strong> Shows current position (e.g., &quot;25 / 100&quot;)</li>
+                  </ul>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-800 mb-2">Playback Controls</h5>
+                  <ul className="text-gray-600 text-sm space-y-2">
+                    <li><strong>Play/Pause:</strong> Toggle automatic frame advancement</li>
+                    <li><strong>Playback Speed:</strong> Select from 0.5, 1, 2, 5, or 10 FPS</li>
+                    <li><strong>Loop:</strong> Playback automatically wraps from last frame to first</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                <p className="text-yellow-800 text-sm">
+                  <strong>Performance Tip:</strong> Use JPEG format for faster playback during filter
+                  development. Switch to PNG only when you need lossless precision for final inspection.
+                </p>
+              </div>
             </div>
 
             {/* Frame A/B Toggle */}
@@ -326,38 +366,113 @@ export default function PreprocessingPage() {
                 <ToggleLeft size={24} className="text-purple-600" /> Frame A / Frame B Toggle
               </h4>
               <p className="text-gray-600 mb-4">
-                PIV works with image pairs. Each panel has an <strong>A / B toggle</strong> so you can view 
-                either frame of the pair independently. This helps verify that both frames are processed correctly.
+                PIV analysis works with image pairs, where Frame A and Frame B are captured with a
+                short time delay. Each viewer panel includes an <strong>A / B toggle</strong> that
+                lets you inspect either frame independently. This is essential for verifying that
+                filters process both frames consistently and that particle patterns are preserved
+                correctly for cross-correlation.
               </p>
+              <ul className="text-gray-600 text-sm space-y-1">
+                <li>&bull; Both raw and processed panels have independent A/B toggles</li>
+                <li>&bull; Download buttons export the currently selected frame (A or B)</li>
+                <li>&bull; Auto-contrast adjusts independently for each frame if enabled</li>
+              </ul>
+            </div>
+          </Section>
+
+          {/* Image Format Selection */}
+          <Section title="Image Format Selection" icon={<Image size={32} />} id="format">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              The ImagePairViewer supports two image formats for displaying frames. Choose the
+              format that best matches your current workflow stage.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-green-100 text-green-700 px-3 py-1 rounded font-bold text-sm">JPEG</div>
+                  <h4 className="text-xl font-semibold text-gray-900">Fast Mode</h4>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  JPEG compression provides significantly smaller file sizes and faster network
+                  transfer, making it ideal for interactive filter development and playback. The
+                  compression introduces minor artifacts, but these are typically imperceptible
+                  during normal inspection.
+                </p>
+                <ul className="text-gray-600 text-sm space-y-1">
+                  <li>&#10003; Faster frame loading and smoother playback</li>
+                  <li>&#10003; Reduced bandwidth and memory usage</li>
+                  <li>&#10003; Recommended for filter development workflow</li>
+                  <li>&#10007; Minor compression artifacts (usually invisible)</li>
+                </ul>
+              </div>
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded font-bold text-sm">PNG</div>
+                  <h4 className="text-xl font-semibold text-gray-900">Precise Mode</h4>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  PNG provides lossless compression that preserves exact pixel values. Use this
+                  mode when you need to inspect fine details, verify intensity distributions, or
+                  export images for publication or further analysis.
+                </p>
+                <ul className="text-gray-600 text-sm space-y-1">
+                  <li>&#10003; Lossless quality with exact pixel values</li>
+                  <li>&#10003; Best for final inspection and export</li>
+                  <li>&#10003; Accurate intensity measurements</li>
+                  <li>&#10007; Larger files and slower loading</li>
+                </ul>
+              </div>
             </div>
           </Section>
 
           {/* Grid Overlay */}
           <Section title="Grid Overlay" icon={<Grid3X3 size={32} />} id="grid">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The <strong>Grid Overlay</strong> draws interrogation windows on top of your images, 
-              helping you visualize how your PIV settings will divide up the image for cross-correlation.
+              The <strong>Grid Overlay</strong> draws interrogation window boundaries on your images,
+              helping you visualize how PIV processing will divide the image for cross-correlation.
+              This is invaluable for verifying that particles span appropriate sizes relative to
+              window dimensions and that each window contains sufficient particle density.
             </p>
 
-            <ScreenshotPlaceholder
-              alt="Grid overlay showing 64×64 interrogation windows with 50% overlap"
-              caption="Figure 3: Grid overlay showing interrogation window layout on a processed image"
-            />
-
-            <GUIStep step={1} title="Open Processing settings">
-              Set your interrogation window size and overlap in the Processing tab
-            </GUIStep>
-            <GUIStep step={2} title="Toggle Grid Overlay">
-              Click the grid icon in the viewer toolbar to show/hide the grid
-            </GUIStep>
-            <GUIStep step={3} title="Visualize coverage">
-              The grid shows how the current window size divides your image
-            </GUIStep>
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Grid Controls</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h5 className="font-semibold text-gray-800 mb-3">Grid Size Options</h5>
+                  <p className="text-gray-600 text-sm mb-3">
+                    Select from preset sizes or enter a custom value to match your intended
+                    interrogation window dimensions:
+                  </p>
+                  <ul className="text-gray-600 text-sm space-y-1">
+                    <li><code className="bg-gray-100 px-2 py-0.5 rounded">8×8</code> &mdash; Fine resolution for small particles</li>
+                    <li><code className="bg-gray-100 px-2 py-0.5 rounded">16×16</code> &mdash; Common final pass size</li>
+                    <li><code className="bg-gray-100 px-2 py-0.5 rounded">32×32</code> &mdash; Standard intermediate pass</li>
+                    <li><code className="bg-gray-100 px-2 py-0.5 rounded">64×64</code> &mdash; Large windows for initial passes</li>
+                    <li><code className="bg-gray-100 px-2 py-0.5 rounded">Custom</code> &mdash; Enter any value from 1-512 pixels</li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 className="font-semibold text-gray-800 mb-3">Grid Thickness</h5>
+                  <p className="text-gray-600 text-sm mb-3">
+                    Adjust line thickness for visibility at different zoom levels:
+                  </p>
+                  <ul className="text-gray-600 text-sm space-y-1">
+                    <li><code className="bg-gray-100 px-2 py-0.5 rounded">1px</code> &mdash; Minimal visual interference</li>
+                    <li><code className="bg-gray-100 px-2 py-0.5 rounded">2px</code> &mdash; Good balance (recommended)</li>
+                    <li><code className="bg-gray-100 px-2 py-0.5 rounded">4-6px</code> &mdash; High visibility at low zoom</li>
+                    <li><code className="bg-gray-100 px-2 py-0.5 rounded">8-10px</code> &mdash; Maximum visibility</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
               <p className="text-yellow-800">
-                <strong>Tip:</strong> Use the grid to check that particles span at least 3-4 pixels and that 
-                each interrogation window contains multiple particles.
+                <strong>PIV Guidelines:</strong> For optimal cross-correlation, particles should span
+                at least 2-4 pixels in diameter, and each interrogation window should contain 5-10
+                particle images. Use the grid overlay to verify these conditions are met across your
+                entire field of view.
               </p>
             </div>
           </Section>
@@ -365,8 +480,10 @@ export default function PreprocessingPage() {
           {/* Zoom & Contrast Controls */}
           <Section title="Zoom & Contrast Controls" icon={<SlidersHorizontal size={32} />} id="controls">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Both image panels share zoom and pan state, so when you zoom into a region, 
-              both raw and processed views show the same area for easy comparison.
+              Both image panels share zoom and pan state, so when you zoom into a region of interest,
+              both raw and processed views show the same area for direct comparison.
+              Contrast controls are independent for each panel, allowing you to optimise visibility
+              for both the original and filtered images.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -375,19 +492,47 @@ export default function PreprocessingPage() {
                   <ZoomIn size={20} /> Zoom & Pan
                 </h4>
                 <ul className="text-gray-600 text-sm space-y-2">
-                  <li><strong>Scroll wheel:</strong> Zoom in/out</li>
-                  <li><strong>Click + drag:</strong> Pan the view</li>
-                  <li><strong>Double-click:</strong> Reset to fit</li>
+                  <li><strong>Scroll Wheel:</strong> Zoom in and out centred on cursor position</li>
+                  <li><strong>Click + Drag:</strong> Pan the view to explore different regions</li>
+                  <li><strong>Double-Click:</strong> Reset zoom and pan to fit the entire image</li>
+                  <li><strong>Synchronised:</strong> Both panels track the same zoom level and position</li>
                 </ul>
               </div>
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <SlidersHorizontal size={20} /> Contrast
+                  <SlidersHorizontal size={20} /> Contrast (Percentage-Based)
                 </h4>
                 <ul className="text-gray-600 text-sm space-y-2">
-                  <li><strong>Auto Scale:</strong> Adjusts automatically (recommended)</li>
-                  <li><strong>Manual:</strong> Use sliders for fine control</li>
+                  <li><strong>Auto Scale:</strong> Automatically adjusts vmin/vmax based on image statistics (1st-99th percentile)</li>
+                  <li><strong>Manual Sliders:</strong> Dual-thumb slider for precise min/max control (0-100%)</li>
+                  <li><strong>Direct Input:</strong> Type exact percentage values in the input fields</li>
+                  <li><strong>Independent:</strong> Raw and processed panels have separate contrast settings</li>
                 </ul>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Palette size={20} /> Colourmap Selection
+              </h4>
+              <p className="text-gray-600 mb-4">
+                Choose between two colourmap options for visualising intensity distributions:
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-800 mb-2">Grayscale</h5>
+                  <p className="text-gray-600 text-sm">
+                    Traditional black-to-white mapping. Best for natural image appearance and
+                    evaluating particle visibility against backgrounds.
+                  </p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-800 mb-2">Viridis</h5>
+                  <p className="text-gray-600 text-sm">
+                    Perceptually uniform colourmap from purple through blue-green to yellow.
+                    Excellent for revealing subtle intensity variations and gradients.
+                  </p>
+                </div>
               </div>
             </div>
           </Section>
@@ -395,52 +540,86 @@ export default function PreprocessingPage() {
           {/* Building a Filter Stack */}
           <Section title="Building a Filter Stack" icon={<Layers size={32} />} id="filter-stack">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Filters are applied in order from top to bottom. Build your stack by adding filters, 
-              configuring their parameters, and reordering as needed.
+              Filters are applied in order from top to bottom of your stack. Build your preprocessing
+              pipeline by adding filters, configuring their parameters, and reordering as needed.
+              All changes are automatically saved to your <code className="bg-gray-100 px-2 py-1 rounded">config.yaml</code> file
+              with a 500ms debounce to prevent excessive writes during rapid editing.
             </p>
 
-            <ScreenshotPlaceholder
-              alt="Filter stack builder showing Time, POD, Gaussian, and Median filters queued"
-              caption="Figure 4: The filter stack builder with multiple filters queued in order"
-            />
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Filter Stack Controls</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h5 className="font-semibold text-gray-800 mb-3">Adding Filters</h5>
+                  <ul className="text-gray-600 text-sm space-y-2">
+                    <li><strong>Filter Dropdown:</strong> Select from temporal (time, pod) or spatial filters</li>
+                    <li><strong>Add Button:</strong> Appends the selected filter to the bottom of your stack</li>
+                    <li><strong>Default Parameters:</strong> New filters use sensible defaults that you can adjust</li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 className="font-semibold text-gray-800 mb-3">Managing Filters</h5>
+                  <ul className="text-gray-600 text-sm space-y-2">
+                    <li className="flex items-center gap-2">
+                      <ArrowUp size={14} className="text-gray-500" />
+                      <ArrowDown size={14} className="text-gray-500" />
+                      <span>Move filter up or down in the processing order</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Trash2 size={14} className="text-red-500" />
+                      <span>Remove filter from the stack</span>
+                    </li>
+                    <li><strong>Expand/Collapse:</strong> Click filter header to show/hide parameters</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
             <GUIStep step={1} title="Select a filter type">
-              Use the dropdown to choose from Temporal filters (Time, POD) or Spatial filters (Gaussian, Median, etc.)
+              Use the dropdown menu to choose from Temporal filters (Time, POD) or Spatial filters
+              (Gaussian, Median, Clip, Normalise, Max-Norm, Local Max, Invert, Background Subtract,
+              Levelize, Transpose). The dropdown groups filters by category for easier navigation.
             </GUIStep>
             <GUIStep step={2} title="Click Add Filter">
-              The filter is added to your stack with default parameters
+              The selected filter is added to the bottom of your stack with default parameters.
+              If you add temporal filters, a Batch Size control appears to configure how many
+              frames are processed together.
             </GUIStep>
             <GUIStep step={3} title="Configure parameters">
-              Expand the filter card to adjust settings like sigma, kernel size, or thresholds
+              Expand the filter card by clicking on it to reveal parameter controls. Each filter
+              type has specific parameters (e.g., sigma for Gaussian, kernel size for Median).
+              Changes are saved automatically after a brief delay.
             </GUIStep>
             <GUIStep step={4} title="Reorder if needed">
-              Use the up/down arrows to change order, or the X button to remove a filter
+              Use the up/down arrow buttons to change the processing order. Remember that temporal
+              filters should typically precede spatial filters for best results.
             </GUIStep>
 
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
               <p className="text-blue-800">
-                <strong>Order Matters:</strong> Temporal filters (Time, POD) should come first, followed by 
-                spatial filters. A typical stack: Time → POD → Gaussian → Median → Normalize.
+                <strong>Recommended Order:</strong> Start with temporal filters (Time, POD) to remove
+                backgrounds, then apply spatial filters for noise reduction and contrast enhancement.
+                A typical effective stack: Time → POD → Gaussian → Median → Normalise.
               </p>
             </div>
 
-            <YamlDropdown 
+            <YamlDropdown
               title="Filter stack in config.yaml"
               code={`# Filters are applied in order from top to bottom
 filters:
-  # 1. Temporal filters first
+  # 1. Temporal filters first (require batch processing)
   - type: time          # Subtract minimum over time
-  
-  - type: pod           # Remove coherent structures
-  
-  # 2. Then spatial filters
+
+  - type: pod           # Remove coherent structures via POD
+
+  # 2. Then spatial filters (applied per-frame)
   - type: gaussian      # Smooth high-frequency noise
     sigma: 1.0
-    
+
   - type: median        # Remove salt-and-pepper noise
     size: [5, 5]
-    
-  - type: norm          # Normalize local contrast
+
+  - type: norm          # Normalise local contrast
     size: [7, 7]
     max_gain: 1.5`}
             />
@@ -449,56 +628,74 @@ filters:
           {/* Testing Filters */}
           <Section title="Testing Filters" icon={<Play size={32} />} id="test-filters">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The <strong>Test Filters</strong> button applies your current filter stack to the active frame 
-              and displays the result in the right panel. This is the key to developing effective filter settings.
+              The <strong>Test Filters</strong> button applies your current filter stack to the active
+              frame and displays the result in the processed panel. This is the core workflow for
+              developing effective preprocessing pipelines&mdash;test, evaluate, adjust, and repeat
+              until you achieve optimal results.
             </p>
-
-            <ScreenshotPlaceholder
-              alt="Before and after comparison with Time + Gaussian filters applied"
-              caption="Figure 5: Before (raw) and after (processed) comparison showing filter effects"
-            />
 
             <div className="bg-green-50 rounded-xl p-6 border border-green-200 mb-6">
               <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Play size={24} className="text-green-600" /> Testing Workflow
               </h4>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="bg-white rounded-lg p-4">
                   <h5 className="font-semibold text-blue-700 mb-2">Spatial Filters Only</h5>
                   <p className="text-gray-600 text-sm">
-                    Results appear <strong>instantly</strong> — filters are applied to the single current frame.
+                    When your stack contains only spatial filters, results appear <strong>nearly
+                    instantly</strong> since processing applies only to the single current frame.
+                    This enables rapid iteration and parameter tuning.
                   </p>
                 </div>
                 <div className="bg-white rounded-lg p-4">
                   <h5 className="font-semibold text-purple-700 mb-2">With Temporal Filters</h5>
                   <p className="text-gray-600 text-sm">
-                    Processes a <strong>full batch</strong> of frames first. Shows &quot;Processing...&quot; during computation.
+                    When temporal filters (Time, POD) are present, clicking Test Filters processes
+                    a <strong>full batch</strong> of frames. A progress indicator shows &quot;Processing...&quot;
+                    during computation. Results for all frames in the batch become available for
+                    playback after processing completes.
                   </p>
                 </div>
               </div>
 
               <GUIStep step={1} title="Add filters to your stack">
-                Build your filter pipeline using the dropdown and Add Filter button
+                Build your filter pipeline using the dropdown and Add Filter button. Configure
+                parameters for each filter as needed.
               </GUIStep>
               <GUIStep step={2} title="Click Test Filters">
-                Apply the filter stack to the current frame
+                Apply the filter stack to the current frame (or batch for temporal filters).
+                The button shows &quot;Processing...&quot; and is disabled during computation.
               </GUIStep>
               <GUIStep step={3} title="Compare raw vs processed">
-                Use the side-by-side view to evaluate filter effectiveness
+                Use the side-by-side view to evaluate filter effectiveness. Zoom into regions
+                of interest to inspect particle visibility and background removal.
               </GUIStep>
               <GUIStep step={4} title="Adjust and re-test">
-                Tweak parameters and test again until satisfied
+                Tweak filter parameters, reorder filters, or add/remove filters as needed.
+                Click Test Filters again to see updated results.
               </GUIStep>
-              <GUIStep step={5} title="Check consistency">
-                Use Play to verify filters work across multiple frames
+              <GUIStep step={5} title="Verify across frames">
+                Use the playback controls to step or play through multiple frames, verifying
+                that filters perform consistently across your entire sequence.
               </GUIStep>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="font-semibold text-gray-900 mb-3">Processing State Indicators</h4>
+              <ul className="text-gray-600 text-sm space-y-2">
+                <li><strong>Loading Spinner:</strong> Appears over the processed panel during computation</li>
+                <li><strong>&quot;Frame not yet processed&quot;:</strong> Shown when navigating to a frame outside the processed batch</li>
+                <li><strong>&quot;No filters configured&quot;:</strong> Displayed when the filter stack is empty</li>
+                <li><strong>Processing Blocked Dialog:</strong> Appears if you try to modify filters during batch processing, offering to cancel or wait</li>
+              </ul>
             </div>
 
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
               <p className="text-yellow-800">
-                <strong>Pro Tip:</strong> After testing, play through several frames to ensure filters 
-                perform consistently. What works on one frame may not work on all frames!
+                <strong>Pro Tip:</strong> After testing, use the Play button to automatically advance
+                through several frames. Watch for any frames where filters underperform&mdash;what works
+                on one frame may need adjustment for frames with different lighting or particle density.
               </p>
             </div>
           </Section>
@@ -506,49 +703,77 @@ filters:
           {/* Batch Size */}
           <Section title="Batch Size for Temporal Filters" icon={<Clock size={32} />} id="batch-size">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Temporal filters (Time and POD) process multiple frames together. The <strong>Batch Size</strong> 
-              setting controls how many consecutive frames are included in each batch.
+              Temporal filters (Time and POD) analyze patterns across multiple consecutive frames to
+              identify and remove persistent features. The <strong>Batch Size</strong> setting
+              controls how many frames are included in each processing batch, directly affecting
+              both filter effectiveness and computational requirements.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="font-semibold text-gray-900 mb-3">Larger Batch Size (50-100)</h4>
                 <ul className="text-gray-600 text-sm space-y-1">
-                  <li>✓ Better statistical estimation</li>
-                  <li>✓ More effective background removal</li>
-                  <li>✗ Higher memory usage</li>
-                  <li>✗ Longer processing time</li>
+                  <li>&#10003; Better statistical estimation of background features</li>
+                  <li>&#10003; More effective removal of slowly-varying patterns</li>
+                  <li>&#10003; POD can identify more coherent modes</li>
+                  <li>&#10007; Higher memory usage (frames loaded simultaneously)</li>
+                  <li>&#10007; Longer processing time per batch</li>
                 </ul>
-                <p className="text-gray-500 text-xs mt-3 italic">Best for: Steady flows, consistent backgrounds</p>
+                <p className="text-gray-500 text-xs mt-3 italic">
+                  Best for: Steady flows, consistent backgrounds, stationary cameras
+                </p>
               </div>
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="font-semibold text-gray-900 mb-3">Smaller Batch Size (10-30)</h4>
                 <ul className="text-gray-600 text-sm space-y-1">
-                  <li>✓ Lower memory usage</li>
-                  <li>✓ Better for changing conditions</li>
-                  <li>✗ Less effective filtering</li>
-                  <li>✗ May miss slow features</li>
+                  <li>&#10003; Lower memory usage during processing</li>
+                  <li>&#10003; Faster iteration during filter development</li>
+                  <li>&#10003; Better for time-varying conditions</li>
+                  <li>&#10007; Less effective background estimation</li>
+                  <li>&#10007; May miss slowly-varying features</li>
                 </ul>
-                <p className="text-gray-500 text-xs mt-3 italic">Best for: Dynamic flows, varying backgrounds</p>
+                <p className="text-gray-500 text-xs mt-3 italic">
+                  Best for: Dynamic flows, varying illumination, testing filters quickly
+                </p>
               </div>
             </div>
 
-            <YamlDropdown 
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="font-semibold text-gray-900 mb-3">Batch Size Control</h4>
+              <p className="text-gray-600 text-sm mb-3">
+                When temporal filters are present in your stack, a <strong>Batch Size</strong> input
+                field appears next to the filter selector. The value is validated against your total
+                frame count and saved automatically to the configuration.
+              </p>
+              <ul className="text-gray-600 text-sm space-y-1">
+                <li>&bull; Minimum: 1 frame (though temporal filters need multiple frames to be effective)</li>
+                <li>&bull; Maximum: Total number of frame pairs in your sequence</li>
+                <li>&bull; Changes saved on blur (when you click away from the input)</li>
+              </ul>
+            </div>
+
+            <YamlDropdown
               title="Batch size in config.yaml"
               code={`# Batch settings for temporal filters
 batches:
   size: 30  # Number of frames processed together
 
-# Recommendation: Start with 30-50 frames.
-# For dynamic flows: use 10-20
-# For steady flows: use 50-100`}
+# Recommendations:
+# - Testing/development: 10-20 frames (faster iteration)
+# - Standard processing: 30-50 frames (good balance)
+# - High-quality results: 50-100 frames (best statistics)
+#
+# Note: Batch size should not exceed your total frame count`}
             />
           </Section>
 
           {/* Temporal Filters Reference */}
           <Section title="Temporal Filters" icon={<Clock size={32} />} id="temporal">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Temporal filters analyze patterns across multiple frames to remove stationary or slowly-varying features.
+              Temporal filters analyze intensity patterns across multiple frames to identify and
+              remove features that persist over time. These are essential for removing static
+              backgrounds, reflections, and large-scale flow structures that would otherwise
+              dominate cross-correlation peaks.
             </p>
 
             {/* Time Filter */}
@@ -558,52 +783,116 @@ batches:
                 <h4 className="text-xl font-semibold text-gray-900">Time Filter</h4>
               </div>
               <p className="text-gray-600 mb-4">
-                Subtracts the <strong>local minimum</strong> intensity from each pixel across all frames in the batch. 
-                Effectively removes static backgrounds while preserving moving particles.
+                The Time filter subtracts the <strong>local minimum</strong> intensity from each pixel
+                across all frames in the batch. Any feature that appears consistently across frames
+                (static background, reflections, sensor artifacts) will be removed because its minimum
+                value equals its typical value. Moving particles, which only occupy each pixel briefly,
+                are preserved.
               </p>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
                 <p className="text-gray-700 text-sm">
-                  <strong>How it works:</strong> For each pixel, finds the minimum value across batch frames, 
-                  then subtracts that minimum from every frame. Static features become zero.
+                  <strong>Algorithm:</strong> For each pixel position (x, y), compute the minimum
+                  intensity value across all N frames in the batch. Subtract this minimum from every
+                  frame at that position. Clip negative values to zero. Process Frame A and Frame B
+                  channels independently.
                 </p>
               </div>
-              <p className="text-gray-500 text-sm mt-3">No parameters required</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-green-50 rounded-lg p-3">
+                  <h5 className="font-semibold text-green-800 text-sm mb-2">Effective For</h5>
+                  <ul className="text-green-700 text-xs space-y-1">
+                    <li>&bull; Static background removal</li>
+                    <li>&bull; Constant reflections and glare</li>
+                    <li>&bull; Fixed sensor artifacts</li>
+                  </ul>
+                </div>
+                <div className="bg-red-50 rounded-lg p-3">
+                  <h5 className="font-semibold text-red-800 text-sm mb-2">Less Effective For</h5>
+                  <ul className="text-red-700 text-xs space-y-1">
+                    <li>&bull; Moving backgrounds</li>
+                    <li>&bull; Time-varying illumination</li>
+                    <li>&bull; Large coherent structures</li>
+                  </ul>
+                </div>
+              </div>
+              <p className="text-gray-500 text-sm mt-4">
+                <strong>Parameters:</strong> None &mdash; operates automatically on the batch
+              </p>
             </div>
 
             {/* POD Filter */}
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
               <div className="flex items-center gap-3 mb-4">
                 <code className="bg-purple-100 text-purple-700 px-3 py-1 rounded font-bold">pod</code>
-                <h4 className="text-xl font-semibold text-gray-900">POD Filter</h4>
+                <h4 className="text-xl font-semibold text-gray-900">POD Filter (Proper Orthogonal Decomposition)</h4>
               </div>
               <p className="text-gray-600 mb-4">
-                Uses <strong>Proper Orthogonal Decomposition</strong> to identify and remove coherent structures 
-                (large-scale flow features, reflections) while preserving particle signal.
+                The POD filter uses <strong>Proper Orthogonal Decomposition</strong> (also known as
+                Principal Component Analysis in the temporal domain) to identify and remove coherent
+                structures from the image sequence. This advanced technique decomposes the flow field
+                into ranked spatial modes, automatically identifies which modes represent &quot;signal&quot;
+                (background/large structures) versus &quot;noise&quot; (particles), and reconstructs images
+                with signal modes removed.
               </p>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
                 <p className="text-gray-700 text-sm">
-                  <strong>How it works:</strong> Decomposes the image sequence into spatial modes ranked by energy. 
-                  Removes dominant modes (background/large structures) and reconstructs from remaining modes.
+                  <strong>Algorithm (Mendez et al.):</strong>
                 </p>
+                <ol className="text-gray-700 text-sm space-y-1 mt-2 ml-4 list-decimal">
+                  <li>Reshape each frame to a 1D vector and stack into matrix M (frames × pixels)</li>
+                  <li>Compute covariance matrix C = M × M<sup>T</sup></li>
+                  <li>Perform SVD: C = PSI × S × PSI<sup>T</sup> to get eigenvectors and eigenvalues</li>
+                  <li>Auto-detect first &quot;noise mode&quot; where mean(PSI) &lt; 0.01 and eigenvalue difference is small</li>
+                  <li>Compute spatial modes (PHI) and temporal coefficients for signal modes</li>
+                  <li>Reconstruct and subtract signal contribution from each frame</li>
+                </ol>
               </div>
-              <p className="text-gray-500 text-sm mt-3">No parameters required</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-green-50 rounded-lg p-3">
+                  <h5 className="font-semibold text-green-800 text-sm mb-2">Effective For</h5>
+                  <ul className="text-green-700 text-xs space-y-1">
+                    <li>&bull; Large-scale flow structures</li>
+                    <li>&bull; Coherent vortices and wakes</li>
+                    <li>&bull; Periodic flow features</li>
+                    <li>&bull; Complex time-varying backgrounds</li>
+                  </ul>
+                </div>
+                <div className="bg-red-50 rounded-lg p-3">
+                  <h5 className="font-semibold text-red-800 text-sm mb-2">Considerations</h5>
+                  <ul className="text-red-700 text-xs space-y-1">
+                    <li>&bull; Computationally intensive (SVD)</li>
+                    <li>&bull; Needs sufficient batch size (&gt;30)</li>
+                    <li>&bull; May over-filter sparse particle fields</li>
+                  </ul>
+                </div>
+              </div>
+              <p className="text-gray-500 text-sm mt-4">
+                <strong>Parameters:</strong> None &mdash; automatic mode detection using eps_auto_psi=0.01 and eps_auto_sigma=0.01
+              </p>
             </div>
 
-            <YamlDropdown 
+            <YamlDropdown
               title="Temporal filters in config.yaml"
               code={`filters:
-  - type: time    # Remove static background
-  - type: pod     # Remove coherent structures
+  - type: time    # Remove static background (subtract local minimum)
+  - type: pod     # Remove coherent structures via POD
 
 # Both require batch processing.
-# Set batch size in the batches section.`}
+# Set batch size in the batches section:
+batches:
+  size: 30
+
+# Note: Temporal filters process Frame A and Frame B
+# channels independently to preserve pair correlation.`}
             />
           </Section>
 
           {/* Spatial Filters Reference */}
           <Section title="Spatial Filters" icon={<Sparkles size={32} />} id="spatial">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Spatial filters operate on individual frames, modifying pixel intensities based on local neighborhoods.
+              Spatial filters operate on individual frames, modifying pixel intensities based on
+              local neighbourhoods. These filters are applied per-frame after any temporal filters,
+              and are used for noise reduction, contrast enhancement, and image correction.
             </p>
 
             {/* Filter Cards */}
@@ -612,67 +901,70 @@ batches:
                 {
                   type: "gaussian",
                   name: "Gaussian Blur",
-                  desc: "Smooths images using a Gaussian kernel. Reduces high-frequency noise.",
-                  params: [{ name: "sigma", default: "1.0", desc: "Standard deviation" }]
+                  desc: "Smooths images using a Gaussian kernel with specified standard deviation. Reduces high-frequency noise while preserving larger features. Applied in both spatial dimensions.",
+                  params: [{ name: "sigma", default: "1.0", desc: "Standard deviation (pixels)" }]
                 },
                 {
                   type: "median",
                   name: "Median Filter",
-                  desc: "Replaces each pixel with neighborhood median. Great for salt-and-pepper noise.",
-                  params: [{ name: "size", default: "[5, 5]", desc: "Kernel size" }]
+                  desc: "Replaces each pixel with the median value of its neighbourhood. Excellent for removing salt-and-pepper noise while preserving edges better than Gaussian smoothing.",
+                  params: [{ name: "size", default: "[5, 5]", desc: "Kernel size [height, width]" }]
                 },
                 {
                   type: "clip",
                   name: "Clip Filter",
-                  desc: "Clips pixel intensities to threshold range. Auto-mode uses median ± n×std.",
-                  params: [{ name: "n", default: "2.0", desc: "Std devs for auto" }]
+                  desc: "Clips pixel intensities to a threshold range. Auto-mode computes threshold as median ± n×std for each frame, handling hot pixels and sensor noise automatically.",
+                  params: [
+                    { name: "n", default: "2.0", desc: "Std devs for auto threshold" },
+                    { name: "threshold", default: "null", desc: "Optional explicit [min, max]" }
+                  ]
                 },
                 {
                   type: "norm",
-                  name: "Normalization",
-                  desc: "Normalizes by subtracting local min and dividing by local range.",
+                  name: "Normalisation",
+                  desc: "Local contrast normalisation that subtracts sliding minimum and divides by local range (max-min). Equalises intensity variations across the image.",
                   params: [
-                    { name: "size", default: "[7, 7]", desc: "Kernel size" },
-                    { name: "max_gain", default: "1.0", desc: "Max gain" }
+                    { name: "size", default: "[7, 7]", desc: "Kernel size [height, width]" },
+                    { name: "max_gain", default: "1.0", desc: "Maximum normalisation gain" }
                   ]
                 },
                 {
                   type: "maxnorm",
                   name: "Max-Norm",
-                  desc: "Normalizes by local max-min contrast. Good for varying illumination.",
+                  desc: "Normalises by local max-min contrast with smoothing. Similar to norm but includes uniform filtering of the contrast field for smoother results.",
                   params: [
-                    { name: "size", default: "[7, 7]", desc: "Kernel size" },
-                    { name: "max_gain", default: "1.0", desc: "Max gain" }
+                    { name: "size", default: "[7, 7]", desc: "Kernel size [height, width]" },
+                    { name: "max_gain", default: "1.0", desc: "Maximum allowed gain" }
                   ]
                 },
                 {
                   type: "lmax",
                   name: "Local Maximum",
-                  desc: "Morphological dilation — replaces each pixel with neighborhood max.",
-                  params: [{ name: "size", default: "[7, 7]", desc: "Kernel size" }]
+                  desc: "Morphological dilation that replaces each pixel with the maximum value in its neighbourhood. Useful for enhancing bright features (particles) and filling small gaps.",
+                  params: [{ name: "size", default: "[7, 7]", desc: "Kernel size [height, width]" }]
                 },
                 {
                   type: "invert",
                   name: "Invert",
-                  desc: "Inverts intensities: output = offset - input. For dark particles on light background.",
-                  params: [{ name: "offset", default: "255", desc: "Value to subtract from" }]
+                  desc: "Inverts image intensities: output = offset - input. Use when you have dark particles on a light background (e.g., shadowgraph, backlit imaging).",
+                  params: [{ name: "offset", default: "255", desc: "Value to subtract from (typically max intensity)" }]
                 },
                 {
                   type: "sbg",
                   name: "Subtract Background",
-                  desc: "Subtracts a reference background image from all frames.",
-                  params: [{ name: "bg", default: "null", desc: "Path to background" }]
+                  desc: "Subtracts a reference background image from all frames and clips at zero. Requires a pre-captured background image without particles.",
+                  params: [{ name: "bg", default: "null", desc: "Path to background image file" }]
                 },
                 {
                   type: "levelize",
                   name: "Levelize",
-                  desc: "Divides by a white reference image. Corrects uneven illumination.",
-                  params: [{ name: "white", default: "null", desc: "Path to white ref" }]
+                  desc: "Divides by a white reference image to correct uneven illumination. The white reference should capture your illumination pattern without particles.",
+                  params: [{ name: "white", default: "null", desc: "Path to white reference image" }]
                 },
                 {
                   type: "transpose",
                   name: "Transpose",
-                  desc: "Swaps height and width dimensions.",
+                  desc: "Swaps height and width dimensions of the image. Use when your camera orientation doesn't match expected coordinate system.",
                   params: []
                 }
               ].map((filter, index) => (
@@ -698,86 +990,137 @@ batches:
               ))}
             </div>
 
-            <YamlDropdown 
+            <YamlDropdown
               title="Spatial filters in config.yaml"
               code={`filters:
   - type: gaussian
-    sigma: 1.5
-    
+    sigma: 1.5              # Float: Gaussian std dev in pixels
+
   - type: median
-    size: [5, 5]
-    
+    size: [5, 5]            # [int, int]: Kernel height, width
+
   - type: clip
-    n: 2.5
-    
+    n: 2.5                  # Float: Std devs for auto threshold
+    # threshold: [10, 250]  # Alternative: explicit [min, max]
+
   - type: norm
     size: [7, 7]
     max_gain: 2.0
-    
+
+  - type: maxnorm
+    size: [7, 7]
+    max_gain: 1.5
+
+  - type: lmax
+    size: [5, 5]
+
   - type: invert
-    offset: 255
-    
+    offset: 255             # For 8-bit images
+
   - type: sbg
     bg: /path/to/background.tif
-    
+
   - type: levelize
-    white: /path/to/white_reference.tif`}
+    white: /path/to/white_reference.tif
+
+  - type: transpose         # No parameters`}
             />
+          </Section>
+
+          {/* Download & Export */}
+          <Section title="Download & Export" icon={<Download size={32} />} id="download">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Both raw and processed images can be downloaded directly from the viewer. Use these
+              exports for documentation, publication figures, or further analysis in external tools.
+            </p>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Download Options</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-800 mb-2">Raw Image Downloads</h5>
+                  <p className="text-gray-600 text-sm mb-2">
+                    Download the original, unprocessed image data for the currently displayed frame.
+                  </p>
+                  <ul className="text-gray-500 text-xs space-y-1">
+                    <li>&bull; <strong>Download Raw A:</strong> Exports Frame A of the current pair</li>
+                    <li>&bull; <strong>Download Raw B:</strong> Exports Frame B of the current pair</li>
+                    <li>&bull; Format matches current viewer setting (JPEG or PNG)</li>
+                  </ul>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-800 mb-2">Processed Image Downloads</h5>
+                  <p className="text-gray-600 text-sm mb-2">
+                    Download the filtered result after your filter stack has been applied.
+                  </p>
+                  <ul className="text-gray-500 text-xs space-y-1">
+                    <li>&bull; <strong>Download Processed A:</strong> Exports filtered Frame A</li>
+                    <li>&bull; <strong>Download Processed B:</strong> Exports filtered Frame B</li>
+                    <li>&bull; Only available after running Test Filters</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </Section>
 
           {/* Complete YAML Reference */}
           <Section title="Complete YAML Reference" icon={<FileText size={32} />} id="yaml-reference">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Filters configured in the GUI are saved to <code className="bg-gray-100 px-2 py-1 rounded">config.yaml</code>. 
-              Here&apos;s a complete reference of all filter parameters.
+              All filter configurations from the GUI are automatically saved to <code className="bg-gray-100 px-2 py-1 rounded">config.yaml</code>.
+              Here&apos;s a complete reference of all preprocessing parameters and their relationships.
             </p>
 
-            <YamlDropdown 
-              title="Complete filter configuration"
+            <YamlDropdown
+              title="Complete preprocessing configuration"
               defaultOpen={true}
               code={`# config.yaml - Complete preprocessing configuration
 
 filters:
-  # TEMPORAL FILTERS (require batching)
-  - type: time          # No parameters
-  - type: pod           # No parameters
-  
+  # TEMPORAL FILTERS (require batch processing)
+  # These analyze multiple frames together
+  - type: time          # No parameters - subtracts local minimum
+  - type: pod           # No parameters - automatic mode detection
+
   # SPATIAL FILTERS (applied per-frame)
+  # Order matters - applied sequentially
   - type: gaussian
-    sigma: 1.0          # float: Gaussian std dev
-    
+    sigma: 1.0          # float: Gaussian std dev (pixels)
+
   - type: median
-    size: [5, 5]        # [int, int]: Kernel size
-    
+    size: [5, 5]        # [int, int]: Kernel size [height, width]
+
   - type: clip
     n: 2.0              # float: Std devs for auto threshold
-    # threshold: [lo, hi]  # Alternative: explicit [min, max]
-    
+    # threshold: [lo, hi]  # Alternative: explicit [min, max] values
+
   - type: norm
     size: [7, 7]        # [int, int]: Kernel size
-    max_gain: 1.0       # float: Maximum gain
-    
+    max_gain: 1.0       # float: Maximum normalisation gain
+
   - type: maxnorm
     size: [7, 7]
     max_gain: 1.0
-    
+
   - type: lmax
-    size: [7, 7]
-    
+    size: [7, 7]        # Morphological dilation kernel
+
   - type: invert
     offset: 255         # int: Value to subtract from
-    
+
   - type: sbg
     bg: null            # string: Path to background image
-    
+
   - type: levelize
     white: null         # string: Path to white reference
-    
-  - type: transpose     # No parameters
 
-# BATCH SETTINGS
+  - type: transpose     # No parameters - swaps H and W
+
+# BATCH SETTINGS (for temporal filters)
 batches:
-  size: 30              # Frames per batch`}
+  size: 30              # Number of frames per batch
+
+# Note: Kernel sizes are automatically adjusted to be odd
+# (e.g., [6, 6] becomes [7, 7]) for proper centering`}
             />
 
             {/* Parameter Table */}
@@ -787,72 +1130,44 @@ batches:
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Filter</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Type</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Data Type</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { filter: "time", param: "(none)", type: "-", default: "-" },
-                    { filter: "pod", param: "(none)", type: "-", default: "-" },
-                    { filter: "gaussian", param: "sigma", type: "float", default: "1.0" },
-                    { filter: "median", param: "size", type: "[int, int]", default: "[5, 5]" },
-                    { filter: "clip", param: "n", type: "float", default: "2.0" },
-                    { filter: "norm", param: "size", type: "[int, int]", default: "[7, 7]" },
-                    { filter: "norm", param: "max_gain", type: "float", default: "1.0" },
-                    { filter: "maxnorm", param: "size", type: "[int, int]", default: "[7, 7]" },
-                    { filter: "lmax", param: "size", type: "[int, int]", default: "[7, 7]" },
-                    { filter: "invert", param: "offset", type: "int", default: "255" },
-                    { filter: "sbg", param: "bg", type: "string", default: "null" },
-                    { filter: "levelize", param: "white", type: "string", default: "null" }
+                    { filter: "time", type: "Temporal", param: "(none)", dtype: "-", default: "-" },
+                    { filter: "pod", type: "Temporal", param: "(none)", dtype: "-", default: "-" },
+                    { filter: "gaussian", type: "Spatial", param: "sigma", dtype: "float", default: "1.0" },
+                    { filter: "median", type: "Spatial", param: "size", dtype: "[int, int]", default: "[5, 5]" },
+                    { filter: "clip", type: "Spatial", param: "n", dtype: "float", default: "2.0" },
+                    { filter: "clip", type: "Spatial", param: "threshold", dtype: "[float, float]", default: "null" },
+                    { filter: "norm", type: "Spatial", param: "size", dtype: "[int, int]", default: "[7, 7]" },
+                    { filter: "norm", type: "Spatial", param: "max_gain", dtype: "float", default: "1.0" },
+                    { filter: "maxnorm", type: "Spatial", param: "size", dtype: "[int, int]", default: "[7, 7]" },
+                    { filter: "maxnorm", type: "Spatial", param: "max_gain", dtype: "float", default: "1.0" },
+                    { filter: "lmax", type: "Spatial", param: "size", dtype: "[int, int]", default: "[7, 7]" },
+                    { filter: "invert", type: "Spatial", param: "offset", dtype: "int", default: "255" },
+                    { filter: "sbg", type: "Spatial", param: "bg", dtype: "string", default: "null" },
+                    { filter: "levelize", type: "Spatial", param: "white", dtype: "string", default: "null" },
+                    { filter: "transpose", type: "Spatial", param: "(none)", dtype: "-", default: "-" }
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm font-mono text-purple-600">{row.filter}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${row.type === 'Temporal' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                          {row.type}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 text-sm font-mono text-blue-600">{row.param}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{row.type}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{row.dtype}</td>
                       <td className="px-4 py-3 text-sm font-mono text-green-600">{row.default}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          </Section>
-
-          {/* Troubleshooting */}
-          <Section title="Troubleshooting" icon={<Info size={32} />} id="troubleshooting">
-            <div className="space-y-4">
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-2">Processed image looks the same as raw</h4>
-                <p className="text-gray-600 text-sm">
-                  Make sure you clicked <strong>Test Filters</strong> after adding or modifying filters. 
-                  The processed panel only updates when you explicitly test.
-                </p>
-              </div>
-              
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-2">Temporal filters taking too long</h4>
-                <p className="text-gray-600 text-sm">
-                  Reduce the <strong>Batch Size</strong> to process fewer frames at once. 
-                  For testing, a batch size of 10-20 is often sufficient.
-                </p>
-              </div>
-              
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-2">Grid not visible on image</h4>
-                <p className="text-gray-600 text-sm">
-                  The grid uses your current interrogation window settings from the Processing tab. 
-                  Make sure you&apos;ve configured those settings first, then toggle the grid icon.
-                </p>
-              </div>
-              
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-2">Filters not saving to config.yaml</h4>
-                <p className="text-gray-600 text-sm">
-                  Filter changes are saved automatically when you modify them in the GUI. 
-                  Check that you have write permissions to the config file.
-                </p>
-              </div>
             </div>
           </Section>
 
@@ -865,13 +1180,14 @@ batches:
           >
             <h3 className="text-3xl font-bold mb-4">Ready to Configure PIV Processing?</h3>
             <p className="text-gray-300 mb-6 text-lg">
-              With your filter stack optimized, set up your cross-correlation parameters.
+              With your filter stack configured and verified across multiple frames, you&apos;re ready
+              to configure cross-correlation parameters for vector field computation.
             </p>
             <a
               href="/manual/processing"
               className="inline-block bg-soton-gold text-soton-darkblue px-8 py-4 rounded-lg font-semibold hover:bg-yellow-400 transition-colors duration-200"
             >
-              Configure Processing →
+              Configure Processing &rarr;
             </a>
           </motion.div>
 

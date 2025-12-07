@@ -1,16 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu, X, BookOpen, Users, Layers } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     { name: 'Home', href: '/', icon: null },
-    { name: 'Capabilities', href: '/#capabilities', icon: Layers },
-    { name: 'Manual', href: '/manual', icon: BookOpen },
-    { name: 'Research', href: '/#research', icon: Users },
+    { name: 'Manual', href: '/manual', icon: null },
   ];
 
   return (
@@ -30,7 +28,7 @@ export default function Navigation() {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-gray-700 hover:text-soton-blue px-4 py-3 rounded-md text-lg font-semibold transition-colors duration-200 flex items-center gap-2 hover:bg-soton-lightblue"
+                  className="text-gray-700 hover:text-soton-blue px-4 py-3 rounded-md text-lg font-semibold transition-colors duration-200 flex items-baseline justify-center gap-2 hover:bg-soton-lightblue min-h-[48px]"
                 >
                   {item.icon && <item.icon size={20} />}
                   {item.name}
@@ -58,7 +56,7 @@ export default function Navigation() {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-gray-700 hover:text-soton-blue px-4 py-3 rounded-md text-lg font-semibold transition-colors duration-200 flex items-center gap-2 hover:bg-soton-lightblue"
+                  className="text-gray-700 hover:text-soton-blue px-4 py-3 rounded-md text-lg font-semibold transition-colors duration-200 flex items-baseline justify-center gap-2 hover:bg-soton-lightblue min-h-[48px]"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.icon && <item.icon size={20} />}

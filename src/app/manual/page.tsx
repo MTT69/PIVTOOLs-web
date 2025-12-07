@@ -8,11 +8,11 @@ import Footer from '@/components/Footer';
 const sections = [
   {
     title: 'Quick Start',
-    description: 'Get PIVTools up and running in minutes with pip install. No compiler required.',
+    description: 'Get PIVTools up and running in minutes with pip install. No compiler required. Both the GUI and CLI run from the same YAML configuration file, allowing all GUI functionality to be achieved via appropriately constructed YAML configs.',
     href: '/manual/quick-start',
     icon: <Download size={32} />,
     color: 'from-green-500 to-emerald-600',
-    features: ['Python 3.12/3.13 virtual environment', 'pip install pivtools', 'Launch GUI or CLI']
+    features: ['Python 3.12/3.13 virtual environment', 'pip install pivtools', 'Launch GUI or CLI', 'Shared YAML configuration']
   },
   {
     title: 'Image Configuration',

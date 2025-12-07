@@ -178,7 +178,7 @@ pip install pivtools`} />
               <p className="text-blue-700">
                 Both the GUI and CLI share the same <code className="bg-blue-100 px-2 py-1 rounded text-sm">config.yaml</code> file.
                 Changes made in the GUI are automatically available when you run the CLI, and vice versa.
-                This allows you to configure complex setups visually and then run processing in batch mode.
+                This allows you to configure complex setups visually with the option to run via the command line or the GUI.
               </p>
             </div>
           </Section>

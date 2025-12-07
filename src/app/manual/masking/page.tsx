@@ -18,7 +18,10 @@ import {
   FileText,
   ChevronDown,
   ChevronRight,
-  Camera
+  Sliders,
+  Target,
+  Trash2,
+  Info
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -51,26 +54,6 @@ const Section = ({ title, children, icon, id }: SectionProps) => {
     </motion.section>
   );
 };
-
-interface CodeBlockProps {
-  code: string;
-  title?: string;
-}
-
-const CodeBlock = ({ code, title }: CodeBlockProps) => (
-  <div className="mb-6">
-    {title && (
-      <div className="bg-gray-800 text-gray-300 px-4 py-2 rounded-t-lg text-sm font-mono">
-        {title}
-      </div>
-    )}
-    <div className={`bg-gray-900 ${title ? 'rounded-b-lg' : 'rounded-lg'} p-6 overflow-x-auto`}>
-      <code className="text-green-400 font-mono text-sm whitespace-pre-wrap">
-        {code}
-      </code>
-    </div>
-  </div>
-);
 
 interface YamlDropdownProps {
   title?: string;
@@ -109,23 +92,6 @@ const YamlDropdown = ({ title = "YAML Reference", code, defaultOpen = false }: Y
     </div>
   );
 };
-
-interface ScreenshotPlaceholderProps {
-  caption: string;
-  alt: string;
-}
-
-const ScreenshotPlaceholder = ({ caption, alt }: ScreenshotPlaceholderProps) => (
-  <div className="my-6">
-    <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center min-h-[200px]">
-      <div className="text-gray-400 mb-2">
-        <Camera size={48} />
-      </div>
-      <p className="text-gray-500 text-sm text-center">[Screenshot: {alt}]</p>
-    </div>
-    <p className="text-center text-sm text-gray-600 mt-2 italic">{caption}</p>
-  </div>
-);
 
 interface FeatureListProps {
   items: string[];
@@ -180,6 +146,7 @@ export default function MaskingPage() {
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Define regions to exclude from PIV processing using polygon masks or pixel borders.
+              Masking prevents erroneous vectors in areas with poor seeding, reflections, or model boundaries.
             </p>
           </motion.div>
 
@@ -188,12 +155,13 @@ export default function MaskingPage() {
             <h3 className="text-2xl font-bold mb-4">Getting Started</h3>
             <p className="text-gray-200 mb-6 text-lg">
               The Masking panel is found on the <strong>Setup</strong> tab in the PIVTools GUI, below Image Configuration.
-              Use it to exclude walls, model supports, reflections, or image edges from PIV analysis.
+              Use it to exclude walls, model supports, reflections, or image edges from PIV analysis. Masked regions
+              produce zero-valued vectors in the output fields.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 { label: "1. Choose Mode", desc: "Polygon or Pixel Border" },
-                { label: "2. Define Regions", desc: "Draw or set pixel values" },
+                { label: "2. Define Regions", desc: "Draw polygons or set pixel values" },
                 { label: "3. Enable Mask", desc: "Toggle 'Apply Mask for PIV'" }
               ].map((item, index) => (
                 <div key={index} className="bg-white/10 rounded-lg p-4 text-center">
@@ -207,13 +175,10 @@ export default function MaskingPage() {
           {/* Overview Section */}
           <Section title="Masking Modes" icon={<Layers size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              PIVTools supports two masking modes. Select the mode from the dropdown in the Masking panel.
+              PIVTools supports two masking modes. Select the mode from the <strong>Masking Mode</strong> dropdown
+              in the Masking panel. Both modes can be toggled on or off for PIV processing using the
+              <strong> Apply Mask for PIV</strong> switch.
             </p>
-
-            <ScreenshotPlaceholder
-              alt="Masking panel header showing mode dropdown with Polygon and Pixel Border options, and Apply Mask toggle"
-              caption="Figure 1: Masking mode selector and enable toggle at the top of the Masking panel"
-            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
@@ -223,13 +188,19 @@ export default function MaskingPage() {
                 </div>
                 <p className="text-gray-600 mb-4">
                   Draw custom polygon shapes to mask irregular regions like model supports, walls, or reflections.
-                  Multiple polygons can be combined into a single mask.
+                  Multiple polygons can be combined into a single mask. Polygons <strong>auto-save</strong> when
+                  completed, so your work is preserved automatically.
                 </p>
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="text-blue-700 text-sm">
-                    <strong>Best for:</strong> Complex shapes, angled surfaces, irregular boundaries
+                    <strong>Best for:</strong> Complex shapes, angled surfaces, irregular boundaries, non-rectangular regions
                   </p>
                 </div>
+                <YamlDropdown
+                  code={`masking:
+  enabled: true
+  mode: file  # 'file' = polygon mask from .mat file`}
+                />
               </div>
 
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
@@ -239,119 +210,183 @@ export default function MaskingPage() {
                 </div>
                 <p className="text-gray-600 mb-4">
                   Quickly mask fixed pixel borders from the top, bottom, left, and right edges of the image.
-                  Ideal for cropping noisy edges.
+                  Ideal for cropping noisy edges or removing fixed boundary regions. Values are stored
+                  directly in <code className="bg-gray-100 px-1 rounded">config.yaml</code>.
                 </p>
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="text-blue-700 text-sm">
-                    <strong>Best for:</strong> Edge artifacts, fixed boundary regions, quick setup
+                    <strong>Best for:</strong> Edge artifacts, fixed boundary regions, quick setup, uniform borders
                   </p>
                 </div>
+                <YamlDropdown
+                  code={`masking:
+  enabled: true
+  mode: rectangular  # 'rectangular' = pixel border mode`}
+                />
               </div>
             </div>
 
             <div className="bg-green-50 rounded-lg p-6 border-l-4 border-green-400">
               <p className="text-green-700">
                 <strong>Enable Masking:</strong> Toggle the <em>&quot;Apply Mask for PIV&quot;</em> switch to activate masking during processing.
-                When enabled, masked regions will be set to zero in the output vector fields.
+                When enabled, masked regions will be set to zero in the output vector fields. The toggle affects both
+                polygon and pixel border modes—whichever is currently selected.
               </p>
             </div>
-
-            <YamlDropdown
-              title="YAML Reference - Masking Mode"
-              code={`masking:
-  enabled: true          # Toggle masking on/off
-  mode: file             # 'file' = polygon mode, 'rectangular' = pixel border mode`}
-            />
           </Section>
 
           {/* Polygon Mask Editor Section */}
           <Section title="Polygon Mask Editor" icon={<MousePointer2 size={32} />} id="polygon-editor">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              When <strong>Polygon</strong> mode is selected, an interactive canvas appears for drawing mask regions directly on your PIV images.
+              When <strong>Polygon</strong> mode is selected, an interactive canvas appears for drawing mask regions
+              directly on your PIV images. The editor supports multiple polygons, edge snapping for precise boundary
+              alignment, and a magnifier tool for accurate point placement.
             </p>
-
-            <ScreenshotPlaceholder
-              alt="Polygon mask editor showing an image with two drawn polygons - one completed (orange) masking a support structure, and one in progress (green) with visible vertices"
-              caption="Figure 2: Polygon mask editor with completed mask (orange) and active polygon being drawn (green vertices)"
-            />
 
             {/* Drawing Polygons */}
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
               <h4 className="text-xl font-semibold text-gray-900 mb-4">How to Draw Polygons</h4>
-              
+
               <GUIStep step={1} title="Load an image">
-                Select your source path, camera, and image index from the controls at the top, then click <strong>Load Image</strong>.
+                Select your source path, camera, and image index from the controls at the top of the Masking panel,
+                then click <strong>Load Image</strong>. The image will appear in the editor canvas with adjustable contrast.
               </GUIStep>
-              
+
               <GUIStep step={2} title="Click to add points">
-                Click on the image to place polygon vertices. Points appear in <span className="text-green-600 font-semibold">green</span> for the active polygon.
+                Click on the image to place polygon vertices. Points appear in <span className="text-green-600 font-semibold">green</span> for
+                the active polygon. Each click adds a new vertex, and lines are drawn between consecutive points.
               </GUIStep>
-              
+
               <GUIStep step={3} title="Close the polygon">
-                After placing at least 3 points, the starting point shows as a <span className="text-pink-600 font-semibold">larger red circle</span>.
-                Click within this circle to close the polygon. It will turn <span className="text-orange-500 font-semibold">orange</span> when closed.
+                After placing at least 3 points, the starting point shows as a <span className="text-pink-600 font-semibold">larger red circle</span> with
+                a transparent halo indicating the click radius. Click within this circle to close the polygon. Once closed,
+                the polygon turns <span className="text-orange-500 font-semibold">orange/yellow</span> and a new empty polygon is automatically started.
               </GUIStep>
-              
+
               <GUIStep step={4} title="Add more polygons">
-                After closing, a new polygon starts automatically. Click <strong>New Polygon</strong> to start one manually.
+                After closing, a new polygon starts automatically. You can also click <strong>New Polygon</strong> to
+                start one manually at any time. All closed polygons are combined into a single mask.
               </GUIStep>
+            </div>
+
+            {/* Auto-save Feature */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 mb-6 border-l-4 border-green-500">
+              <div className="flex items-center gap-3 mb-3">
+                <Save className="text-green-600" size={24} />
+                <h4 className="text-xl font-semibold text-gray-900">Automatic Saving</h4>
+              </div>
+              <p className="text-gray-700 mb-4">
+                Masks are <strong>saved automatically</strong> whenever you:
+              </p>
+              <ul className="text-gray-600 space-y-2 ml-4">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="text-green-500" size={16} />
+                  <span>Complete a polygon by clicking the starting point</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="text-green-500" size={16} />
+                  <span>Delete a polygon using the Delete button</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="text-green-500" size={16} />
+                  <span>Clear all polygons using the Clear Mask button</span>
+                </li>
+              </ul>
+              <p className="text-green-700 text-sm mt-4">
+                No manual save action is required—your work is preserved automatically to <code className="bg-green-100 px-1 rounded">mask_CamN.mat</code>.
+              </p>
             </div>
 
             {/* Edge Snapping */}
             <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 mb-6 border-l-4 border-orange-400">
-              <h4 className="text-xl font-semibold text-gray-900 mb-3">Edge Snapping</h4>
+              <div className="flex items-center gap-3 mb-3">
+                <Target className="text-orange-500" size={24} />
+                <h4 className="text-xl font-semibold text-gray-900">Edge Snapping</h4>
+              </div>
               <p className="text-gray-700 mb-4">
-                Click in the <strong>padding area</strong> outside the image to snap points to the nearest edge or corner.
-                This is useful for creating masks that extend precisely to the image boundary.
+                Click in the <strong>padding area</strong> outside the image boundaries to automatically snap points
+                to the nearest edge or corner. This is essential for creating masks that extend precisely to the
+                image boundary without leaving gaps.
               </p>
-              <div className="flex items-center gap-3">
-                <Eye className="text-orange-500" size={20} />
-                <p className="text-orange-700 text-sm">
-                  The magnifier turns <span className="text-orange-600 font-bold">orange</span> when you&apos;re in the snap zone.
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-2">How it works:</h5>
+                  <ul className="text-gray-600 text-sm space-y-1">
+                    <li>• The editor has padding around the image</li>
+                    <li>• Clicking in the padding snaps to the nearest edge</li>
+                    <li>• Corner snapping works at image corners</li>
+                    <li>• Snapped points are clamped to 0 or max-1</li>
+                  </ul>
+                </div>
+                <div className="bg-white rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Eye className="text-orange-500" size={20} />
+                    <h5 className="font-semibold text-gray-900">Visual Indicator</h5>
+                  </div>
+                  <p className="text-gray-600 text-sm">
+                    When the magnifier is enabled, its border turns <span className="text-orange-600 font-bold">orange</span> when
+                    you&apos;re in the snap zone outside the image. This confirms that your next click will snap to an edge.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Magnifier & Contrast */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Magnifier Tool</h4>
+                <div className="flex items-center gap-3 mb-4">
+                  <Eye className="text-soton-blue" size={24} />
+                  <h4 className="text-lg font-semibold text-gray-900">Magnifier Tool</h4>
+                </div>
                 <p className="text-gray-600 mb-4">
-                  Enable the magnifier for precise point placement. A 2.5× zoomed view follows your cursor with crosshairs.
+                  Enable the magnifier for precise point placement. A 2.5× zoomed circular view follows your cursor,
+                  showing crosshairs at the exact click position. The magnifier displays both the base image and
+                  any drawn polygons.
                 </p>
                 <FeatureList items={[
-                  "Toggle with the magnifier button",
+                  "Toggle with the 🔍 button in the toolbar",
+                  "2.5× zoom factor for fine detail work",
                   "Crosshairs indicate exact click position",
-                  "Orange border when in edge-snap zone"
+                  "Orange border when in edge-snap zone",
+                  "Works in both image and padding areas"
                 ]} />
               </div>
 
               <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Contrast Controls</h4>
+                <div className="flex items-center gap-3 mb-4">
+                  <Sliders className="text-soton-blue" size={24} />
+                  <h4 className="text-lg font-semibold text-gray-900">Contrast Controls</h4>
+                </div>
                 <p className="text-gray-600 mb-4">
-                  Adjust image contrast to see mask regions more clearly. Use <strong>Auto-scale</strong> for automatic 1st–99th percentile scaling.
+                  Adjust image contrast to see mask regions and boundaries more clearly. The contrast controls
+                  appear above the polygon editor when an image is loaded.
                 </p>
                 <FeatureList items={[
-                  "Drag slider handles for min/max",
-                  "Auto-scale checkbox for automatic range",
-                  "Works with any bit depth (8-bit, 16-bit)"
+                  "Dual-handle slider for min/max values",
+                  "Values shown as percentages (0-100%)",
+                  "Auto Scale toggle for automatic 1st-99th percentile",
+                  "Works with any bit depth (8-bit, 16-bit)",
+                  "Adjusting disables auto-scale automatically"
                 ]} />
               </div>
             </div>
 
             {/* Editor Controls */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-              <h4 className="text-xl font-semibold text-gray-900 mb-4">Editor Controls</h4>
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Editor Toolbar</h4>
+              <p className="text-gray-600 mb-4">
+                The toolbar above the canvas provides controls for polygon management, navigation, and export options:
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
-                  { btn: "New Polygon", desc: "Start a fresh polygon" },
-                  { btn: "Undo Point", desc: "Remove last point added" },
-                  { btn: "Delete", desc: "Delete selected polygon" },
-                  { btn: "Prev / Next", desc: "Navigate between polygons" },
-                  { btn: "Save Mask", desc: "Save .mat file for PIV" },
-                  { btn: "Save PNG", desc: "Download as PNG image" },
-                  { btn: "Clear Mask", desc: "Remove all polygons" },
-                  { btn: "Magnifier", desc: "Toggle zoom tool" }
+                  { btn: "New Polygon", desc: "Start a fresh polygon (auto-finishes current)" },
+                  { btn: "Undo Point", desc: "Remove the last point added to active polygon" },
+                  { btn: "Delete", desc: "Delete the currently selected polygon" },
+                  { btn: "Prev / Next", desc: "Navigate between polygons in the list" },
+                  { btn: "Polygon Dropdown", desc: "Select any polygon by name" },
+                  { btn: "🔍 Magnifier", desc: "Toggle the 2.5× zoom magnifier tool" },
+                  { btn: "Save PNG", desc: "Download mask as a PNG image file" },
+                  { btn: "🗑️ Clear Mask", desc: "Remove all polygons and reset mask" }
                 ].map((item, index) => (
                   <div key={index} className="bg-gray-50 rounded-lg p-3">
                     <code className="text-soton-blue font-mono text-sm">{item.btn}</code>
@@ -361,50 +396,77 @@ export default function MaskingPage() {
               </div>
             </div>
 
+            {/* Status Indicators */}
+            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Status Indicators</h4>
+              <p className="text-gray-600 mb-4">
+                The editor shows helpful status messages above the canvas:
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                  <div className="animate-spin h-4 w-4 border-2 border-yellow-600 border-t-transparent rounded-full"></div>
+                  <span className="text-yellow-800 text-sm"><strong>Loading existing mask...</strong> — Checking for saved mask file</span>
+                </div>
+                <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-3">
+                  <CheckCircle className="text-green-600" size={16} />
+                  <span className="text-green-700 text-sm"><strong>Loaded 3 polygon(s)</strong> — Existing mask loaded successfully</span>
+                </div>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <Info className="text-gray-500" size={16} />
+                  <span className="text-gray-600 text-sm"><strong>No existing mask found</strong> — Start clicking to create polygons</span>
+                </div>
+                <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <Info className="text-blue-500" size={16} />
+                  <span className="text-blue-700 text-sm"><strong>💡 Tips</strong> — Helpful hints about edge snapping and auto-closing</span>
+                </div>
+              </div>
+            </div>
+
             <YamlDropdown
               title="YAML Reference - Polygon Mask"
               code={`masking:
   enabled: true
   mode: file                         # 'file' = use polygon mask from disk
   mask_file_pattern: mask_Cam%d.mat  # %d is replaced with camera number
-  mask_threshold: 0.01               # Threshold for mask application`}
+  mask_threshold: 0.01               # Threshold for mask application
+
+# Mask files are saved to:
+# source_path/mask_Cam1.mat
+# source_path/mask_Cam2.mat (for stereo setups)`}
             />
           </Section>
 
           {/* Pixel Border Mode Section */}
           <Section title="Pixel Border Mode" icon={<Square size={32} />} id="pixel-border">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Pixel border mode provides a quick way to mask fixed regions at the image edges without drawing polygons.
-              Simply enter the number of pixels to exclude from each edge.
+              Pixel border mode provides a quick way to mask fixed rectangular regions at the image edges without
+              drawing polygons. Simply enter the number of pixels to exclude from each edge. This is ideal for
+              removing noisy edges, cropping fixed boundary artifacts, or creating a uniform border mask.
             </p>
-
-            <ScreenshotPlaceholder
-              alt="Pixel border mode showing image with red semi-transparent overlay on top and bottom edges, with input fields showing Top: 64, Bottom: 64, Left: 0, Right: 0"
-              caption="Figure 3: Pixel border masking with 64px masked from top and bottom edges (shown as red overlay)"
-            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="text-xl font-semibold text-gray-900 mb-4">Configuration</h4>
                 <p className="text-gray-600 mb-4">
-                  Enter pixel values for each edge. The preview updates <strong>live</strong> as you type, showing masked regions as a semi-transparent red overlay.
+                  Enter pixel values for each edge in the input fields. The preview updates <strong>live</strong> as
+                  you type, showing masked regions as a semi-transparent red overlay with red border lines at the mask boundaries.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-gray-50 rounded-lg p-3 text-center">
                     <p className="font-semibold text-gray-900">Top</p>
-                    <p className="text-gray-600 text-sm">Pixels from top</p>
+                    <p className="text-gray-600 text-sm">Pixels from top edge</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3 text-center">
                     <p className="font-semibold text-gray-900">Bottom</p>
-                    <p className="text-gray-600 text-sm">Pixels from bottom</p>
+                    <p className="text-gray-600 text-sm">Pixels from bottom edge</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3 text-center">
                     <p className="font-semibold text-gray-900">Left</p>
-                    <p className="text-gray-600 text-sm">Pixels from left</p>
+                    <p className="text-gray-600 text-sm">Pixels from left edge</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3 text-center">
                     <p className="font-semibold text-gray-900">Right</p>
-                    <p className="text-gray-600 text-sm">Pixels from right</p>
+                    <p className="text-gray-600 text-sm">Pixels from right edge</p>
                   </div>
                 </div>
               </div>
@@ -413,14 +475,43 @@ export default function MaskingPage() {
                 <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
                   <p className="text-blue-700">
                     <strong>Live Preview:</strong> Load an image first to see the mask overlay update in real-time as you adjust values.
+                    The preview shows exactly which regions will be excluded from PIV processing.
                   </p>
                 </div>
                 <div className="bg-red-50 rounded-lg p-4 border-l-4 border-red-400">
                   <p className="text-red-700">
-                    <strong>Red Overlay:</strong> Semi-transparent red regions show areas that will be excluded from PIV processing. Red lines mark the exact boundary.
+                    <strong>Red Overlay:</strong> Semi-transparent red regions show areas that will be excluded from PIV processing.
+                    Solid red lines mark the exact mask boundary for precise verification.
+                  </p>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
+                  <p className="text-green-700">
+                    <strong>Automatic Saving:</strong> Pixel border values are saved automatically to <code className="bg-green-100 px-1 rounded">config.yaml</code> when
+                    you change them. No separate save action is needed.
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-3">Preview Information</h4>
+              <p className="text-gray-600 mb-3">
+                The pixel border preview displays helpful information:
+              </p>
+              <ul className="text-gray-600 space-y-2">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="text-green-500 mt-1 flex-shrink-0" size={16} />
+                  <span><strong>Current values:</strong> Shows Top, Bottom, Left, Right pixel values above the preview</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="text-green-500 mt-1 flex-shrink-0" size={16} />
+                  <span><strong>Image size:</strong> Displays the native image dimensions (width × height in pixels)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="text-green-500 mt-1 flex-shrink-0" size={16} />
+                  <span><strong>Contrast adjustment:</strong> Works with auto-scale for optimal visibility</span>
+                </li>
+              </ul>
             </div>
 
             <YamlDropdown
@@ -433,15 +524,19 @@ export default function MaskingPage() {
     top: 64            # Mask 64 pixels from top edge
     bottom: 64         # Mask 64 pixels from bottom edge
     left: 0            # No left masking
-    right: 0           # No right masking`}
+    right: 0           # No right masking
+
+# All values are in pixels
+# Same settings apply to all cameras`}
             />
           </Section>
 
           {/* Mask Storage Section */}
-          <Section title="Mask Storage" icon={<FolderOpen size={32} />} id="storage">
+          <Section title="Mask Storage & Loading" icon={<FolderOpen size={32} />} id="storage">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Polygon masks are saved as MATLAB <code className="bg-gray-100 px-2 py-1 rounded">.mat</code> files.
-              Pixel border settings are stored directly in the config file.
+              Polygon masks are saved as MATLAB <code className="bg-gray-100 px-2 py-1 rounded">.mat</code> files containing
+              both the binary mask array and the polygon vertex coordinates (for re-editing). Pixel border settings are
+              stored directly in <code className="bg-gray-100 px-2 py-1 rounded">config.yaml</code>.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -452,11 +547,14 @@ export default function MaskingPage() {
                 </div>
                 <p className="text-green-700 mb-3">
                   Saved to your source directory as <code className="bg-green-100 px-1 rounded">mask_Cam1.mat</code>, <code className="bg-green-100 px-1 rounded">mask_Cam2.mat</code>, etc.
+                  The file contains both the binary mask and the polygon coordinates.
                 </p>
                 <FeatureList items={[
-                  "Binary mask array (image size)",
-                  "Polygon vertices (for re-editing)",
-                  "One file per camera"
+                  "Binary mask array at full image resolution",
+                  "Polygon vertices stored for re-editing",
+                  "Polygon names preserved for reference",
+                  "One file per camera",
+                  "Auto-saved when polygons change"
                 ]} />
               </div>
 
@@ -466,12 +564,15 @@ export default function MaskingPage() {
                   <h4 className="text-lg font-semibold text-blue-800">Pixel Borders</h4>
                 </div>
                 <p className="text-blue-700 mb-3">
-                  Stored in <code className="bg-blue-100 px-1 rounded">config.yaml</code> and applied at runtime. No separate file needed.
+                  Stored in <code className="bg-blue-100 px-1 rounded">config.yaml</code> under the <code className="bg-blue-100 px-1 rounded">masking.rectangular</code> section.
+                  Applied at runtime during PIV processing—no separate file needed.
                 </p>
                 <FeatureList items={[
                   "Saved automatically when you change values",
                   "Same settings apply to all cameras",
-                  "No separate mask file required"
+                  "No separate mask file required",
+                  "Computed on-the-fly during processing",
+                  "Values in pixels from each edge"
                 ]} />
               </div>
             </div>
@@ -482,14 +583,18 @@ export default function MaskingPage() {
                 <h4 className="text-lg font-semibold text-gray-800">Auto-Loading Masks</h4>
               </div>
               <p className="text-gray-600 mb-3">
-                When you open the Masking tab, PIVTools automatically loads any existing polygon mask for the selected camera.
-                Status indicators show the loading state.
+                When you open the Masking tab or change cameras, PIVTools automatically attempts to load any existing
+                polygon mask for the selected camera. The editor shows the loading status with clear indicators:
               </p>
               <div className="flex flex-wrap gap-3">
-                <span className="px-3 py-1 bg-gray-200 rounded-full text-sm">Loading...</span>
-                <span className="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm">Loaded 3 polygon(s)</span>
-                <span className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-sm">No existing mask found</span>
+                <span className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-sm font-medium">⏳ Loading...</span>
+                <span className="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm font-medium">✓ Loaded 3 polygon(s)</span>
+                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-medium">No existing mask found</span>
+                <span className="px-3 py-1 bg-red-200 text-red-800 rounded-full text-sm font-medium">✗ Error loading mask</span>
               </div>
+              <p className="text-gray-500 text-sm mt-4">
+                Loaded polygons can be edited, deleted, or added to—changes are auto-saved back to the mask file.
+              </p>
             </div>
 
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6">
@@ -499,7 +604,9 @@ export default function MaskingPage() {
               </div>
               <p className="text-yellow-700">
                 Each camera has its own polygon mask file. In stereo PIV setups, you&apos;ll need to create separate masks for
-                Cam1 and Cam2 to account for different viewing angles. Switch cameras using the dropdown, then draw/save each mask.
+                Cam1 and Cam2 to account for different viewing angles. Switch cameras using the <strong>Camera</strong> dropdown
+                in the image loader, then draw and save each mask independently. The correct mask is loaded automatically
+                when you switch cameras.
               </p>
             </div>
 
@@ -510,28 +617,35 @@ export default function MaskingPage() {
 
 # Files are saved/loaded from source_path:
 # source_path/mask_Cam1.mat
-# source_path/mask_Cam2.mat`}
+# source_path/mask_Cam2.mat
+
+# For .set files, the pattern includes the set name:
+# source_path/mask_experiment_Cam1.mat (for experiment.set)`}
             />
           </Section>
 
-          {/* Saving Options Section */}
-          <Section title="Saving Options" icon={<Download size={32} />} id="saving">
+          {/* Export Options Section */}
+          <Section title="Export Options" icon={<Download size={32} />} id="saving">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Multiple save options are available depending on your needs.
+              While masks auto-save for PIV processing, you can also export them in additional formats
+              for documentation or use with external tools.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
                   <Save className="text-soton-blue" size={24} />
-                  <div className="bg-soton-blue text-white px-3 py-1 rounded text-sm font-semibold">Save Mask</div>
+                  <div className="bg-soton-blue text-white px-3 py-1 rounded text-sm font-semibold">Auto-Save (MAT)</div>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  <strong>Primary save action.</strong> Saves the polygon mask to disk as a <code className="bg-gray-100 px-1 rounded">.mat</code> file for use during PIV processing.
+                  <strong>Primary save mechanism.</strong> Polygon masks are automatically saved to disk as
+                  <code className="bg-gray-100 px-1 rounded">.mat</code> files whenever you complete, delete, or clear polygons.
                 </p>
                 <FeatureList items={[
                   "Saves to source_path/mask_CamN.mat",
+                  "Contains binary mask at full resolution",
                   "Stores polygon coordinates for re-editing",
+                  "Polygon names preserved",
                   "Automatically loaded during PIV runs"
                 ]} />
               </div>
@@ -542,20 +656,24 @@ export default function MaskingPage() {
                   <div className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm font-semibold">Save PNG</div>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  Downloads a PNG image of the mask for documentation or use with external tools.
+                  Downloads a PNG image of the mask for documentation, reports, or use with external tools.
+                  Click the <strong>Save PNG</strong> button in the toolbar.
                 </p>
                 <FeatureList items={[
-                  "Full native resolution",
-                  "Binary format (white = masked)",
-                  "Useful for reports or external software"
+                  "Full native resolution (same as source image)",
+                  "Binary format (white = masked regions)",
+                  "Named with camera, index, and frame info",
+                  "Useful for reports or external software",
+                  "Downloaded directly to your browser"
                 ]} />
               </div>
             </div>
 
             <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
               <p className="text-blue-700">
-                <strong>Pixel Border Note:</strong> Pixel border settings are saved automatically to <code className="bg-blue-100 px-1 rounded">config.yaml</code> when you change them.
-                No manual save action is needed—just enable the mask toggle.
+                <strong>Note:</strong> Pixel border settings don&apos;t require any manual save—they&apos;re stored in
+                <code className="bg-blue-100 px-1 rounded mx-1">config.yaml</code> automatically when you change the values.
+                Just make sure the <strong>Apply Mask for PIV</strong> toggle is enabled before processing.
               </p>
             </div>
           </Section>
@@ -563,7 +681,8 @@ export default function MaskingPage() {
           {/* Complete Configuration Reference */}
           <Section title="Complete Configuration Reference" icon={<FileText size={32} />} id="yaml-config">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              For power users who prefer direct YAML configuration, here&apos;s the complete masking reference.
+              For power users who prefer direct YAML configuration, here&apos;s the complete masking reference
+              with all available options and their descriptions.
             </p>
 
             <YamlDropdown
@@ -574,16 +693,22 @@ masking:
   enabled: true                      # Toggle masking on/off for PIV processing
   mode: file                         # 'file' (polygon) or 'rectangular' (pixel border)
   mask_file_pattern: mask_Cam%d.mat  # Filename pattern for polygon masks
-  mask_threshold: 0.01               # Threshold for mask application
+  mask_threshold: 0.01               # Threshold for mask application (fraction of window)
   rectangular:                       # Only used when mode: rectangular
     top: 64                          # Pixels to mask from top edge
     bottom: 64                       # Pixels to mask from bottom edge
     left: 0                          # Pixels to mask from left edge
-    right: 0                         # Pixels to mask from right edge`}
+    right: 0                         # Pixels to mask from right edge
+
+# Note: The GUI uses 'polygon' and 'pixel_border' internally,
+# which map to 'file' and 'rectangular' in the YAML config.`}
             />
 
             <div className="mt-8">
               <h4 className="text-xl font-semibold text-gray-900 mb-4">GUI to YAML Mapping</h4>
+              <p className="text-gray-600 mb-4">
+                This table shows how GUI controls correspond to YAML configuration fields:
+              </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
                   <thead className="bg-gray-100">
@@ -601,7 +726,8 @@ masking:
                       { gui: "Bottom (pixels)", yaml: "masking.rectangular.bottom", values: "integer ≥ 0" },
                       { gui: "Left (pixels)", yaml: "masking.rectangular.left", values: "integer ≥ 0" },
                       { gui: "Right (pixels)", yaml: "masking.rectangular.right", values: "integer ≥ 0" },
-                      { gui: "Save Mask button", yaml: "masking.mask_file_pattern", values: "Saved to source_path/mask_CamN.mat" }
+                      { gui: "Mask file location", yaml: "masking.mask_file_pattern", values: "Pattern with %d for camera number" },
+                      { gui: "Mask threshold", yaml: "masking.mask_threshold", values: "float (default 0.01)" }
                     ].map((row, index) => (
                       <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-6 py-4 text-sm text-gray-900">{row.gui}</td>
@@ -625,6 +751,7 @@ masking:
             <h3 className="text-3xl font-bold mb-4">Next: Pre-Processing Filters</h3>
             <p className="text-gray-300 mb-6 text-lg">
               Apply temporal and spatial filters to enhance your images before PIV processing.
+              Filters can improve correlation quality by removing background, reducing noise, or normalising intensity.
             </p>
             <a
               href="/manual/preprocessing"

@@ -106,7 +106,7 @@ export default function Research() {
 
   const authors = [
     {
-      name: "Prof. Bharathram Ganapathisubramani",
+      name: "Prof. Bharath Ganapathisubramani",
       role: "Professor of Experimental Fluid Mechanics",
       affiliation: "Department of Aeronautics and Astronautics",
       image: "/BG.jpg",
