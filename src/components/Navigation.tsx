@@ -3,10 +3,16 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ size: number }> | null;
+}
+
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { name: 'Home', href: '/', icon: null },
     { name: 'Manual', href: '/manual', icon: null },
   ];
