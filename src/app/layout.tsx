@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat, JetBrains_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -27,11 +28,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Reading headers makes this dynamic, enabling per-request CSP nonces
+  // The nonce is automatically applied to scripts by Next.js via x-nonce header
+  await headers();
+
   return (
     <html lang="en" className="scroll-smooth">
       <body

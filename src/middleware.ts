@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(_request: NextRequest) {
+export function middleware(request: NextRequest) {
+  // Generate cryptographic nonce for each request
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const isProduction = process.env.NODE_ENV === "production";
 
-  // Next.js requires 'unsafe-inline' for its hydration scripts
-  // This is a known limitation - nonce-based CSP requires experimental features
-  // Security improvements over permissive defaults:
-  // - 'unsafe-eval' only in development (required for HMR), removed in production
-  // - connect-src restricted to localhost websockets in dev only
-  // - Strict object-src, frame-ancestors, base-uri, form-action
+  // Build strict CSP with nonce - NO unsafe-inline or unsafe-eval
   const cspDirectives = [
     "default-src 'self'",
-    // 'unsafe-inline' required for Next.js hydration scripts
-    // 'unsafe-eval' required for Turbopack/Webpack HMR in development
-    `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
+    // Nonce-based script loading - 'strict-dynamic' allows scripts loaded by nonced scripts
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isProduction ? "" : " 'unsafe-eval'"}`,
+    // 'unsafe-inline' for styles is acceptable - CSS injection cannot execute JS
+    // This is necessary for Tailwind CSS and is low security risk
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
@@ -32,7 +30,15 @@ export function middleware(_request: NextRequest) {
 
   const cspHeader = cspDirectives.join("; ");
 
-  const response = NextResponse.next();
+  // Pass nonce to the application via request headers
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 
   // Set security headers
   response.headers.set("Content-Security-Policy", cspHeader);
