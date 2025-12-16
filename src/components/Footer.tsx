@@ -136,7 +136,7 @@ export default function Footer() {
             </div>
             <div className="flex space-x-6 text-sm text-gray-400">
               <a href="#" className="hover:text-soton-gold transition-colors duration-200">
-                MIT License
+                BSD 3-Clause License
               </a>
             </div>
           </div>

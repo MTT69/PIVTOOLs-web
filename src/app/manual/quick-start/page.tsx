@@ -162,12 +162,40 @@ pip install pivtools`} />
 
           {/* CLI Usage Section */}
           <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-8">
-              <CodeBlock code="pivtools-cli init" />
-              <p className="text-gray-600 mb-4">
-                Creates an editable <code className="bg-gray-100 px-2 py-1 rounded text-sm">config.yaml</code> in your
-                current directory for command-line processing.
-              </p>
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              The command-line interface provides three core commands for initialising and running PIV processing.
+            </p>
+
+            <div className="space-y-6 mb-8">
+              {/* Init Command */}
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Initialise Workspace</h4>
+                <CodeBlock code="pivtools-cli init" />
+                <p className="text-gray-600">
+                  Creates an editable <code className="bg-gray-100 px-2 py-1 rounded text-sm">config.yaml</code> in your
+                  current directory. Edit this file to configure image paths, camera setup, and processing parameters.
+                </p>
+              </div>
+
+              {/* Instantaneous Command */}
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Instantaneous PIV</h4>
+                <CodeBlock code="pivtools-cli instantaneous" />
+                <p className="text-gray-600">
+                  Runs per-frame cross-correlation analysis. Produces one velocity field per image pair, ideal for
+                  time-resolved measurements and unsteady flow analysis.
+                </p>
+              </div>
+
+              {/* Ensemble Command */}
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Ensemble PIV</h4>
+                <CodeBlock code="pivtools-cli ensemble" />
+                <p className="text-gray-600">
+                  Averages correlation planes across all frames before peak detection. Produces a single
+                  time-averaged velocity field with improved signal-to-noise ratio for steady or periodic flows.
+                </p>
+              </div>
             </div>
 
             <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
@@ -201,7 +229,7 @@ pip install pivtools`} />
                   {[
                     { title: "libbulkxcorr2d", desc: "FFT-based cross-correlation using FFTW3" },
                     { title: "libmarquadt", desc: "Gaussian peak fitting using GSL" },
-                    { title: "libpeak_locate_lm", desc: "Levenberg-Marquardt peak localization" }
+                    { title: "libpeak_locate_lm", desc: "Levenberg-Marquardt peak localisation" }
                   ].map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <CheckCircle className="text-soton-gold mt-1 flex-shrink-0" size={18} />

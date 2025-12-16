@@ -92,15 +92,7 @@ export default function FigurePage() {
 							<path d="M0,0 L10,5 L0,10 Z" fill="#555" />
 						</marker>
 					</defs>
-					{/* Group backgrounds */}
-					{[
-						{ name: 'Setup', color: '#E0F2FE', start: 0, end: 1 },
-						{ name: 'Processing', color: '#FEFCE8', start: 2, end: 3 },
-						{ name: 'Results', color: '#ECFDF5', start: 4, end: 5 }
-					].map((grp, i) => {
-						// We'll compute y1 and h below based on new dynamic layout
-						return null;
-					})}
+					{/* Group backgrounds - computed dynamically below */}
 					{(() => {
 						// Dynamic vertical layout
 						const stepBoxHeight = 36;
@@ -123,7 +115,6 @@ export default function FigurePage() {
 
 						// Precompute step positions and group backgrounds
 						const stepYs: number[] = [];
-						let stepIdx = 0;
 						for (const grp of groupDefs) {
 							const groupStartY = currentY;
 							// Add group header, then a bit more space before first step
@@ -137,7 +128,6 @@ export default function FigurePage() {
 								if (i !== grp.end) {
 									currentY += betweenStepPad;
 								}
-								stepIdx++;
 							}
 							const groupEndY = currentY + groupPadBottom;
 							groupPositions.push({

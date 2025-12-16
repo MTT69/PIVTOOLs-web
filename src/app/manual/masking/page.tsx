@@ -20,7 +20,6 @@ import {
   ChevronRight,
   Sliders,
   Target,
-  Trash2,
   Info
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
@@ -577,6 +576,35 @@ export default function MaskingPage() {
               </div>
             </div>
 
+            {/* .set file mask storage */}
+            <div className="bg-purple-50 rounded-lg p-6 mb-6 border-l-4 border-purple-400">
+              <div className="flex items-center gap-3 mb-3">
+                <FolderOpen className="text-purple-600" size={24} />
+                <h4 className="text-lg font-semibold text-purple-800">LaVision .set File Mask Storage</h4>
+              </div>
+              <p className="text-purple-700 mb-4">
+                For LaVision <code className="bg-purple-100 px-1 rounded">.set</code> files, masks are stored in a dedicated
+                storage directory alongside the .set file. This keeps masks organised and associated with their specific dataset.
+              </p>
+              <div className="bg-white rounded-lg p-4 mb-4">
+                <h5 className="font-semibold text-gray-900 mb-2">Storage Location</h5>
+                <p className="text-gray-600 text-sm mb-3">
+                  Masks are saved to a sibling directory named <code className="bg-gray-100 px-1 rounded">{'{set_filename}_data/'}</code>
+                  with the set filename included in the mask name:
+                </p>
+                <div className="text-sm text-gray-500 bg-gray-50 rounded p-3 font-mono">
+                  /data/experiment.set<br />
+                  /data/experiment_data/<br />
+                  &nbsp;&nbsp;├── mask_experiment_Cam1.mat<br />
+                  &nbsp;&nbsp;└── mask_experiment_Cam2.mat
+                </div>
+              </div>
+              <p className="text-purple-600 text-sm">
+                <strong>Note:</strong> The storage directory is created automatically when you save a mask.
+                This structure allows multiple .set files in the same directory to have separate mask files.
+              </p>
+            </div>
+
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
               <div className="flex items-center gap-3 mb-3">
                 <RefreshCw className="text-gray-600" size={24} />
@@ -615,12 +643,17 @@ export default function MaskingPage() {
               code={`masking:
   mask_file_pattern: mask_Cam%d.mat  # %d = camera number
 
-# Files are saved/loaded from source_path:
-# source_path/mask_Cam1.mat
-# source_path/mask_Cam2.mat
+# Standard image formats (TIFF, PNG, CINE, IM7):
+# Masks are saved in the source directory:
+#   source_path/mask_Cam1.mat
+#   source_path/mask_Cam2.mat
 
-# For .set files, the pattern includes the set name:
-# source_path/mask_experiment_Cam1.mat (for experiment.set)`}
+# LaVision .set files:
+# Masks are saved in a dedicated storage directory with the set name:
+#   /path/to/experiment.set           # Source file
+#   /path/to/experiment_data/         # Storage directory (auto-created)
+#     ├── mask_experiment_Cam1.mat    # Mask for Cam1
+#     └── mask_experiment_Cam2.mat    # Mask for Cam2`}
             />
           </Section>
 

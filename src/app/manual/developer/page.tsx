@@ -99,7 +99,7 @@ export default function DeveloperPage() {
               Developer <span className="text-soton-gold">Installation</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Build PIVTools from source for development, customization, or contribution.
+              Build PIVTools from source for development, customisation, or contribution.
             </p>
           </motion.div>
 
@@ -136,7 +136,7 @@ cd python-PIVTOOLs`} />
                 {[
                   { name: "libbulkxcorr2d", desc: "FFT-based cross-correlation" },
                   { name: "libmarquadt", desc: "Gaussian peak fitting" },
-                  { name: "libpeak_locate_lm", desc: "Levenberg-Marquardt peak localization" }
+                  { name: "libpeak_locate_lm", desc: "Levenberg-Marquardt peak localisation" }
                 ].map((lib, index) => (
                   <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
                     <code className="text-soton-blue font-mono text-sm">{lib.name}</code>

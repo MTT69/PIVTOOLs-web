@@ -13,25 +13,13 @@ import {
   SlidersHorizontal,
   ChevronDown,
   ChevronRight,
-  ChevronUp,
-  X,
-  Plus,
-  RefreshCcw,
-  Pause,
-  SkipForward,
-  SkipBack,
   ToggleLeft,
   ZoomIn,
-  Maximize2,
-  Camera,
   Info,
-  ArrowRight,
-  CheckCircle,
   FileText,
   Download,
-  Image,
+  Image as ImageIcon,
   Palette,
-  Settings2,
   ArrowUp,
   ArrowDown,
   Trash2
@@ -72,26 +60,6 @@ const Section = ({ title, children, icon, id }: SectionProps) => {
   );
 };
 
-interface CodeBlockProps {
-  code: string;
-  title?: string;
-}
-
-const CodeBlock = ({ code, title }: CodeBlockProps) => (
-  <div className="mb-6">
-    {title && (
-      <div className="bg-gray-800 text-gray-300 px-4 py-2 rounded-t-lg text-sm font-mono">
-        {title}
-      </div>
-    )}
-    <div className={`bg-gray-900 ${title ? 'rounded-b-lg' : 'rounded-lg'} p-6 overflow-x-auto`}>
-      <code className="text-green-400 font-mono text-sm whitespace-pre-wrap">
-        {code}
-      </code>
-    </div>
-  </div>
-);
-
 interface YamlDropdownProps {
   title?: string;
   code: string;
@@ -129,21 +97,6 @@ const YamlDropdown = ({ title = "YAML Reference", code, defaultOpen = false }: Y
     </div>
   );
 };
-
-interface FeatureListProps {
-  items: string[];
-}
-
-const FeatureList = ({ items }: FeatureListProps) => (
-  <ul className="space-y-3 mb-6">
-    {items.map((item, index) => (
-      <li key={index} className="flex items-start gap-3">
-        <CheckCircle className="text-soton-gold mt-1 flex-shrink-0" size={20} />
-        <span className="text-gray-700 leading-relaxed text-lg">{item}</span>
-      </li>
-    ))}
-  </ul>
-);
 
 interface GUIStepProps {
   step: number;
@@ -232,7 +185,7 @@ export default function PreprocessingPage() {
                   <h4 className="text-xl font-semibold text-gray-900">Temporal Filters</h4>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  Temporal filters analyze patterns across multiple consecutive frames (batches) to
+                  Temporal filters analyse patterns across multiple consecutive frames (batches) to
                   identify and remove features that persist over time. These are particularly effective
                   for eliminating static backgrounds, reflections, and slowly-varying illumination
                   patterns that would otherwise contaminate cross-correlation results.
@@ -297,7 +250,7 @@ export default function PreprocessingPage() {
                     Displays the original, unprocessed image from your source data. This panel
                     serves as your reference point for evaluating filter effectiveness. All contrast
                     adjustments and zoom operations are independent from the processed view, but
-                    pan and zoom can be synchronized for direct comparison.
+                    pan and zoom can be synchronised for direct comparison.
                   </p>
                   <ul className="text-gray-500 text-xs space-y-1">
                     <li>&bull; Frame A/B toggle to view either image of the pair</li>
@@ -381,7 +334,7 @@ export default function PreprocessingPage() {
           </Section>
 
           {/* Image Format Selection */}
-          <Section title="Image Format Selection" icon={<Image size={32} />} id="format">
+          <Section title="Image Format Selection" icon={<ImageIcon size={32} />} id="format">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               The ImagePairViewer supports two image formats for displaying frames. Choose the
               format that best matches your current workflow stage.
@@ -430,7 +383,7 @@ export default function PreprocessingPage() {
           <Section title="Grid Overlay" icon={<Grid3X3 size={32} />} id="grid">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               The <strong>Grid Overlay</strong> draws interrogation window boundaries on your images,
-              helping you visualize how PIV processing will divide the image for cross-correlation.
+              helping you visualise how PIV processing will divide the image for cross-correlation.
               This is invaluable for verifying that particles span appropriate sizes relative to
               window dimensions and that each window contains sufficient particle density.
             </p>
@@ -703,7 +656,7 @@ filters:
           {/* Batch Size */}
           <Section title="Batch Size for Temporal Filters" icon={<Clock size={32} />} id="batch-size">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Temporal filters (Time and POD) analyze patterns across multiple consecutive frames to
+              Temporal filters (Time and POD) analyse patterns across multiple consecutive frames to
               identify and remove persistent features. The <strong>Batch Size</strong> setting
               controls how many frames are included in each processing batch, directly affecting
               both filter effectiveness and computational requirements.
@@ -770,7 +723,7 @@ batches:
           {/* Temporal Filters Reference */}
           <Section title="Temporal Filters" icon={<Clock size={32} />} id="temporal">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Temporal filters analyze intensity patterns across multiple frames to identify and
+              Temporal filters analyse intensity patterns across multiple frames to identify and
               remove features that persist over time. These are essential for removing static
               backgrounds, reflections, and large-scale flow structures that would otherwise
               dominate cross-correlation peaks.
@@ -1077,7 +1030,7 @@ batches:
 
 filters:
   # TEMPORAL FILTERS (require batch processing)
-  # These analyze multiple frames together
+  # These analyse multiple frames together
   - type: time          # No parameters - subtracts local minimum
   - type: pod           # No parameters - automatic mode detection
 

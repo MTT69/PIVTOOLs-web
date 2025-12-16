@@ -13,7 +13,7 @@ export default function Hero() {
   }, []);
 
   const highlights = [
-    { value: "100%", label: "Open Source", sublabel: "MIT Licensed" },
+    { value: "100%", label: "Open Source", sublabel: "BSD 3-Clause" },
     { value: "3-in-1", label: "PIV Methods", sublabel: "Planar, Stereo, Ensemble" },
     { value: "GUI + CLI", label: "Interfaces", sublabel: "Flexible Workflows" }
   ];

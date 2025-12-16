@@ -21,7 +21,8 @@ import {
   ChevronDown,
   Save,
   X,
-  Plus
+  Plus,
+  Terminal
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -188,7 +189,7 @@ export default function PIVProcessingPage() {
                   <ul className="text-sm space-y-1 list-disc list-inside">
                     <li>You need time-resolved velocity data</li>
                     <li>Computing turbulence statistics</li>
-                    <li>Analyzing unsteady/transient flows</li>
+                    <li>Analysing unsteady/transient flows</li>
                     <li>Good particle seeding density</li>
                   </ul>
                 </div>
@@ -665,7 +666,7 @@ export default function PIVProcessingPage() {
                   desc: 'Compares each vector to the median of its 8 neighbors.',
                   params: [
                     { name: 'epsilon', default: '0.2', desc: 'Regularization term' },
-                    { name: 'threshold', default: '2.0', desc: 'Normalized residual threshold' }
+                    { name: 'threshold', default: '2.0', desc: 'Normalised residual threshold' }
                   ],
                   note: 'Good for local outlier detection'
                 },
@@ -838,25 +839,99 @@ export default function PIVProcessingPage() {
           <Section title="Running PIV" icon={<Play size={32} />} id="running">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Start processing from the Run PIV card. Both modes share common controls but differ in feedback display.
+              You can process multiple datasets sequentially by selecting them in the path list.
             </p>
+
+            {/* Batch Path Processing */}
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200 mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Layers className="text-purple-600" size={24} />
+                <h4 className="text-xl font-semibold text-gray-900">Batch Processing Multiple Paths</h4>
+              </div>
+              <p className="text-gray-700 mb-4">
+                When you have configured multiple source/base path pairs in Image Configuration, the Run PIV card
+                displays a list with <strong>checkboxes</strong> to select which datasets to process.
+              </p>
+
+              {/* Mock path selector */}
+              <div className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+                <label className="text-sm font-medium text-gray-700 block mb-2">Source/Base Path Pairs to Process</label>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {[
+                    { name: 'experiment_01', base: 'results_01', checked: true },
+                    { name: 'experiment_02', base: 'results_02', checked: true },
+                    { name: 'experiment_03', base: 'results_03', checked: false }
+                  ].map((path, idx) => (
+                    <label key={idx} className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <input
+                        type="checkbox"
+                        checked={path.checked}
+                        readOnly
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-green-600"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900">{path.name}</div>
+                        <div className="text-xs text-gray-500">→ {path.base}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                  <span>2 of 3 path(s) selected</span>
+                  <span>•</span>
+                  <span className="text-blue-600">Select All</span>
+                  <span>•</span>
+                  <span className="text-blue-600">Clear All</span>
+                </div>
+              </div>
+
+              <FeatureList items={[
+                "Check/uncheck paths to include or exclude them from processing",
+                "Selected paths are processed sequentially in order",
+                "Use 'Select All' or 'Clear All' links for quick selection",
+                "Same PIV settings (windows, overlap, etc.) apply to all selected paths"
+              ]} />
+            </div>
+
+            {/* Overwrite Confirmation */}
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="text-yellow-600" size={20} />
+                <h4 className="font-semibold text-yellow-800">Overwrite Confirmation</h4>
+              </div>
+              <p className="text-yellow-700 mb-3">
+                If output data already exists for the selected paths, a confirmation dialog appears asking whether to
+                <strong> clear existing data and recompute</strong>. This prevents accidental overwrites of completed processing runs.
+              </p>
+              <div className="bg-white rounded-lg p-4 border border-yellow-200">
+                <p className="text-gray-700 text-sm font-medium mb-2">Output Data Already Exists</p>
+                <p className="text-gray-600 text-sm mb-3">
+                  Output data already exists for the selected paths. Would you like to clear the existing data and recompute?
+                </p>
+                <div className="flex gap-2">
+                  <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm">Cancel</span>
+                  <span className="px-3 py-1 bg-red-600 text-white rounded text-sm">Clear and Recompute</span>
+                </div>
+              </div>
+            </div>
 
             {/* Common Controls */}
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <h4 className="text-xl font-semibold text-gray-900 mb-4">Common Controls</h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Controls</h4>
 
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <div className="bg-gray-100 text-gray-700 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">1</div>
                   <div>
-                    <p className="text-gray-700 font-medium">Select Source Path</p>
-                    <p className="text-gray-600 text-sm">Choose which dataset to process from the dropdown.</p>
+                    <p className="text-gray-700 font-medium">Select Paths to Process</p>
+                    <p className="text-gray-600 text-sm">Check the datasets you want to process. At least one must be selected.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">2</div>
                   <div>
                     <p className="text-gray-700 font-medium">Click &quot;Run PIV&quot;</p>
-                    <p className="text-gray-600 text-sm">Starts processing. Button disabled while running.</p>
+                    <p className="text-gray-600 text-sm">Starts processing. Button disabled while running or if no paths selected.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -884,6 +959,12 @@ export default function PIVProcessingPage() {
                   "Colormap and contrast controls",
                   "Console output with real-time logs"
                 ]} />
+                <div className="bg-blue-100 rounded-lg p-3 mt-4">
+                  <p className="text-blue-800 text-sm">
+                    <strong>Live Preview:</strong> As each frame pair is processed, you can view the resulting velocity field
+                    in real-time. Select which variable to display and adjust colormap settings to inspect data quality during processing.
+                  </p>
+                </div>
               </div>
 
               {/* Ensemble */}
@@ -895,21 +976,81 @@ export default function PIVProcessingPage() {
                 <FeatureList items={[
                   "Simple status indicator (Processing.../Complete)",
                   "Console output with pass progress",
-                  "No preview image (no interim frame data)",
+                  "No preview image (correlation accumulation)",
                   "Batch progress shown in console logs"
                 ]} />
+                <div className="bg-purple-100 rounded-lg p-3 mt-4">
+                  <p className="text-purple-800 text-sm">
+                    <strong>No Live Preview:</strong> Ensemble processing accumulates correlation planes across all frames
+                    before peak detection. Vectors are only extracted once all images are processed, so there are no interim frame results to display.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="text-yellow-600" size={20} />
-                <h4 className="font-semibold text-yellow-800">Why No Ensemble Preview?</h4>
+            {/* Console Logs - Both Modes */}
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Console Output (Both Modes)</h4>
+              <p className="text-gray-600 mb-4">
+                Both instantaneous and ensemble PIV display real-time console logs. Toggle visibility with the &quot;Show/Hide Console Logs&quot; button.
+              </p>
+
+              {/* Mock console */}
+              <div className="bg-gray-900 rounded-lg overflow-hidden">
+                <div className="bg-gray-800 px-3 py-2 flex items-center justify-between border-b border-gray-700">
+                  <span className="text-gray-300 font-mono text-sm">PIV Console Output</span>
+                  <span className="flex items-center gap-2 text-xs text-gray-400">
+                    <span className="relative flex h-2 w-2">
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    Live
+                  </span>
+                </div>
+                <div className="p-3 font-mono text-xs text-green-400 max-h-40 overflow-y-auto">
+                  <pre className="whitespace-pre-wrap">{`[INFO] Starting PIV processing for 3 paths
+[INFO] Processing path 1/3: experiment_01
+[INFO] Pass 1/3: Window 128x128, Overlap 50%
+[INFO]   Batch 1/4 complete (25 pairs)
+[INFO]   Batch 2/4 complete (25 pairs)
+[INFO]   Batch 3/4 complete (25 pairs)
+[INFO]   Batch 4/4 complete (25 pairs)
+[INFO] Pass 1 complete. Starting Pass 2...
+[INFO] Pass 2/3: Window 64x64, Overlap 50%`}</pre>
+                </div>
               </div>
-              <p className="text-yellow-700">
-                Ensemble PIV processes all frames together to build averaged correlation planes before extracting vectors.
-                Unlike instantaneous mode, there are no intermediate per-frame results to display.
-                Monitor progress via the console output, which shows batch and pass completion.
+
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <h5 className="font-medium text-gray-900 text-sm mb-1">Instantaneous logs show:</h5>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Frame pair progress (e.g., &quot;Processing pair 45/100&quot;)</li>
+                    <li>• Batch completion status</li>
+                    <li>• Pass transitions</li>
+                    <li>• Outlier detection and infilling stats</li>
+                  </ul>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <h5 className="font-medium text-gray-900 text-sm mb-1">Ensemble logs show:</h5>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Batch accumulation progress</li>
+                    <li>• Correlation plane updates</li>
+                    <li>• Pass completion and transition</li>
+                    <li>• Final peak extraction status</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="text-blue-600" size={20} />
+                <h4 className="font-semibold text-blue-800">Why the Preview Difference?</h4>
+              </div>
+              <p className="text-blue-700">
+                <strong>Instantaneous PIV</strong> produces a complete velocity field for each frame pair as it processes,
+                enabling real-time visualisation. <strong>Ensemble PIV</strong> accumulates correlation data across all frames
+                and only extracts the final averaged velocity field at the end—there simply are no intermediate results to preview.
+                Use the console logs to monitor ensemble progress.
               </p>
             </div>
 
@@ -1061,6 +1202,167 @@ ensemble_infilling:
     method: biharmonic
     parameters:
       ksize: 3`} title="config.yaml" />
+          </Section>
+
+          {/* CLI Usage Section */}
+          <Section title="Command Line Usage" icon={<Terminal size={32} />} id="cli">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              PIVTools can be run from the command line using the <code className="bg-gray-100 px-2 py-1 rounded">pivtools-cli</code> tool.
+              This is useful for batch processing, scripting, and integration with other workflows.
+            </p>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Basic Commands</h4>
+
+              <div className="space-y-4">
+                <div>
+                  <h5 className="font-semibold text-gray-900 mb-2">Initialise a workspace</h5>
+                  <p className="text-gray-600 text-sm mb-2">
+                    Creates a default <code className="bg-gray-100 px-1 rounded">config.yaml</code> in the current directory.
+                  </p>
+                  <CodeBlock code={`# Initialise with default config
+pivtools-cli init
+
+# Overwrite existing config
+pivtools-cli init --force`} title="Terminal" />
+                </div>
+
+                <div>
+                  <h5 className="font-semibold text-gray-900 mb-2">Run PIV analysis</h5>
+                  <p className="text-gray-600 text-sm mb-2">
+                    Use separate commands for instantaneous (per-frame) or ensemble (time-averaged) PIV.
+                    Both use settings from <code className="bg-gray-100 px-1 rounded">config.yaml</code>.
+                  </p>
+                  <CodeBlock code={`# Run instantaneous PIV (per-frame)
+pivtools-cli instantaneous
+
+# Run ensemble PIV (time-averaged correlation)
+pivtools-cli ensemble
+
+# Process specific paths only
+pivtools-cli instantaneous -p 0,1`} title="Terminal" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Post-Processing Commands</h4>
+
+              <div className="overflow-x-auto mb-4">
+                <table className="min-w-full bg-white rounded-lg overflow-hidden text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-900">Command</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-900">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {[
+                      { cmd: 'pivtools-cli detect-planar', desc: 'Generate camera model from dot/circle grid' },
+                      { cmd: 'pivtools-cli detect-charuco', desc: 'Generate camera model from ChArUco board' },
+                      { cmd: 'pivtools-cli apply-calibration', desc: 'Apply calibration to vectors (pixels to m/s)' },
+                      { cmd: 'pivtools-cli transform', desc: 'Apply geometric transforms (flip, rotate) to vector fields' },
+                      { cmd: 'pivtools-cli merge', desc: 'Merge multi-camera vector fields using Hanning blend' },
+                      { cmd: 'pivtools-cli statistics', desc: 'Compute mean velocity, Reynolds stresses, TKE, vorticity' },
+                      { cmd: 'pivtools-cli video', desc: 'Create visualisation videos from PIV data' }
+                    ].map((row, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-4 py-3 font-mono text-purple-600">{row.cmd}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.desc}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <CodeBlock code={`# Full workflow example
+pivtools-cli init                                    # Create config
+# ... edit config.yaml to set paths, PIV settings ...
+pivtools-cli detect-planar                           # Generate camera model
+pivtools-cli instantaneous                           # Run PIV
+pivtools-cli apply-calibration                       # Calibrate vectors
+pivtools-cli statistics --camera 1                   # Compute stats
+pivtools-cli video --variable ux --fps 30            # Create video`} title="Terminal" />
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Common Options</h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-2">Camera Selection</h5>
+                  <CodeBlock code={`# Process specific camera
+pivtools-cli apply-calibration --camera 1
+
+# Process all cameras (default)
+pivtools-cli apply-calibration`} title="Terminal" />
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-2">Data Type</h5>
+                  <CodeBlock code={`# Process instantaneous data
+pivtools-cli statistics -t instantaneous
+
+# Process ensemble data
+pivtools-cli statistics -t ensemble`} title="Terminal" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Terminal className="text-blue-600" size={20} />
+                <h4 className="font-semibold text-blue-800">Active Paths from Config</h4>
+              </div>
+              <p className="text-blue-700 mb-3">
+                The CLI uses the <code className="bg-blue-100 px-1 rounded">paths.active_paths</code> setting from config.yaml
+                to determine which datasets to process. All selected paths are processed sequentially.
+              </p>
+              <CodeBlock code={`# In config.yaml:
+paths:
+  source_paths:
+    - /data/run_001/images
+    - /data/run_002/images
+    - /data/run_003/images
+  base_paths:
+    - /data/run_001/results
+    - /data/run_002/results
+    - /data/run_003/results
+  active_paths:
+    - 0   # Process run_001
+    - 2   # Process run_003
+    # run_002 (index 1) is skipped`} title="config.yaml" />
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-semibold text-gray-900 mb-2">Get Help</h5>
+              <CodeBlock code={`# List all commands
+pivtools-cli --help
+
+# Get help for a specific command
+pivtools-cli instantaneous --help
+pivtools-cli apply-calibration --help
+pivtools-cli video --help`} title="Terminal" />
+            </div>
+
+            <div className="bg-green-50 border-l-4 border-green-400 p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Terminal className="text-green-600" size={20} />
+                <h4 className="font-semibold text-green-800">Path Override with --active-paths</h4>
+              </div>
+              <p className="text-green-700 mb-3">
+                All commands support the <code className="bg-green-100 px-1 rounded">--active-paths</code> or <code className="bg-green-100 px-1 rounded">-p</code> flag
+                to override the <code className="bg-green-100 px-1 rounded">active_paths</code> from config.yaml.
+              </p>
+              <CodeBlock code={`# Process only path index 0
+pivtools-cli instantaneous -p 0
+
+# Process paths 0 and 2
+pivtools-cli apply-calibration -p 0,2
+
+# All post-processing commands support -p
+pivtools-cli statistics -p 0,1
+pivtools-cli video -p 0`} title="Terminal" />
+            </div>
           </Section>
 
           {/* Next Steps */}

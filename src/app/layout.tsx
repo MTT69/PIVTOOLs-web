@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -20,7 +20,11 @@ export const metadata: Metadata = {
   description: "PIVTOOLS is a Python-based 2D planar and stereo PIV processing code, accelerated with C-MEX extensions for superior performance.",
   keywords: "PIV, Particle Image Velocimetry, Python, Image Processing, Fluid Dynamics, University of Southampton",
   authors: [{ name: "University of Southampton" }],
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

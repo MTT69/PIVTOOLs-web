@@ -106,19 +106,19 @@ export default function Research() {
 
   const authors = [
     {
-      name: "Prof. Bharath Ganapathisubramani",
-      role: "Professor of Experimental Fluid Mechanics",
-      affiliation: "Department of Aeronautics and Astronautics",
-      image: "/BG.jpg",
-      bio: "Professor of Experimental Fluid Mechanics at the University of Southampton. His team's research takes an experimental approach to understanding aerodynamic and hydrodynamic phenomena.",
-      links: {}
-    },
-    {
       name: "Dr John Lawson",
       role: "Lecturer",
       affiliation: "Department of Aeronautics and Astronautics",
       image: "/JL.jpeg",
       bio: "Lecturer in the Aeronautics and Astronautics Department within the Faculty of Engineering and Physical Sciences. Specialises in experimental fluid mechanics, turbulence and particle laden flows.",
+      links: {}
+    },
+    {
+      name: "Prof. Bharath Ganapathisubramani",
+      role: "Professor of Experimental Fluid Mechanics",
+      affiliation: "Department of Aeronautics and Astronautics",
+      image: "/BG.jpg",
+      bio: "Professor of Experimental Fluid Mechanics at the University of Southampton. His team's research takes an experimental approach to understanding aerodynamic and hydrodynamic phenomena.",
       links: {}
     },
     {

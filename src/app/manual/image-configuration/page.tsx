@@ -299,7 +299,7 @@ export default function ImageConfigurationPage() {
           <Section title="Image Type Selection" icon={<Database size={32} />} id="image-type">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Select the format that matches your image files. This determines how PIVTools reads your data
-              and what options are available. The image type affects how cameras are organized, how frames
+              and what options are available. The image type affects how cameras are organised, how frames
               are paired, and which reader library is used to decode your files.
             </p>
 
@@ -375,7 +375,7 @@ export default function ImageConfigurationPage() {
           {/* Camera Configuration Section */}
           <Section title="Camera Configuration" icon={<Camera size={32} />} id="cameras">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Configure how many cameras are in your setup and how their images are organized.
+              Configure how many cameras are in your setup and how their images are organised.
               PIVTools supports both single-camera and multi-camera configurations, with flexible
               options for custom directory structures.
             </p>
@@ -408,7 +408,7 @@ export default function ImageConfigurationPage() {
                 <div className="bg-gray-50 rounded-lg p-6">
                   <h4 className="text-xl font-semibold text-gray-900 mb-4">Multi-Camera (Standard)</h4>
                   <p className="text-gray-600 mb-4">
-                    Set <strong>Camera Count = 2+</strong>. Images are organized in camera subfolders,
+                    Set <strong>Camera Count = 2+</strong>. Images are organised in camera subfolders,
                     with each camera&apos;s images in a separate directory. This is typical for stereo PIV
                     or multi-view setups.
                   </p>
@@ -479,7 +479,7 @@ export default function ImageConfigurationPage() {
                   <h4 className="text-lg font-semibold text-purple-800">IM7 Camera Subfolder Mode</h4>
                 </div>
                 <p className="text-purple-700 mb-4">
-                  LaVision IM7 files can be organized in two ways for multi-camera setups. The
+                  LaVision IM7 files can be organised in two ways for multi-camera setups. The
                   <code className="bg-purple-100 px-2 py-1 rounded mx-1">use_camera_subfolders</code>
                   setting controls which mode PIVTools expects:
                 </p>
@@ -870,7 +870,7 @@ paths:
   camera_count: 2
   camera_numbers: [1, 2]
 
-# File organization:
+# File organisation:
 # source_path/
 # ├── Camera1.cine  (all frames for camera 1)
 # └── Camera2.cine  (all frames for camera 2)`}
@@ -938,26 +938,63 @@ images:
               </div>
               <p className="text-gray-600 mb-4">
                 A single <code className="bg-gray-100 px-1 rounded">.set</code> file contains all cameras and all timesteps.
-                Just enter the filename—no pattern needed. This is the most compact format for large datasets
-                but requires the full file to be accessible for random access.
+                The <strong>source path should point directly to the .set file</strong> (not a directory).
+                This is the most compact format for large datasets.
               </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-2">Pre-Paired (Standard PIV)</h5>
+                  <p className="text-gray-600 text-sm">
+                    Each entry in the .set file contains frame A and B for all cameras.
+                    Structure: <code className="bg-gray-100 px-1 rounded text-xs">set[im_no].frames[2*cam + 0/1]</code>
+                  </p>
+                  <p className="text-gray-500 text-xs mt-2">
+                    <strong>GUI:</strong> Time-resolved OFF
+                  </p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-2">Time-Resolved (TR-PIV)</h5>
+                  <p className="text-gray-600 text-sm">
+                    Each entry has ONE frame per camera. Pairs are formed across
+                    consecutive entries (entry N + entry N+1).
+                  </p>
+                  <p className="text-gray-500 text-xs mt-2">
+                    <strong>GUI:</strong> Time-resolved ON
+                  </p>
+                </div>
+              </div>
+
               <div className="bg-purple-50 rounded-lg p-4 mb-4">
                 <p className="text-purple-700 text-sm">
-                  <strong>Note:</strong> The internal structure is indexed by (camera_no, im_no) where im_no
-                  is the timestep. PIVTools handles all the internal navigation automatically.
+                  <strong>Important:</strong> For .set files, the <code className="bg-purple-100 px-1 rounded">source_path</code> should
+                  be the <strong>full path to the .set file itself</strong>, not a directory. PIVTools reads directly from
+                  this container file.
                 </p>
               </div>
-              <YamlDropdown
-                code={`images:
-  image_type: lavision_set
-  num_images: 100  # Number of timesteps in the set
-  time_resolved: false  # or true for single-frame entries
-  image_format:
-    - experiment.set  # Just the filename, no pattern
 
-# File organization:
-# source_path/
-# └── experiment.set  (contains all cameras, all timesteps)`}
+              <YamlDropdown
+                code={`# Pre-paired mode (each entry = one A+B pair per camera)
+images:
+  image_type: lavision_set
+  num_images: 100  # Number of entries in the .set file
+  time_resolved: false
+  image_format:
+    - experiment.set  # Just the filename
+
+# Time-resolved mode (pair across entries)
+images:
+  image_type: lavision_set
+  num_images: 100  # 100 entries → 99 pairs
+  time_resolved: true
+  image_format:
+    - experiment.set
+
+paths:
+  source_paths:
+    - /data/experiment.set  # Full path to .set file (NOT a directory)
+  base_paths:
+    - /data/results`}
               />
             </div>
           </Section>
@@ -1099,7 +1136,7 @@ images:
   pairing_mode: sequential   # sequential (default)
   zero_based_indexing: false # true if files start at 0
 
-  # For IM7 only: camera organization
+  # For IM7 only: camera organisation
   use_camera_subfolders: false  # true for one-camera-per-file mode
 
   # Filename patterns

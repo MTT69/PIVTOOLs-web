@@ -29,9 +29,9 @@ export default function QuickStart() {
     },
     {
       number: 3,
-      title: "Or Run CLI",
-      code: "pivtools-cli run",
-      description: "Execute headlessly with saved config",
+      title: "Or Use CLI",
+      code: "pivtools-cli init",
+      description: "Initialize config, then run processing",
       color: "from-purple-500 to-indigo-600",
       bgColor: "from-purple-50 to-indigo-50",
       borderColor: "border-purple-200"

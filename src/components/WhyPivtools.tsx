@@ -43,7 +43,7 @@ export default function WhyPivtools() {
     {
       icon: <Code2 size={32} />,
       title: "Open Source",
-      description: "MIT licensed with a fully transparent codebase. Extend, modify, and contribute to the community."
+      description: "BSD 3-Clause licensed with a fully transparent codebase. Extend, modify, and contribute to the community."
     },
     {
       icon: <Monitor size={32} />,

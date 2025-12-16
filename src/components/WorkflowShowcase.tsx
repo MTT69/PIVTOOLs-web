@@ -106,9 +106,9 @@ export default function WorkflowShowcase() {
               {'\n'}
               <span className="text-blue-400">$</span> pivtools-gui
               {'\n\n'}
-              <span className="text-gray-500"># Run headlessly with saved config</span>
+              <span className="text-gray-500"># Or use CLI: init config, then run</span>
               {'\n'}
-              <span className="text-blue-400">$</span> pivtools-cli run
+              <span className="text-blue-400">$</span> pivtools-cli init && pivtools-cli instantaneous
             </code>
           </div>
         </motion.div>
