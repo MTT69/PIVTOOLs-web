@@ -451,7 +451,7 @@ pivtools-cli video -p 0,1`}
                     <tr><td className="px-4 py-2 font-mono text-soton-blue">--camera, -c</td><td className="px-4 py-2 text-gray-600">Camera number</td></tr>
                     <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--variable, -v</td><td className="px-4 py-2 text-gray-600">ux, uy, mag, vorticity, etc.</td></tr>
                     <tr><td className="px-4 py-2 font-mono text-soton-blue">--run, -r</td><td className="px-4 py-2 text-gray-600">Run number (default: 1)</td></tr>
-                    <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--data-source, -d</td><td className="px-4 py-2 text-gray-600">calibrated, uncalibrated, merged, inst_stats</td></tr>
+                    <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--data-source, -d</td><td className="px-4 py-2 text-gray-600">calibrated, uncalibrated, merged, stereo, inst_stats</td></tr>
                     <tr><td className="px-4 py-2 font-mono text-soton-blue">--fps</td><td className="px-4 py-2 text-gray-600">Frame rate (default: 30)</td></tr>
                     <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--crf</td><td className="px-4 py-2 text-gray-600">Quality 0-51 (default: 15, lower=better)</td></tr>
                     <tr><td className="px-4 py-2 font-mono text-soton-blue">--resolution</td><td className="px-4 py-2 text-gray-600">e.g., 1920x1080 or 4k</td></tr>
@@ -479,7 +479,7 @@ _BASE_DIR = "/path/to/your/experiment/results"
 _CAMERA_NUMS = [1]           # List of camera numbers to process
 _VARIABLE = "ux"             # ux, uy, uz, mag, u_prime, vorticity, etc.
 _RUN = 1                     # Run number (1-based)
-_DATA_SOURCE = "calibrated"  # calibrated, uncalibrated, merged, inst_stats
+_DATA_SOURCE = "calibrated"  # calibrated, uncalibrated, merged, stereo, inst_stats
 _FPS = 30                    # Frame rate
 _CRF = 15                    # Quality (lower = better, 15 is near-lossless)
 _RESOLUTION = (1080, 1920)   # (height, width) or None for native
@@ -522,7 +522,7 @@ maker = VideoMaker(
 result = maker.process_video(
     variable="ux",           # Variable to visualise
     run=1,                   # Run number (1-based)
-    data_source="calibrated",# calibrated, uncalibrated, merged, inst_stats
+    data_source="calibrated",# calibrated, uncalibrated, merged, stereo, inst_stats
     fps=30,                  # Frame rate
     crf=15,                  # Quality factor
     resolution=(1080, 1920), # Output resolution (H, W)
@@ -634,14 +634,28 @@ result = maker.process_video(
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs font-semibold">merged</span>
-                  <h4 className="font-semibold text-gray-900">Merged Stereo</h4>
+                  <h4 className="font-semibold text-gray-900">Merged Multi-Camera</h4>
                 </div>
                 <p className="text-gray-600 text-sm mb-2">
-                  Combined 3D velocity fields from stereo PIV reconstruction. Includes all three
-                  velocity components (ux, uy, uz).
+                  Multi-camera merged 2D velocity fields using Hanning blend. Created from overlapping
+                  camera views (ux, uy only).
                 </p>
                 <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
-                  base_path/merged/{'{n}'}/instantaneous/
+                  base_path/calibrated_piv/{'{n}'}/Merged/instantaneous/
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded-full text-xs font-semibold">stereo</span>
+                  <h4 className="font-semibold text-gray-900">Stereo 3D PIV</h4>
+                </div>
+                <p className="text-gray-600 text-sm mb-2">
+                  3D velocity fields from stereo reconstruction. Includes all three velocity components
+                  (ux, uy, uz) from two camera views.
+                </p>
+                <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
+                  base_path/stereo_calibrated/{'{n}'}/Cam1_Cam2/instantaneous/
                 </div>
               </div>
 
@@ -789,7 +803,7 @@ result = maker.process_video(
   # Data selection
   base_path_idx: 0           # Index into paths.base_paths array
   camera: 1                  # Camera number (1-based)
-  data_source: calibrated    # calibrated, uncalibrated, merged, inst_stats
+  data_source: calibrated    # calibrated, uncalibrated, merged, stereo, inst_stats
   variable: ux               # Variable to visualise
   run: 1                     # Run number (1-based)
   piv_type: instantaneous    # Must be instantaneous for videos
@@ -866,9 +880,13 @@ result = maker.process_video(
         │       └── run1_Cam1_uv_inst_inst_stats.mp4
         ├── Cam2/
         │   └── ...
-        └── merged/
-            ├── run1_Cam1_ux_merged.mp4
-            └── run1_Cam1_uz_merged.mp4`}
+        ├── merged/                         # Merged multi-camera videos
+        │   ├── run1_Cam1_ux_merged.mp4
+        │   └── run1_Cam1_mag_merged.mp4
+        └── stereo/                         # Stereo 3D videos
+            ├── run1_Cam1_Cam2_ux_stereo.mp4
+            ├── run1_Cam1_Cam2_uz_stereo.mp4
+            └── run1_Cam1_Cam2_mag_stereo.mp4`}
             />
 
             <div className="bg-gray-50 rounded-lg p-4 mt-4">
@@ -882,7 +900,8 @@ result = maker.process_video(
               <ul className="text-gray-600 text-sm mt-2 space-y-1">
                 <li><strong>_test:</strong> Added for test videos (50 frames)</li>
                 <li><strong>_uncalibrated:</strong> Added for uncalibrated data</li>
-                <li><strong>_merged:</strong> Added for merged stereo data</li>
+                <li><strong>_merged:</strong> Added for merged multi-camera data</li>
+                <li><strong>_stereo:</strong> Added for stereo 3D PIV data</li>
                 <li><strong>_inst_stats:</strong> Added for instantaneous statistics</li>
               </ul>
             </div>

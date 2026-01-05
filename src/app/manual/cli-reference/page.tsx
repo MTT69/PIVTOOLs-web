@@ -261,7 +261,7 @@ export default function CLIReferencePage() {
       description: 'Apply calibration to vectors (pixels to m/s)',
       icon: <Target size={20} />,
       options: [
-        { flag: '--method', short: '-m', description: 'Calibration method: pinhole, charuco, or scale_factor' },
+        { flag: '--method', short: '-m', description: 'Calibration method: dotboard, charuco, or scale_factor' },
         { flag: '--camera', short: '-c', description: 'Camera number (default: all)' },
         { flag: '--type-name', short: '-t', description: 'Data type: instantaneous or ensemble' },
         { flag: '--runs', short: '-r', description: 'Comma-separated run numbers' },
@@ -269,7 +269,7 @@ export default function CLIReferencePage() {
       ],
       examples: [
         'pivtools-cli apply-calibration',
-        'pivtools-cli apply-calibration --method pinhole',
+        'pivtools-cli apply-calibration --method dotboard',
         'pivtools-cli apply-calibration --method scale_factor',
         'pivtools-cli apply-calibration -t ensemble -c 1',
       ],
@@ -280,7 +280,7 @@ export default function CLIReferencePage() {
       description: 'Apply stereo calibration for 3D reconstruction (ux, uy, uz)',
       icon: <Eye size={20} />,
       options: [
-        { flag: '--method', short: '-m', description: 'Stereo calibration method: pinhole or charuco' },
+        { flag: '--method', short: '-m', description: 'Stereo calibration method: dotboard or charuco' },
         { flag: '--camera-pair', short: '-c', description: 'Camera pair as "1,2" (default: from config)' },
         { flag: '--type-name', short: '-t', description: 'Data type: instantaneous or ensemble' },
         { flag: '--runs', short: '-r', description: 'Comma-separated run numbers' },
@@ -300,14 +300,17 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--camera', short: '-c', description: 'Camera number (default: all)' },
         { flag: '--type-name', short: '-t', description: 'Data type: instantaneous or ensemble' },
+        { flag: '--source-endpoint', short: '-s', description: 'Data source: regular, merged, or stereo' },
         { flag: '--operations', short: '-o', description: 'Comma-separated transforms' },
-        { flag: '--merged', short: '-m', description: 'Transform merged data' },
+        { flag: '--merged', short: '-m', description: 'Transform merged data (deprecated: use --source-endpoint merged)' },
+        { flag: '--stereo', description: 'Transform stereo 3D data (deprecated: use --source-endpoint stereo)' },
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
       ],
       examples: [
         'pivtools-cli transform',
         'pivtools-cli transform -o flip_ud,rotate_90_cw',
-        'pivtools-cli transform --merged -o flip_lr',
+        'pivtools-cli transform --source-endpoint merged -o flip_lr',
+        'pivtools-cli transform --source-endpoint stereo -o flip_ud',
       ],
       link: '/manual/transforms#cli-usage',
     },
@@ -334,12 +337,15 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--camera', short: '-c', description: 'Camera number (default: all)' },
         { flag: '--type-name', short: '-t', description: 'Data type: instantaneous or ensemble' },
-        { flag: '--merged', short: '-m', description: 'Process merged data' },
+        { flag: '--source-endpoint', short: '-s', description: 'Data source: regular, merged, or stereo' },
+        { flag: '--workflow', short: '-w', description: 'Workflow: per_camera, after_merge, both, or stereo' },
+        { flag: '--merged', short: '-m', description: 'Process merged data (deprecated: use --source-endpoint merged)' },
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
       ],
       examples: [
         'pivtools-cli statistics',
-        'pivtools-cli statistics --merged',
+        'pivtools-cli statistics --source-endpoint merged',
+        'pivtools-cli statistics --source-endpoint stereo --workflow stereo',
         'pivtools-cli statistics -t ensemble',
       ],
       link: '/manual/statistics#cli-usage',
@@ -350,9 +356,9 @@ export default function CLIReferencePage() {
       icon: <Video size={20} />,
       options: [
         { flag: '--camera', short: '-c', description: 'Camera number' },
-        { flag: '--variable', short: '-v', description: 'Variable: ux, uy, mag, vorticity, etc.' },
+        { flag: '--variable', short: '-v', description: 'Variable: ux, uy, uz (stereo), mag, vorticity, etc.' },
         { flag: '--run', short: '-r', description: 'Run number (default: 1)' },
-        { flag: '--data-source', short: '-d', description: 'calibrated, uncalibrated, merged, inst_stats' },
+        { flag: '--data-source', short: '-d', description: 'calibrated, uncalibrated, merged, stereo, inst_stats' },
         { flag: '--fps', description: 'Frame rate (default: 30)' },
         { flag: '--crf', description: 'Quality 0-51 (default: 15, lower=better)' },
         { flag: '--resolution', description: 'Output resolution (e.g., 1920x1080, 4k)' },
@@ -365,6 +371,7 @@ export default function CLIReferencePage() {
       examples: [
         'pivtools-cli video',
         'pivtools-cli video -v mag',
+        'pivtools-cli video --data-source stereo -v uz',
         'pivtools-cli video --resolution 4k --crf 10',
         'pivtools-cli video -v vorticity --lower -100 --upper 100',
       ],
@@ -476,8 +483,14 @@ pivtools-cli instantaneous
 # Apply stereo 3D reconstruction (ux, uy, uz)
 pivtools-cli apply-stereo --camera-pair 1,2
 
-# Compute statistics
-pivtools-cli statistics`}</CodeBlock>
+# Apply transforms to stereo data if needed
+pivtools-cli transform --source-endpoint stereo -o flip_ud
+
+# Compute statistics on stereo data
+pivtools-cli statistics --source-endpoint stereo --workflow stereo
+
+# Create video from stereo data
+pivtools-cli video --data-source stereo -v uz`}</CodeBlock>
               </div>
 
               <div className="bg-white rounded-xl border border-gray-200 p-4">

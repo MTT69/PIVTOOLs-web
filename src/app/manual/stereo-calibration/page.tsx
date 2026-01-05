@@ -337,9 +337,9 @@ export default function StereoCalibrationPage() {
           </Section>
 
           {/* Stereo Dotboard Section */}
-          <Section title="Stereo Dotboard (Pinhole)" icon={<Grid3X3 size={32} />} id="dotboard">
+          <Section title="Stereo Dotboard" icon={<Grid3X3 size={32} />} id="dotboard">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Stereo Dotboard calibration extends the planar pinhole model to two cameras. Both cameras
+              Stereo Dotboard calibration extends the planar dotboard model to two cameras. Both cameras
               are calibrated simultaneously using shared views of a circular dot grid target at multiple
               positions. The algorithm computes both intrinsic parameters and the stereo geometry.
             </p>
@@ -439,7 +439,7 @@ export default function StereoCalibrationPage() {
                   base_path/<br />
                   └── calibration/<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;└── stereo_Cam1_Cam2/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── pinhole/<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── dotboard/<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── model/<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│   └── stereo_model.mat<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── indices/<br />
@@ -449,10 +449,10 @@ export default function StereoCalibrationPage() {
             </div>
 
             <YamlDropdown
-              title="YAML Reference - Stereo Pinhole Calibration"
+              title="YAML Reference - Stereo Dotboard Calibration"
               code={`calibration:
-  active: stereo_pinhole
-  stereo:
+  active: stereo_dotboard
+  stereo_dotboard:
     camera_pair: [1, 2]
     pattern_cols: 10
     pattern_rows: 10
@@ -460,7 +460,7 @@ export default function StereoCalibrationPage() {
     enhance_dots: false
     asymmetric: false
     dt: 0.0057553
-    stereo_model_type: pinhole`}
+    stereo_model_type: dotboard`}
             />
           </Section>
 
@@ -714,7 +714,7 @@ pivtools-cli detect-stereo-planar -p 0`}
                   <tbody className="divide-y divide-gray-100">
                     <tr>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">--method, -m</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">Stereo method: pinhole or charuco</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">Stereo method: dotboard or charuco</td>
                       <td className="px-6 py-4 text-sm text-gray-600">From config</td>
                     </tr>
                     <tr className="bg-gray-50">
@@ -781,7 +781,7 @@ pivtools-cli statistics`}
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
               <p className="text-blue-700 text-sm">
                 <strong>Tip:</strong> Use <code className="bg-blue-100 px-1 rounded">--method</code> to specify
-                the stereo calibration method (pinhole or charuco) and <code className="bg-blue-100 px-1 rounded">--camera-pair</code>
+                the stereo calibration method (dotboard or charuco) and <code className="bg-blue-100 px-1 rounded">--camera-pair</code>
                 to specify which cameras to use for 3D reconstruction.
               </p>
             </div>
@@ -798,7 +798,7 @@ pivtools-cli statistics`}
               defaultOpen={true}
               code={`calibration:
   # Active method selection
-  active: stereo_pinhole  # stereo_pinhole or stereo_charuco
+  active: stereo_dotboard  # stereo_dotboard or stereo_charuco
   piv_type: instantaneous  # instantaneous or ensemble
 
   # Calibration image settings (shared)
@@ -811,8 +811,8 @@ pivtools-cli statistics`}
   camera_subfolders: ["Cam1", "Cam2"]
   path_order: camera_first
 
-  # Stereo Pinhole (Dotboard) Method
-  stereo:
+  # Stereo Dotboard Method
+  stereo_dotboard:
     camera_pair: [1, 2]
     pattern_cols: 10
     pattern_rows: 10
@@ -820,7 +820,7 @@ pivtools-cli statistics`}
     enhance_dots: false
     asymmetric: false
     dt: 0.0057553
-    stereo_model_type: pinhole
+    stereo_model_type: dotboard
 
   # Stereo ChArUco Method
   stereo_charuco:
@@ -847,12 +847,12 @@ pivtools-cli statistics`}
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {[
-                      { gui: "Active Method Button", yaml: "calibration.active", desc: "stereo_pinhole or stereo_charuco" },
-                      { gui: "Camera 1 Selector", yaml: "calibration.stereo.camera_pair[0]", desc: "First camera in pair" },
-                      { gui: "Camera 2 Selector", yaml: "calibration.stereo.camera_pair[1]", desc: "Second camera in pair" },
-                      { gui: "Pattern Columns", yaml: "calibration.stereo.pattern_cols", desc: "Horizontal dot count" },
-                      { gui: "Pattern Rows", yaml: "calibration.stereo.pattern_rows", desc: "Vertical dot count" },
-                      { gui: "Dot Spacing (mm)", yaml: "calibration.stereo.dot_spacing_mm", desc: "Physical grid spacing" },
+                      { gui: "Active Method Button", yaml: "calibration.active", desc: "stereo_dotboard or stereo_charuco" },
+                      { gui: "Camera 1 Selector", yaml: "calibration.stereo_dotboard.camera_pair[0]", desc: "First camera in pair" },
+                      { gui: "Camera 2 Selector", yaml: "calibration.stereo_dotboard.camera_pair[1]", desc: "Second camera in pair" },
+                      { gui: "Pattern Columns", yaml: "calibration.stereo_dotboard.pattern_cols", desc: "Horizontal dot count" },
+                      { gui: "Pattern Rows", yaml: "calibration.stereo_dotboard.pattern_rows", desc: "Vertical dot count" },
+                      { gui: "Dot Spacing (mm)", yaml: "calibration.stereo_dotboard.dot_spacing_mm", desc: "Physical grid spacing" },
                       { gui: "Squares H", yaml: "calibration.stereo_charuco.squares_h", desc: "ChArUco horizontal squares" },
                       { gui: "Squares V", yaml: "calibration.stereo_charuco.squares_v", desc: "ChArUco vertical squares" },
                       { gui: "Square Size", yaml: "calibration.stereo_charuco.square_size", desc: "Square size in meters" },

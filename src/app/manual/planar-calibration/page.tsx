@@ -482,9 +482,9 @@ export default function PlanarCalibrationPage() {
           </Section>
 
           {/* Planar Dotboard Section */}
-          <Section title="Planar Dotboard (Pinhole)" icon={<Grid3X3 size={32} />} id="dotboard">
+          <Section title="Planar Dotboard" icon={<Grid3X3 size={32} />} id="dotboard">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Planar Dotboard calibration uses OpenCV&apos;s pinhole camera model to compute intrinsic
+              Planar Dotboard calibration uses OpenCV&apos;s camera model to compute intrinsic
               parameters (focal length, principal point) and distortion coefficients from images of
               a circular dot grid target. This method provides spatially-varying calibration that
               corrects for lens distortion.
@@ -576,7 +576,7 @@ export default function PlanarCalibrationPage() {
                   base_path/<br />
                   └── calibration/<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;└── Cam1/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── pinhole_planar/<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── dotboard_planar/<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── model/<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── indices/<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── figures/
@@ -585,10 +585,10 @@ export default function PlanarCalibrationPage() {
             </div>
 
             <YamlDropdown
-              title="YAML Reference - Pinhole Calibration"
+              title="YAML Reference - Dotboard Calibration"
               code={`calibration:
-  active: pinhole
-  pinhole:
+  active: dotboard
+  dotboard:
     camera: 1
     pattern_cols: 10
     pattern_rows: 10
@@ -857,7 +857,7 @@ pivtools-cli detect-planar -p 0,1`}
                   <tbody className="divide-y divide-gray-100">
                     <tr>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">--method, -m</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">Calibration method: pinhole, charuco, or scale_factor</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">Calibration method: dotboard, charuco, or scale_factor</td>
                       <td className="px-6 py-4 text-sm text-gray-600">From config</td>
                     </tr>
                     <tr className="bg-gray-50">
@@ -889,8 +889,8 @@ pivtools-cli detect-planar -p 0,1`}
                 code={`# Calibrate using method from config.yaml
 pivtools-cli apply-calibration
 
-# Override with pinhole calibration method
-pivtools-cli apply-calibration --method pinhole
+# Override with dotboard calibration method
+pivtools-cli apply-calibration --method dotboard
 
 # Use scale factor calibration
 pivtools-cli apply-calibration --method scale_factor
@@ -920,7 +920,7 @@ pivtools-cli instantaneous
 pivtools-cli apply-calibration
 
 # Or specify method explicitly
-pivtools-cli apply-calibration --method pinhole`}
+pivtools-cli apply-calibration --method dotboard`}
               />
             </div>
 
@@ -928,7 +928,7 @@ pivtools-cli apply-calibration --method pinhole`}
               <p className="text-blue-700 text-sm">
                 <strong>Tip:</strong> Use <code className="bg-blue-100 px-1 rounded">--method</code> to override
                 the calibration method from config.yaml. Available methods:
-                <code className="bg-blue-100 px-1 rounded ml-1">pinhole</code>,
+                <code className="bg-blue-100 px-1 rounded ml-1">dotboard</code>,
                 <code className="bg-blue-100 px-1 rounded ml-1">charuco</code>, and
                 <code className="bg-blue-100 px-1 rounded ml-1">scale_factor</code>.
               </p>
@@ -947,7 +947,7 @@ pivtools-cli apply-calibration --method pinhole`}
               defaultOpen={true}
               code={`calibration:
   # Active method selection
-  active: pinhole  # scale_factor, pinhole, charuco, polynomial
+  active: dotboard  # scale_factor, dotboard, charuco, polynomial
   piv_type: instantaneous  # instantaneous or ensemble
 
   # Calibration image settings
@@ -966,8 +966,8 @@ pivtools-cli apply-calibration --method pinhole`}
     px_per_mm: 3.41
     source_path_idx: 0
 
-  # Pinhole (Dotboard) Method
-  pinhole:
+  # Dotboard Method
+  dotboard:
     camera: 1
     pattern_cols: 10
     pattern_rows: 10
@@ -1019,7 +1019,7 @@ pivtools-cli apply-calibration --method pinhole`}
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {[
-                      { gui: "Active Method Button", yaml: "calibration.active", desc: "scale_factor, pinhole, charuco, polynomial" },
+                      { gui: "Active Method Button", yaml: "calibration.active", desc: "scale_factor, dotboard, charuco, polynomial" },
                       { gui: "PIV Type Selector", yaml: "calibration.piv_type", desc: "instantaneous or ensemble" },
                       { gui: "Image Format", yaml: "calibration.image_format", desc: "Calibration image filename pattern" },
                       { gui: "Number of Images", yaml: "calibration.num_images", desc: "Total calibration images" },

@@ -555,18 +555,20 @@ pivtools-cli statistics -p 0,1
               title="Statistics Configuration"
               defaultOpen={true}
               code={`statistics:
-  type_name: instantaneous    # Source type
+  type_name: instantaneous    # Temporal type: "instantaneous" or "ensemble"
+  source_endpoint: regular    # Data source: "regular", "merged", or "stereo"
+  workflow: per_camera        # Workflow: "per_camera", "after_merge", "both", or "stereo"
   gamma_radius: 5             # Neighbourhood size for gamma calculation
   save_figures: true          # Generate PNG visualisations
 
   # Enable/disable individual statistics
   enabled_methods:
     # Time-averaged (mean) statistics
-    mean_velocity: true       # Mean ux, uy
+    mean_velocity: true       # Mean ux, uy (and uz for stereo)
     mean_vorticity: true      # Mean omega
     mean_divergence: true     # Mean div(u)
     mean_tke: true            # Turbulent kinetic energy
-    mean_stresses: true       # Reynolds stress tensor (uu, vv, uv)
+    mean_stresses: true       # Reynolds stress tensor (uu, vv, uv; uw, vw, ww for stereo)
 
     # Instantaneous (per-frame) statistics
     inst_velocity: false      # Keep original velocity
@@ -595,7 +597,9 @@ pivtools-cli statistics -p 0,1
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {[
-                      { param: 'type_name', type: 'string', desc: 'Source type: "instantaneous" or "ensemble"' },
+                      { param: 'type_name', type: 'string', desc: 'Temporal type: "instantaneous" or "ensemble"' },
+                      { param: 'source_endpoint', type: 'string', desc: 'Data source: "regular" (per-camera), "merged", or "stereo"' },
+                      { param: 'workflow', type: 'string', desc: 'Workflow: "per_camera", "after_merge", "both", or "stereo"' },
                       { param: 'gamma_radius', type: 'integer', desc: 'Grid points for gamma calculation (default: 5)' },
                       { param: 'save_figures', type: 'boolean', desc: 'Generate PNG visualisations of results' },
                       { param: 'enabled_methods', type: 'dict', desc: 'Enable/disable individual statistics' },

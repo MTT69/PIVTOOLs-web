@@ -441,7 +441,10 @@ pivtools-cli transform -o flip_ud,rotate_90_cw
 pivtools-cli transform --camera 1
 
 # Transform merged data
-pivtools-cli transform --merged -o flip_lr
+pivtools-cli transform --source-endpoint merged -o flip_lr
+
+# Transform stereo 3D data
+pivtools-cli transform --source-endpoint stereo -o flip_ud
 
 # Process specific paths
 pivtools-cli transform -p 0,1
@@ -511,7 +514,8 @@ pivtools-cli transform -p 0,1
               defaultOpen={true}
               code={`transforms:
   base_path_idx: 0          # Which base_path to use (GUI only)
-  type_name: instantaneous  # instantaneous or ensemble
+  type_name: instantaneous  # Temporal type: "instantaneous" or "ensemble"
+  source_endpoint: regular  # Data source: "regular", "merged", or "stereo"
   cameras:
     1:
       operations:
@@ -526,7 +530,8 @@ pivtools-cli transform -p 0,1
         - scale_coords:0.001    # Convert mm to m
 
 # Note: Operations are applied in order, top to bottom
-# Redundant operations are automatically simplified`}
+# Redundant operations are automatically simplified
+# For stereo data, transforms are applied to the combined 3D field`}
             />
 
             <div className="mt-8">
@@ -543,7 +548,8 @@ pivtools-cli transform -p 0,1
                   <tbody className="divide-y divide-gray-100">
                     {[
                       { param: 'base_path_idx', type: 'integer', desc: 'Index into base_paths array (0-indexed)' },
-                      { param: 'type_name', type: 'string', desc: 'Vector type: "instantaneous" or "ensemble"' },
+                      { param: 'type_name', type: 'string', desc: 'Temporal type: "instantaneous" or "ensemble"' },
+                      { param: 'source_endpoint', type: 'string', desc: 'Data source: "regular" (per-camera), "merged", or "stereo"' },
                       { param: 'cameras', type: 'dict', desc: 'Per-camera transform configuration' },
                       { param: 'cameras.N.operations', type: 'list', desc: 'List of transform operations for camera N' },
                     ].map((row, index) => (
