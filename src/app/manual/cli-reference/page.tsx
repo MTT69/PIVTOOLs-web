@@ -300,17 +300,15 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--camera', short: '-c', description: 'Camera number (default: all)' },
         { flag: '--type-name', short: '-t', description: 'Data type: instantaneous or ensemble' },
-        { flag: '--source-endpoint', short: '-s', description: 'Data source: regular, merged, or stereo' },
         { flag: '--operations', short: '-o', description: 'Comma-separated transforms' },
-        { flag: '--merged', short: '-m', description: 'Transform merged data (deprecated: use --source-endpoint merged)' },
-        { flag: '--stereo', description: 'Transform stereo 3D data (deprecated: use --source-endpoint stereo)' },
+        { flag: '--source-endpoint', short: '-s', description: 'Data source: regular, merged, or stereo' },
+        { flag: '--merged', short: '-m', description: '(deprecated) Use --source-endpoint merged' },
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
       ],
       examples: [
         'pivtools-cli transform',
         'pivtools-cli transform -o flip_ud,rotate_90_cw',
         'pivtools-cli transform --source-endpoint merged -o flip_lr',
-        'pivtools-cli transform --source-endpoint stereo -o flip_ud',
       ],
       link: '/manual/transforms#cli-usage',
     },
@@ -339,7 +337,8 @@ export default function CLIReferencePage() {
         { flag: '--type-name', short: '-t', description: 'Data type: instantaneous or ensemble' },
         { flag: '--source-endpoint', short: '-s', description: 'Data source: regular, merged, or stereo' },
         { flag: '--workflow', short: '-w', description: 'Workflow: per_camera, after_merge, both, or stereo' },
-        { flag: '--merged', short: '-m', description: 'Process merged data (deprecated: use --source-endpoint merged)' },
+        { flag: '--merged', short: '-m', description: '(deprecated) Use --source-endpoint merged' },
+        { flag: '--stereo', description: '(deprecated) Use --source-endpoint stereo' },
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
       ],
       examples: [
@@ -483,11 +482,8 @@ pivtools-cli instantaneous
 # Apply stereo 3D reconstruction (ux, uy, uz)
 pivtools-cli apply-stereo --camera-pair 1,2
 
-# Apply transforms to stereo data if needed
-pivtools-cli transform --source-endpoint stereo -o flip_ud
-
 # Compute statistics on stereo data
-pivtools-cli statistics --source-endpoint stereo --workflow stereo
+pivtools-cli statistics --stereo
 
 # Create video from stereo data
 pivtools-cli video --data-source stereo -v uz`}</CodeBlock>

@@ -215,7 +215,9 @@ export default function VideoMakerPage() {
                     <ul className="text-blue-700 text-sm space-y-1">
                       <li><strong>Calibrated:</strong> Physical units (mm, m/s)</li>
                       <li><strong>Uncalibrated:</strong> Pixel displacements</li>
-                      <li><strong>Merged:</strong> Stereo-reconstructed 3D fields</li>
+                      <li><strong>Merged:</strong> Combined multi-camera fields</li>
+                      <li><strong>Stereo:</strong> 3D stereo-reconstructed fields (ux, uy, uz)</li>
+                      <li><strong>Inst Stats:</strong> Per-frame calculated statistics (vorticity, etc.)</li>
                     </ul>
                   </div>
 

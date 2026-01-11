@@ -483,14 +483,24 @@ pivtools-cli statistics
 # Compute for specific camera only
 pivtools-cli statistics --camera 1
 
-# Compute for merged data
-pivtools-cli statistics --merged
+# Compute for merged data (modern flag)
+pivtools-cli statistics --source-endpoint merged
+
+# Compute for stereo data with stereo workflow
+pivtools-cli statistics --source-endpoint stereo --workflow stereo
+
+# Specify workflow: per_camera, after_merge, both, or stereo
+pivtools-cli statistics --source-endpoint merged --workflow after_merge
 
 # Compute for ensemble data
 pivtools-cli statistics --type-name ensemble
 
 # Process specific paths
 pivtools-cli statistics -p 0,1
+
+# Legacy flags (deprecated but still supported)
+# pivtools-cli statistics --merged    # use --source-endpoint merged
+# pivtools-cli statistics --stereo    # use --source-endpoint stereo
 
 # The CLI will:
 # 1. Read statistics configuration from config.yaml

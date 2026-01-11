@@ -551,15 +551,20 @@ export default function StereoCalibrationPage() {
               title="YAML Reference - Stereo ChArUco Calibration"
               code={`calibration:
   active: stereo_charuco
+
+  # Stereo-specific settings
   stereo_charuco:
     camera_pair: [1, 2]
+    dt: 0.0057553
+
+  # Board parameters (shared with planar ChArUco)
+  charuco:
     squares_h: 10
     squares_v: 9
     square_size: 0.03      # meters
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
-    min_corners: 6
-    dt: 0.0057553`}
+    min_corners: 6`}
             />
           </Section>
 
@@ -822,16 +827,19 @@ pivtools-cli statistics`}
     dt: 0.0057553
     stereo_model_type: dotboard
 
-  # Stereo ChArUco Method
+  # Stereo ChArUco Method (board params from charuco section)
   stereo_charuco:
     camera_pair: [1, 2]
+    dt: 0.0057553
+
+  # ChArUco board parameters (used by both planar and stereo)
+  charuco:
     squares_h: 10
     squares_v: 9
     square_size: 0.03
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
-    min_corners: 6
-    dt: 0.0057553`}
+    min_corners: 6`}
             />
 
             <div className="mt-8">
@@ -850,13 +858,13 @@ pivtools-cli statistics`}
                       { gui: "Active Method Button", yaml: "calibration.active", desc: "stereo_dotboard or stereo_charuco" },
                       { gui: "Camera 1 Selector", yaml: "calibration.stereo_dotboard.camera_pair[0]", desc: "First camera in pair" },
                       { gui: "Camera 2 Selector", yaml: "calibration.stereo_dotboard.camera_pair[1]", desc: "Second camera in pair" },
-                      { gui: "Pattern Columns", yaml: "calibration.stereo_dotboard.pattern_cols", desc: "Horizontal dot count" },
-                      { gui: "Pattern Rows", yaml: "calibration.stereo_dotboard.pattern_rows", desc: "Vertical dot count" },
-                      { gui: "Dot Spacing (mm)", yaml: "calibration.stereo_dotboard.dot_spacing_mm", desc: "Physical grid spacing" },
-                      { gui: "Squares H", yaml: "calibration.stereo_charuco.squares_h", desc: "ChArUco horizontal squares" },
-                      { gui: "Squares V", yaml: "calibration.stereo_charuco.squares_v", desc: "ChArUco vertical squares" },
-                      { gui: "Square Size", yaml: "calibration.stereo_charuco.square_size", desc: "Square size in meters" },
-                      { gui: "ArUco Dictionary", yaml: "calibration.stereo_charuco.aruco_dict", desc: "Marker dictionary type" }
+                      { gui: "Pattern Columns", yaml: "calibration.stereo_dotboard.pattern_cols", desc: "Horizontal dot count (dotboard)" },
+                      { gui: "Pattern Rows", yaml: "calibration.stereo_dotboard.pattern_rows", desc: "Vertical dot count (dotboard)" },
+                      { gui: "Dot Spacing (mm)", yaml: "calibration.stereo_dotboard.dot_spacing_mm", desc: "Physical grid spacing (dotboard)" },
+                      { gui: "Squares H", yaml: "calibration.charuco.squares_h", desc: "ChArUco horizontal squares" },
+                      { gui: "Squares V", yaml: "calibration.charuco.squares_v", desc: "ChArUco vertical squares" },
+                      { gui: "Square Size", yaml: "calibration.charuco.square_size", desc: "Square size in meters" },
+                      { gui: "ArUco Dictionary", yaml: "calibration.charuco.aruco_dict", desc: "Marker dictionary type" }
                     ].map((row, index) => (
                       <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-6 py-4 text-sm text-gray-900">{row.gui}</td>

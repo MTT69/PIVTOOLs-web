@@ -217,11 +217,50 @@ export default function PIVProcessingPage() {
             <div className="bg-gray-50 rounded-xl p-6 mb-6">
               <h4 className="text-xl font-semibold text-gray-900 mb-4">Multi-Pass Strategy</h4>
               <FeatureList items={[
-                "Window Size: The interrogation window dimensions in pixels [X, Y]. Larger windows capture more particles but reduce spatial resolution.",
+                "Window Size: The interrogation window dimensions in pixels [Height, Width]. Larger windows capture more particles but reduce spatial resolution.",
                 "Overlap: Percentage of window overlap between adjacent vectors. 50% overlap doubles the vector grid density.",
                 "Store Flag: Toggle to save intermediate pass results. The final pass is always stored.",
                 "Pass Order: Processing starts with large windows and progressively refines to smaller windows for accuracy."
               ]} />
+            </div>
+
+            {/* Rectangular Windows Info */}
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mb-6">
+              <h4 className="text-lg font-semibold text-blue-800 mb-2">Rectangular (Non-Square) Windows</h4>
+              <p className="text-blue-700 mb-3">
+                The <strong>Height</strong> and <strong>Width</strong> of interrogation windows can be specified independently,
+                allowing for <strong>rectangular</strong> (non-square) windows. Window size uses row-major convention: <code className="bg-blue-100 px-1 rounded">[Height, Width]</code> where
+                Height is the vertical (Y) dimension and Width is the horizontal (X) dimension.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="bg-white rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-2">When to use rectangular windows:</h5>
+                  <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                    <li>Flow predominantly in one direction</li>
+                    <li>Anisotropic particle seeding density</li>
+                    <li>Higher spatial resolution needed in one direction</li>
+                    <li>Matching window shape to expected displacement</li>
+                  </ul>
+                </div>
+                <div className="bg-white rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-2">Example configurations:</h5>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li><code className="bg-gray-100 px-1 rounded">[64, 64]</code> — Square window (standard)</li>
+                    <li><code className="bg-gray-100 px-1 rounded">[32, 64]</code> — Wide window (horizontal flow)</li>
+                    <li><code className="bg-gray-100 px-1 rounded">[64, 32]</code> — Tall window (vertical flow)</li>
+                    <li><code className="bg-gray-100 px-1 rounded">[32, 128]</code> — Wide: large X displacement, high Y resolution</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="mt-4 bg-white rounded-lg p-4">
+                <h5 className="font-semibold text-gray-900 mb-2">Key considerations:</h5>
+                <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                  <li><strong>Dimension order:</strong> Always <code className="bg-gray-100 px-1 rounded">[Height, Width]</code> — Height is vertical (Y), Width is horizontal (X)</li>
+                  <li><strong>Grid density:</strong> More vectors in the direction with the smaller dimension</li>
+                  <li><strong>Displacement limits:</strong> First pass allows displacements up to window_size/2 in each direction</li>
+                  <li><strong>Overlap:</strong> Applied as percentage of each dimension independently</li>
+                </ul>
+              </div>
             </div>
 
             {/* Instantaneous Window Setup */}
@@ -238,21 +277,21 @@ export default function PIVProcessingPage() {
               {/* Mock GUI representation */}
               <div className="bg-gray-100 rounded-lg p-4 mb-4">
                 <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-500 mb-2 px-2">
-                  <div className="col-span-2">Window X</div>
-                  <div className="col-span-2">Window Y</div>
+                  <div className="col-span-2">Height (Y)</div>
+                  <div className="col-span-2">Width (X)</div>
                   <div className="col-span-2">Overlap %</div>
                   <div className="col-span-1 text-center">Store</div>
                   <div className="col-span-3 text-center">Actions</div>
                   <div className="col-span-2 text-right">Pass #</div>
                 </div>
                 {[
-                  { x: 128, y: 128, overlap: 50, store: false, pass: 1 },
-                  { x: 64, y: 64, overlap: 50, store: false, pass: 2 },
-                  { x: 32, y: 32, overlap: 50, store: true, pass: 3 }
+                  { height: 128, width: 128, overlap: 50, store: false, pass: 1 },
+                  { height: 64, width: 64, overlap: 50, store: false, pass: 2 },
+                  { height: 32, width: 32, overlap: 50, store: true, pass: 3 }
                 ].map((row, idx) => (
                   <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2 rounded mb-1">
-                    <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.x}</div>
-                    <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.y}</div>
+                    <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.height}</div>
+                    <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.width}</div>
                     <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.overlap}</div>
                     <div className="col-span-1 flex justify-center">
                       <div className={`w-6 h-6 rounded flex items-center justify-center ${row.store ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
@@ -275,16 +314,16 @@ export default function PIVProcessingPage() {
               </div>
 
               <CodeBlock code={`instantaneous_piv:
-  window_size:
-  - [128, 128]   # Pass 1: Large windows for initial estimate
-  - [64, 64]    # Pass 2: Medium refinement
-  - [32, 32]    # Pass 3: Final high-resolution
+  window_size:        # Format: [Height, Width] in pixels
+  - [128, 128]        # Pass 1: Large windows for initial estimate
+  - [64, 64]          # Pass 2: Medium refinement
+  - [32, 32]          # Pass 3: Final high-resolution
   overlap:
-  - 50          # 50% overlap for all passes
+  - 50                # 50% overlap for all passes
   - 50
   - 50
   runs:
-  - 3           # Save final pass (pass 3)`} title="config.yaml" />
+  - 3                 # Save final pass (pass 3)`} title="config.yaml" />
             </div>
 
             {/* Ensemble Window Setup */}
@@ -301,8 +340,8 @@ export default function PIVProcessingPage() {
               {/* Mock GUI with Type column */}
               <div className="bg-gray-100 rounded-lg p-4 mb-4">
                 <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-500 mb-2 px-2">
-                  <div className="col-span-2">Window X</div>
-                  <div className="col-span-2">Window Y</div>
+                  <div className="col-span-2">Height (Y)</div>
+                  <div className="col-span-2">Width (X)</div>
                   <div className="col-span-2">Overlap %</div>
                   <div className="col-span-2">Type</div>
                   <div className="col-span-1 text-center">Store</div>
@@ -310,13 +349,13 @@ export default function PIVProcessingPage() {
                   <div className="col-span-1 text-right">Pass</div>
                 </div>
                 {[
-                  { x: 128, y: 128, overlap: 50, type: 'std', store: false, pass: 1 },
-                  { x: 64, y: 64, overlap: 50, type: 'std', store: false, pass: 2 },
-                  { x: 16, y: 16, overlap: 50, type: 'single', store: true, pass: 3 }
+                  { height: 128, width: 128, overlap: 50, type: 'std', store: false, pass: 1 },
+                  { height: 64, width: 64, overlap: 50, type: 'std', store: false, pass: 2 },
+                  { height: 16, width: 16, overlap: 50, type: 'single', store: true, pass: 3 }
                 ].map((row, idx) => (
                   <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2 rounded mb-1">
-                    <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.x}</div>
-                    <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.y}</div>
+                    <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.height}</div>
+                    <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.width}</div>
                     <div className="col-span-2 bg-gray-50 px-2 py-1 rounded text-sm">{row.overlap}</div>
                     <div className="col-span-2">
                       <div className={`px-2 py-1 rounded text-sm text-center ${row.type === 'single' ? 'bg-purple-100 text-purple-700' : 'bg-gray-50'}`}>
@@ -353,20 +392,20 @@ export default function PIVProcessingPage() {
               </div>
 
               <CodeBlock code={`ensemble_piv:
-  window_size:
-  - [128, 128]  # Pass 1: Standard mode
-  - [64, 64]   # Pass 2: Standard mode
-  - [16, 16]   # Pass 3: Single mode (high resolution)
+  window_size:        # Format: [Height, Width] in pixels
+  - [128, 128]        # Pass 1: Standard mode
+  - [64, 64]          # Pass 2: Standard mode
+  - [16, 16]          # Pass 3: Single mode (high resolution)
   overlap:
   - 50
   - 50
   - 50
   type:
-  - std        # Standard correlation
-  - std        # Standard correlation
-  - single     # Single-pixel accumulation
+  - std               # Standard correlation
+  - std               # Standard correlation
+  - single            # Single-pixel accumulation
   runs:
-  - 3          # Save final pass`} title="config.yaml" />
+  - 3                 # Save final pass`} title="config.yaml" />
             </div>
           </Section>
 
@@ -434,13 +473,13 @@ export default function PIVProcessingPage() {
               </div>
 
               <CodeBlock code={`ensemble_piv:
-  window_size:
-  - [16, 16]    # Small window for single mode
+  window_size:        # Format: [Height, Width] in pixels
+  - [16, 16]          # Small window for single mode
   type:
-  - single      # Enables sum_window
-  sum_window:
-  - 64          # Sum window width (X)
-  - 64          # Sum window height (Y)`} title="config.yaml" />
+  - single            # Enables sum_window
+  sum_window:         # Format: [Height, Width] in pixels
+  - 64                # Sum window height (Y)
+  - 64                # Sum window width (X)`} title="config.yaml" />
             </div>
           </Section>
 
@@ -1083,11 +1122,11 @@ processing:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { path: '*_piv.window_size', inst: '✓', ens: '✓', desc: 'List of [X, Y] window sizes per pass' },
+                    { path: '*_piv.window_size', inst: '✓', ens: '✓', desc: 'List of [Height, Width] window sizes per pass' },
                     { path: '*_piv.overlap', inst: '✓', ens: '✓', desc: 'Overlap percentages per pass' },
                     { path: '*_piv.runs', inst: '✓', ens: '✓', desc: 'Passes to save (1-based list)' },
                     { path: 'ensemble_piv.type', inst: '—', ens: '✓', desc: 'Pass types: std or single' },
-                    { path: 'ensemble_piv.sum_window', inst: '—', ens: '✓', desc: 'Sum window for single mode [X, Y]' },
+                    { path: 'ensemble_piv.sum_window', inst: '—', ens: '✓', desc: 'Sum window for single mode [Height, Width]' },
                     { path: 'ensemble_piv.store_planes', inst: '—', ens: '✓', desc: 'Save correlation planes' },
                     { path: 'ensemble_piv.save_diagnostics', inst: '—', ens: '✓', desc: 'Save debug information' },
                     { path: 'ensemble_piv.resume_from_pass', inst: '—', ens: '✓', desc: 'Resume from pass N (0=fresh)' },
@@ -1112,6 +1151,8 @@ processing:
 
             <CodeBlock code={`# Complete PIV Configuration Example
 # ===================================
+# Note: Window sizes use [Height, Width] format (row-major convention)
+# Height = vertical (Y), Width = horizontal (X)
 
 # Processing mode (choose one)
 processing:
@@ -1126,10 +1167,11 @@ processing:
 
 # Instantaneous PIV settings
 instantaneous_piv:
-  window_size:
-  - [128, 128]
+  window_size:          # [Height, Width] in pixels
+  - [128, 128]          # Square windows
   - [64, 64]
   - [32, 32]
+  # For rectangular: [32, 64] = 32px tall × 64px wide
   overlap:
   - 50
   - 50
@@ -1140,7 +1182,7 @@ instantaneous_piv:
 
 # Ensemble PIV settings
 ensemble_piv:
-  window_size:
+  window_size:          # [Height, Width] in pixels
   - [128, 128]
   - [64, 64]
   - [16, 16]
@@ -1154,7 +1196,7 @@ ensemble_piv:
   - single
   runs:
   - 3
-  sum_window:
+  sum_window:           # [Height, Width] for single mode
   - 64
   - 64
   store_planes: false

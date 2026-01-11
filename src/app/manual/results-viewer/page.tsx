@@ -174,7 +174,8 @@ export default function ResultsViewerPage() {
                   "Interactive frame-by-frame navigation",
                   "Adjustable colour limits and colormaps",
                   "Real-time cursor coordinate display",
-                  "Magnifier for detailed inspection",
+                  "Magnifier tool for zoomed inspection",
+                  "Corner coordinates display button",
                   "One-click image download and copy"
                 ]} />
               </div>
@@ -224,8 +225,11 @@ export default function ResultsViewerPage() {
                     { source: "Calibrated Ensemble", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
                     { source: "Merged Instantaneous", view: true, transform: true, coords: true, merge: false, stats: true, note: "" },
                     { source: "Merged Ensemble", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
+                    { source: "Stereo Instantaneous", view: true, transform: false, coords: false, merge: false, stats: true, note: "†" },
+                    { source: "Stereo Ensemble", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
                     { source: "Mean Statistics", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
                     { source: "Merged Statistics", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
+                    { source: "Stereo Statistics", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm text-gray-900 font-medium">
@@ -282,9 +286,13 @@ export default function ResultsViewerPage() {
               </table>
             </div>
 
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-sm text-gray-600 mb-4">
               <sup className="text-soton-blue">*</sup> Merge requires 2+ cameras and planar (2D) data only.
               Stereo setups with a uz component cannot be merged.
+            </p>
+            <p className="text-sm text-gray-600 mb-6">
+              <sup className="text-soton-blue">†</sup> Stereo data includes the out-of-plane velocity component (uz).
+              Statistics can be computed but transforms and merging are not supported.
             </p>
 
             {/* Key Restrictions */}
