@@ -968,7 +968,7 @@ batches:
     bg: /path/to/background.tif
 
   - type: levelize
-    white: /path/to/white_reference.tif
+    white: /path/to/white_reference.tif`}
             />
           </Section>
 
