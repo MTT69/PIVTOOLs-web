@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat, JetBrains_Mono } from "next/font/google";
 import { headers } from "next/headers";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -44,6 +45,7 @@ export default async function RootLayout({
       >
         {children}
       </body>
+      <GoogleAnalytics gaId="G-8M59P7YDJG" />
     </html>
   );
 }

@@ -913,12 +913,6 @@ batches:
                   name: "Levelize",
                   desc: "Divides by a white reference image to correct uneven illumination. The white reference should capture your illumination pattern without particles.",
                   params: [{ name: "white", default: "null", desc: "Path to white reference image" }]
-                },
-                {
-                  type: "transpose",
-                  name: "Transpose",
-                  desc: "Swaps height and width dimensions of the image. Use when your camera orientation doesn't match expected coordinate system.",
-                  params: []
                 }
               ].map((filter, index) => (
                 <div key={index} className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
@@ -975,8 +969,6 @@ batches:
 
   - type: levelize
     white: /path/to/white_reference.tif
-
-  - type: transpose         # No parameters`}
             />
           </Section>
 
@@ -1066,8 +1058,6 @@ filters:
   - type: levelize
     white: null         # string: Path to white reference
 
-  - type: transpose     # No parameters - swaps H and W
-
 # BATCH SETTINGS (for temporal filters)
 batches:
   size: 30              # Number of frames per batch
@@ -1105,7 +1095,6 @@ batches:
                     { filter: "invert", type: "Spatial", param: "offset", dtype: "int", default: "255" },
                     { filter: "sbg", type: "Spatial", param: "bg", dtype: "string", default: "null" },
                     { filter: "levelize", type: "Spatial", param: "white", dtype: "string", default: "null" },
-                    { filter: "transpose", type: "Spatial", param: "(none)", dtype: "-", default: "-" }
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm font-mono text-purple-600">{row.filter}</td>
