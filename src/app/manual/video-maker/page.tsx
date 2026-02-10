@@ -7,17 +7,15 @@ import {
   Video,
   FileText,
   Palette,
-  Play,
   Settings,
   ChevronDown,
   ChevronRight,
   Info,
   Terminal,
-  Sliders,
   FolderOpen,
   CheckCircle,
   Layers,
-  Clock
+  Monitor,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -143,590 +141,186 @@ export default function VideoMakerPage() {
               Video <span className="text-soton-gold">Maker</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Create high-quality MP4 videos from your PIV data. Visualise velocity fields,
-              derived statistics, and merged stereo data with customisable colormaps and resolution.
+              Create MP4 videos from instantaneous PIV data with customisable colormaps,
+              resolution, and encoding quality.
             </p>
           </motion.div>
 
-          {/* Quick Overview */}
-          <div className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white mb-16">
-            <h3 className="text-2xl font-bold mb-4">Overview</h3>
-            <p className="text-gray-200 mb-6 text-lg">
-              The Video Maker creates animated visualisations of your PIV velocity fields. It supports
-              instantaneous PIV data, computed statistics (vorticity, Reynolds stresses), and merged stereo fields.
-              Videos are encoded using FFmpeg with H.264 for maximum compatibility.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[
-                { label: "1. Select Data", desc: "Camera, source, variable" },
-                { label: "2. Configure", desc: "Limits, colormap, resolution" },
-                { label: "3. Create", desc: "Test or full video" },
-                { label: "4. Browse", desc: "View and manage videos" }
-              ].map((item, index) => (
-                <div key={index} className="bg-white/10 rounded-lg p-4 text-center">
-                  <p className="font-semibold text-soton-gold">{item.label}</p>
-                  <p className="text-gray-300 text-sm mt-1">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* GUI Usage Section */}
-          <Section title="GUI Usage" icon={<Video size={32} />} id="gui">
+          {/* GUI Usage */}
+          <Section title="GUI Usage" icon={<Monitor size={32} />} id="gui">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The Video Maker panel in the GUI provides a streamlined interface for creating PIV visualisation videos.
-              It automatically detects available data sources and variables, making it easy to create professional-quality
-              animations of your experimental data.
+              The Video Maker tab provides controls for data selection, colour limits,
+              and encoding settings. A test mode renders the first 50 frames for quick preview.
             </p>
 
-            {/* Data Selection */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <FolderOpen className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">Data Selection</h4>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h5 className="font-semibold text-gray-900 mb-2">Base Path</h5>
-                    <p className="text-gray-600 text-sm">
-                      Select the experiment directory from the dropdown if multiple paths are configured,
-                      or browse to a directory manually. The Video Maker looks for processed PIV data
-                      in the standard output structure.
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h5 className="font-semibold text-gray-900 mb-2">Camera</h5>
-                    <p className="text-gray-600 text-sm">
-                      Select which camera&apos;s data to visualise. For single-camera setups, this defaults to Camera 1.
-                      For stereo setups, you can create videos from individual cameras or use merged data.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
-                    <h5 className="font-semibold text-blue-800 mb-2">Data Source</h5>
-                    <p className="text-blue-700 text-sm mb-2">
-                      The Video Maker automatically detects which data types are available:
-                    </p>
-                    <ul className="text-blue-700 text-sm space-y-1">
-                      <li><strong>Calibrated:</strong> Physical units (mm, m/s)</li>
-                      <li><strong>Uncalibrated:</strong> Pixel displacements</li>
-                      <li><strong>Merged:</strong> Combined multi-camera fields</li>
-                      <li><strong>Stereo:</strong> 3D stereo-reconstructed fields (ux, uy, uz)</li>
-                      <li><strong>Inst Stats:</strong> Per-frame calculated statistics (vorticity, etc.)</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
-                    <p className="text-green-700 text-sm">
-                      <strong>Tip:</strong> The GUI shows frame counts for each available data source,
-                      helping you verify the correct dataset is selected.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Variable Selection */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Layers className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">Variable Selection</h4>
-              </div>
-
-              <p className="text-gray-600 mb-4">
-                Variables are organised into groups based on their source. The dropdown automatically
-                shows only variables available in your processed data.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-semibold text-gray-900 mb-2">Instantaneous Variables</h5>
-                  <p className="text-gray-600 text-sm mb-2">Direct PIV output from frame correlation:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {['ux', 'uy', 'uz', 'mag'].map(v => (
-                      <span key={v} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-mono">{v}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-semibold text-gray-900 mb-2">Calculated Per-Frame</h5>
-                  <p className="text-gray-600 text-sm mb-2">Computed statistics (requires statistics processing):</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["u'", "v'", "u'u'", "v'v'", "u'v'", 'vorticity', 'divergence'].map(v => (
-                      <span key={v} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-mono">{v}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
-                <p className="text-yellow-800 text-sm">
-                  <strong>Note:</strong> The <code className="bg-yellow-100 px-1 rounded">mag</code> (velocity magnitude)
-                  variable is always available and computed as <code className="bg-yellow-100 px-1 rounded">sqrt(ux&sup2; + uy&sup2;)</code>.
-                  For stereo data, <code className="bg-yellow-100 px-1 rounded">uz</code> is included in the magnitude calculation.
-                </p>
-              </div>
-            </div>
-
-            {/* Video Settings */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Sliders className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">Video Settings</h4>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-semibold text-gray-900 mb-2">Run Selection</h5>
-                  <p className="text-gray-600 text-sm">
-                    If your PIV was processed with multiple runs (passes), select which run to visualise.
-                    The highest run number typically contains the most refined results.
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-semibold text-gray-900 mb-2">Color Limits</h5>
-                  <p className="text-gray-600 text-sm">
-                    Set lower and upper bounds for the colormap. Leave blank for auto-detection using
-                    5th-95th percentiles across all frames for consistent scaling.
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-semibold text-gray-900 mb-2">Colormap</h5>
-                  <p className="text-gray-600 text-sm">
-                    Choose from matplotlib colormaps. &quot;Default&quot; uses <code className="bg-gray-200 px-1 rounded">bwr</code> (blue-white-red)
-                    for diverging data, automatically adjusting for positive/negative ranges.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-semibold text-gray-900 mb-2">Resolution</h5>
-                  <p className="text-gray-600 text-sm mb-2">Output video resolution:</p>
-                  <ul className="text-gray-600 text-sm space-y-1">
-                    <li><strong>1080p:</strong> 1920&times;1080 (Full HD)</li>
-                    <li><strong>4K:</strong> 3840&times;2160 (Ultra HD)</li>
-                  </ul>
-                  <p className="text-gray-500 text-xs mt-2">
-                    Aspect ratio is preserved; the video fits within the selected resolution.
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-semibold text-gray-900 mb-2">Frame Rate (FPS)</h5>
-                  <p className="text-gray-600 text-sm">
-                    Set the playback speed. Default is 30 FPS. Higher values create smoother playback;
-                    lower values extend video duration. Range: 1-120 FPS.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Creating Videos */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Play className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">Creating Videos</h4>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
-                  <h5 className="font-semibold text-green-800 mb-2">Test Video (50 frames)</h5>
-                  <p className="text-green-700 text-sm mb-2">
-                    Creates a short preview using the first 50 frames. Use this to:
-                  </p>
-                  <ul className="text-green-700 text-sm space-y-1">
-                    <li>Verify color limits are appropriate</li>
-                    <li>Check the colormap looks correct</li>
-                    <li>Confirm the correct variable/run is selected</li>
-                    <li>Preview output quality before full render</li>
-                  </ul>
-                </div>
-
-                <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
-                  <h5 className="font-semibold text-blue-800 mb-2">Create Full Video</h5>
-                  <p className="text-blue-700 text-sm mb-2">
-                    Renders all frames into a complete video. Processing time depends on:
-                  </p>
-                  <ul className="text-blue-700 text-sm space-y-1">
-                    <li>Number of frames (shown in data source info)</li>
-                    <li>Output resolution (4K takes longer)</li>
-                    <li>CPU performance and available memory</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="mt-4 bg-gray-50 rounded-lg p-4">
-                <h5 className="font-semibold text-gray-900 mb-2">Progress Tracking</h5>
-                <p className="text-gray-600 text-sm">
-                  A progress bar shows the current frame being processed. You can cancel video creation
-                  at any time using the Cancel button. Completed videos appear in the result panel with
-                  inline playback controls.
-                </p>
-              </div>
-            </div>
-
-            {/* Browse Videos Tab */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <FolderOpen className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">Browse Videos Tab</h4>
-              </div>
-
-              <p className="text-gray-600 mb-4">
-                The Browse Videos tab lists all existing videos in the current base path&apos;s <code className="bg-gray-100 px-1 rounded">videos/</code> directory.
-                Select any video from the dropdown to preview it directly in the browser.
-              </p>
-
-              <FeatureList items={[
-                "Automatic detection of MP4, AVI, MOV, and MKV files",
-                "Videos sorted by modification time (newest first)",
-                "In-browser playback with standard video controls",
-                "Refresh button to update the list after creating new videos"
-              ]} />
-            </div>
-          </Section>
-
-          {/* CLI Usage Section */}
-          <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The Video Maker can be run from the command line for batch processing or integration
-              into automated workflows. It reads default parameters from <code className="bg-gray-100 px-1 rounded">config.yaml</code>
-              with command-line overrides available for all options.
-            </p>
-
-            {/* Running from Command Line */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Terminal className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">Running from Command Line</h4>
-              </div>
-
-              <CodeBlock
-                title="Basic Usage"
-                code={`# Create video with settings from config.yaml
-pivtools-cli video
-
-# Specify variable to visualise
-pivtools-cli video --variable mag
-
-# Override camera and run
-pivtools-cli video --camera 1 --run 2
-
-# Set data source
-pivtools-cli video --data-source merged
-
-# Custom resolution and quality
-pivtools-cli video --resolution 4k --crf 10
-
-# Custom color limits
-pivtools-cli video --variable vorticity --lower -100 --upper 100
-
-# Use specific colormap
-pivtools-cli video --cmap viridis
-
-# Test mode (50 frames only)
-pivtools-cli video --test
-
-# Process specific paths
-pivtools-cli video -p 0,1`}
-              />
-
-              <h5 className="text-lg font-semibold text-gray-900 mt-4 mb-3">CLI Options</h5>
-              <div className="overflow-x-auto mb-4">
-                <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Flag</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm">
-                    <tr><td className="px-4 py-2 font-mono text-soton-blue">--camera, -c</td><td className="px-4 py-2 text-gray-600">Camera number</td></tr>
-                    <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--variable, -v</td><td className="px-4 py-2 text-gray-600">ux, uy, mag, vorticity, etc.</td></tr>
-                    <tr><td className="px-4 py-2 font-mono text-soton-blue">--run, -r</td><td className="px-4 py-2 text-gray-600">Run number (default: 1)</td></tr>
-                    <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--data-source, -d</td><td className="px-4 py-2 text-gray-600">calibrated, uncalibrated, merged, stereo, inst_stats</td></tr>
-                    <tr><td className="px-4 py-2 font-mono text-soton-blue">--fps</td><td className="px-4 py-2 text-gray-600">Frame rate (default: 30)</td></tr>
-                    <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--crf</td><td className="px-4 py-2 text-gray-600">Quality 0-51 (default: 15, lower=better)</td></tr>
-                    <tr><td className="px-4 py-2 font-mono text-soton-blue">--resolution</td><td className="px-4 py-2 text-gray-600">e.g., 1920x1080 or 4k</td></tr>
-                    <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--cmap</td><td className="px-4 py-2 text-gray-600">Colormap name</td></tr>
-                    <tr><td className="px-4 py-2 font-mono text-soton-blue">--lower</td><td className="px-4 py-2 text-gray-600">Lower color limit</td></tr>
-                    <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--upper</td><td className="px-4 py-2 text-gray-600">Upper color limit</td></tr>
-                    <tr><td className="px-4 py-2 font-mono text-soton-blue">--test</td><td className="px-4 py-2 text-gray-600">Test mode: 50 frames only</td></tr>
-                    <tr className="bg-gray-50"><td className="px-4 py-2 font-mono text-soton-blue">--active-paths, -p</td><td className="px-4 py-2 text-gray-600">Comma-separated path indices</td></tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
-                <h5 className="font-semibold text-blue-800 mb-2">Config File Defaults</h5>
-                <p className="text-blue-700 text-sm">
-                  All options default to values in <code className="bg-blue-100 px-1 rounded">config.yaml</code> under the
-                  <code className="bg-blue-100 px-1 rounded">video</code> section. Command-line flags override config settings.
-                </p>
-              </div>
-
-              <YamlDropdown
-                title="Hardcoded Settings Reference"
-                code={`# At the bottom of video_maker.py:
-_BASE_DIR = "/path/to/your/experiment/results"
-_CAMERA_NUMS = [1]           # List of camera numbers to process
-_VARIABLE = "ux"             # ux, uy, uz, mag, u_prime, vorticity, etc.
-_RUN = 1                     # Run number (1-based)
-_DATA_SOURCE = "calibrated"  # calibrated, uncalibrated, merged, stereo, inst_stats
-_FPS = 30                    # Frame rate
-_CRF = 15                    # Quality (lower = better, 15 is near-lossless)
-_RESOLUTION = (1080, 1920)   # (height, width) or None for native
-_CMAP = None                 # Colormap name or None for auto
-_LOWER_LIMIT = None          # Lower color limit or None for auto
-_UPPER_LIMIT = None          # Upper color limit or None for auto
-_TEST_MODE = False           # Set True for 50-frame test video
-_TEST_FRAMES = 50            # Frames for test mode`}
-              />
-            </div>
-
-            {/* VideoMaker Class */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Settings className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">VideoMaker Class</h4>
-              </div>
-
-              <p className="text-gray-600 mb-4">
-                For programmatic use, import and instantiate the <code className="bg-gray-100 px-1 rounded">VideoMaker</code> class:
-              </p>
-
-              <CodeBlock
-                title="Python API Usage"
-                code={`from pathlib import Path
-from pivtools_gui.video_maker.video_maker import VideoMaker
-from pivtools_core.config import get_config
-
-# Load configuration
-config = get_config()
-
-# Create VideoMaker instance
-maker = VideoMaker(
-    base_dir=Path("/path/to/results"),
-    camera=1,
-    config=config,
-)
-
-# Create a video
-result = maker.process_video(
-    variable="ux",           # Variable to visualise
-    run=1,                   # Run number (1-based)
-    data_source="calibrated",# calibrated, uncalibrated, merged, stereo, inst_stats
-    fps=30,                  # Frame rate
-    crf=15,                  # Quality factor
-    resolution=(1080, 1920), # Output resolution (H, W)
-    cmap="viridis",          # Colormap (None for auto)
-    lower_limit=None,        # Color limits (None for auto)
-    upper_limit=None,
-    test_mode=False,         # Quick test with 50 frames
-    test_frames=50,
-)
-
-if result["success"]:
-    print(f"Video created: {result['out_path']}")
-    print(f"Color limits: {result['vmin']:.3f} to {result['vmax']:.3f}")
-    print(f"Frames: {result['frames']}, Time: {result['elapsed_sec']:.1f}s")
-else:
-    print(f"Error: {result['error']}")`}
-              />
-
-              <div className="mt-4 bg-gray-50 rounded-lg p-4">
-                <h5 className="font-semibold text-gray-900 mb-2">Return Value</h5>
-                <p className="text-gray-600 text-sm mb-2">The <code className="bg-gray-200 px-1 rounded">process_video()</code> method returns a dictionary containing:</p>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><code className="bg-gray-200 px-1 rounded">success</code>: bool</div>
-                  <div><code className="bg-gray-200 px-1 rounded">out_path</code>: str (video file path)</div>
-                  <div><code className="bg-gray-200 px-1 rounded">vmin</code>, <code className="bg-gray-200 px-1 rounded">vmax</code>: float</div>
-                  <div><code className="bg-gray-200 px-1 rounded">actual_min</code>, <code className="bg-gray-200 px-1 rounded">actual_max</code>: float</div>
-                  <div><code className="bg-gray-200 px-1 rounded">effective_run</code>: int</div>
-                  <div><code className="bg-gray-200 px-1 rounded">frames</code>: int</div>
-                  <div><code className="bg-gray-200 px-1 rounded">elapsed_sec</code>: float</div>
-                  <div><code className="bg-gray-200 px-1 rounded">error</code>: str (if failed)</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Callback */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <Clock className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">Progress Callbacks &amp; Cancellation</h4>
-              </div>
-
-              <p className="text-gray-600 mb-4">
-                For long-running video creation, you can provide a progress callback and cancellation event:
-              </p>
-
-              <CodeBlock
-                title="Progress Tracking"
-                code={`import threading
-
-# Create a cancellation event
-cancel_event = threading.Event()
-
-def progress_callback(current_frame, total_frames, message=""):
-    percent = int(current_frame / total_frames * 100)
-    print(f"Progress: {percent}% ({current_frame}/{total_frames}) {message}")
-
-result = maker.process_video(
-    variable="mag",
-    run=1,
-    data_source="calibrated",
-    fps=30,
-    progress_callback=progress_callback,
-    cancel_event=cancel_event,  # Set this event to cancel
-)
-
-# To cancel from another thread:
-# cancel_event.set()`}
-              />
-            </div>
-          </Section>
-
-          {/* Data Sources Section */}
-          <Section title="Data Sources" icon={<Layers size={32} />} id="data-sources">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The Video Maker supports multiple data sources, each stored in a specific location
-              within the output directory structure. Understanding these sources helps you choose
-              the right data for visualisation.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold">calibrated</span>
-                  <h4 className="font-semibold text-gray-900">Calibrated PIV</h4>
-                </div>
-                <p className="text-gray-600 text-sm mb-2">
-                  Velocity fields in physical units (mm/s or m/s) after applying spatial calibration.
-                  This is typically the preferred source for final visualisation.
-                </p>
-                <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
-                  base_path/calibrated_piv/{'{n}'}/Cam{'{c}'}/instantaneous/
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-semibold">uncalibrated</span>
-                  <h4 className="font-semibold text-gray-900">Uncalibrated PIV</h4>
-                </div>
-                <p className="text-gray-600 text-sm mb-2">
-                  Raw pixel displacements before calibration. Useful for debugging or when
-                  calibration is not available.
-                </p>
-                <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
-                  base_path/uncalibrated_piv/{'{n}'}/Cam{'{c}'}/instantaneous/
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs font-semibold">merged</span>
-                  <h4 className="font-semibold text-gray-900">Merged Multi-Camera</h4>
-                </div>
-                <p className="text-gray-600 text-sm mb-2">
-                  Multi-camera merged 2D velocity fields using Hanning blend. Created from overlapping
-                  camera views (ux, uy only).
-                </p>
-                <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
-                  base_path/calibrated_piv/{'{n}'}/Merged/instantaneous/
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded-full text-xs font-semibold">stereo</span>
-                  <h4 className="font-semibold text-gray-900">Stereo 3D PIV</h4>
-                </div>
-                <p className="text-gray-600 text-sm mb-2">
-                  3D velocity fields from stereo reconstruction. Includes all three velocity components
-                  (ux, uy, uz) from two camera views.
-                </p>
-                <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
-                  base_path/stereo_calibrated/{'{n}'}/Cam1_Cam2/instantaneous/
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">inst_stats</span>
-                  <h4 className="font-semibold text-gray-900">Instantaneous Statistics</h4>
-                </div>
-                <p className="text-gray-600 text-sm mb-2">
-                  Per-frame computed statistics including fluctuations, Reynolds stresses,
-                  vorticity, and divergence. Requires statistics processing to be run first.
-                </p>
-                <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
-                  base_path/statistics/{'{n}'}/Cam{'{c}'}/instantaneous/instantaneous_stats/
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
-              <div className="flex items-center gap-2 mb-2">
-                <Info className="text-yellow-600" size={20} />
-                <h4 className="font-semibold text-yellow-800">Important: Ensemble Data</h4>
-              </div>
-              <p className="text-yellow-700 text-sm">
-                <strong>Ensemble-averaged data cannot be used for video creation.</strong> Ensemble averaging
-                produces a single mean field with no temporal sequence. To create a video, you must use
-                instantaneous or merged data which contains per-frame information.
-              </p>
-            </div>
-          </Section>
-
-          {/* Available Variables Section */}
-          <Section title="Available Variables" icon={<Palette size={32} />} id="variables">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The Video Maker can visualise any 2D field stored in your PIV data files. Variables
-              are automatically detected from the first frame file and grouped by source type.
-            </p>
-
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+            <div className="overflow-x-auto mb-8">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Variable</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Display Label</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Source</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Step</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { var: "ux", label: "ux", desc: "Velocity component in x-direction", source: "PIV" },
-                    { var: "uy", label: "uy", desc: "Velocity component in y-direction", source: "PIV" },
-                    { var: "uz", label: "uz", desc: "Velocity component in z-direction (stereo)", source: "PIV" },
-                    { var: "mag", label: "Velocity Magnitude", desc: "sqrt(ux² + uy² [+ uz²])", source: "Computed" },
-                    { var: "u_prime", label: "u'", desc: "Fluctuating velocity in x", source: "Statistics" },
-                    { var: "v_prime", label: "v'", desc: "Fluctuating velocity in y", source: "Statistics" },
-                    { var: "uu_inst", label: "u'u'", desc: "Reynolds normal stress (x)", source: "Statistics" },
-                    { var: "vv_inst", label: "v'v'", desc: "Reynolds normal stress (y)", source: "Statistics" },
-                    { var: "uv_inst", label: "u'v'", desc: "Reynolds shear stress", source: "Statistics" },
-                    { var: "vorticity", label: "ω (Vorticity)", desc: "Out-of-plane vorticity component", source: "Statistics" },
-                    { var: "divergence", label: "∇·u (Divergence)", desc: "Velocity divergence", source: "Statistics" },
-                    { var: "gamma1", label: "γ₁", desc: "Swirling strength criterion", source: "Statistics" },
-                    { var: "gamma2", label: "γ₂", desc: "Vortex core identification", source: "Statistics" },
+                    { step: "1", action: "Select base path, camera, data source, and variable." },
+                    { step: "2", action: "Set colour limits (leave blank for auto 5th-95th percentile scaling)." },
+                    { step: "3", action: "Choose colormap, resolution (1080p / 4K), and FPS." },
+                    { step: "4", action: "Click \"Test Video\" (50 frames) to preview, or \"Create Video\" for all frames." },
+                    { step: "5", action: "Use the Browse Videos tab to play back or manage existing videos." },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-6 py-3 text-sm font-mono text-soton-blue">{row.var}</td>
-                      <td className="px-6 py-3 text-sm text-gray-900">{row.label}</td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{row.desc}</td>
-                      <td className="px-6 py-3 text-sm">
+                      <td className="px-4 py-3 text-sm font-bold text-soton-blue">{row.step}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{row.action}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+              <div className="flex items-center gap-2 mb-2">
+                <Info className="text-blue-600" size={20} />
+                <h4 className="text-lg font-semibold text-blue-800">Browse Videos</h4>
+              </div>
+              <p className="text-blue-700 text-sm">
+                The Browse tab lists all MP4/AVI/MOV/MKV files in the base path&apos;s
+                <code className="bg-blue-100 px-1 rounded mx-1">videos/</code> directory,
+                sorted newest-first with in-browser playback.
+              </p>
+            </div>
+          </Section>
+
+          {/* CLI Usage */}
+          <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Command-line flags override values from config.yaml.
+            </p>
+
+            <CodeBlock
+              title="Video CLI"
+              code={`# Create video with config.yaml defaults
+pivtools-cli video
+
+# Specify variable and data source
+pivtools-cli video --variable mag --data-source calibrated
+
+# Custom resolution, quality, and colormap
+pivtools-cli video --resolution 4k --crf 10 --cmap viridis
+
+# Set colour limits
+pivtools-cli video --variable vorticity --lower -100 --upper 100
+
+# Test mode (50 frames)
+pivtools-cli video --test
+
+# Process specific paths
+pivtools-cli video -p 0,1`}
+            />
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Flag</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { flag: '--camera, -c', desc: 'Camera number (1-based)' },
+                    { flag: '--variable, -v', desc: 'ux, uy, uz, mag, vorticity, etc.' },
+                    { flag: '--run, -r', desc: 'Pass number (default: 1)' },
+                    { flag: '--data-source, -d', desc: 'calibrated, uncalibrated, merged, stereo, inst_stats' },
+                    { flag: '--fps', desc: 'Frame rate 1-120 (default: 30)' },
+                    { flag: '--crf', desc: 'Quality 0-51 (default: 15, lower = better)' },
+                    { flag: '--resolution', desc: '1080p or 4k' },
+                    { flag: '--cmap', desc: 'Colormap name (default: bwr)' },
+                    { flag: '--lower / --upper', desc: 'Colour limits (blank = auto)' },
+                    { flag: '--test', desc: 'Render first 50 frames only' },
+                    { flag: '--active-paths, -p', desc: 'Comma-separated path indices' },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.flag}</td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{row.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* Data Sources */}
+          <Section title="Data Sources" icon={<Layers size={32} />} id="data-sources">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Only instantaneous (per-frame) data can be used for videos. Ensemble data
+              produces a single field with no temporal sequence.
+            </p>
+
+            <div className="overflow-x-auto mb-8">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Source</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Path</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { source: 'calibrated', desc: 'Physical-unit velocity fields', path: 'calibrated_piv/{n}/Cam{c}/instantaneous/' },
+                    { source: 'uncalibrated', desc: 'Raw pixel displacements', path: 'uncalibrated_piv/{n}/Cam{c}/instantaneous/' },
+                    { source: 'merged', desc: 'Multi-camera Hanning-blended fields', path: 'calibrated_piv/{n}/merged/Cam1/instantaneous/' },
+                    { source: 'stereo', desc: '3D velocity (ux, uy, uz)', path: 'stereo_calibrated/{n}/Cam1_Cam2/instantaneous/' },
+                    { source: 'inst_stats', desc: 'Per-frame computed statistics', path: 'statistics/{n}/Cam{c}/.../instantaneous_stats/' },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.source}</td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{row.desc}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs font-mono">{row.path}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* Variables */}
+          <Section title="Available Variables" icon={<Palette size={32} />} id="variables">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Variables are auto-detected from the first frame file. Statistics variables
+              (vorticity, stresses, gamma) require the statistics module to have been run first.
+            </p>
+
+            <div className="overflow-x-auto mb-8">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Variable</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Source</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { var: 'ux', desc: 'Velocity in x', source: 'PIV' },
+                    { var: 'uy', desc: 'Velocity in y', source: 'PIV' },
+                    { var: 'uz', desc: 'Velocity in z (stereo only)', source: 'PIV' },
+                    { var: 'mag', desc: 'Velocity magnitude sqrt(ux^2 + uy^2 [+ uz^2])', source: 'Computed' },
+                    { var: 'u_prime', desc: 'Fluctuating velocity in x', source: 'Statistics' },
+                    { var: 'v_prime', desc: 'Fluctuating velocity in y', source: 'Statistics' },
+                    { var: 'uu_inst', desc: 'Reynolds normal stress (x)', source: 'Statistics' },
+                    { var: 'vv_inst', desc: 'Reynolds normal stress (y)', source: 'Statistics' },
+                    { var: 'uv_inst', desc: 'Reynolds shear stress', source: 'Statistics' },
+                    { var: 'vorticity', desc: 'Out-of-plane vorticity', source: 'Statistics' },
+                    { var: 'divergence', desc: 'Velocity divergence', source: 'Statistics' },
+                    { var: 'gamma1', desc: 'Swirling strength criterion', source: 'Statistics' },
+                    { var: 'gamma2', desc: 'Vortex core identification', source: 'Statistics' },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.var}</td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{row.desc}</td>
+                      <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           row.source === 'PIV' ? 'bg-blue-100 text-blue-700' :
                           row.source === 'Statistics' ? 'bg-purple-100 text-purple-700' :
@@ -738,121 +332,39 @@ result = maker.process_video(
                 </tbody>
               </table>
             </div>
-
-            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
-              <p className="text-blue-700 text-sm">
-                <strong>Auto-switching:</strong> When you select a statistics variable (like <code className="bg-blue-100 px-1 rounded">vorticity</code>),
-                the Video Maker automatically switches to the <code className="bg-blue-100 px-1 rounded">inst_stats</code> data source.
-                This ensures the correct files are loaded without manual intervention.
-              </p>
-            </div>
           </Section>
 
-          {/* Colormaps Section */}
+          {/* Colormaps */}
           <Section title="Colormaps" icon={<Palette size={32} />} id="colormaps">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Choose from a variety of matplotlib colormaps to best represent your data.
-              The default colormap (<code className="bg-gray-100 px-1 rounded">bwr</code>) is designed for diverging data
-              like velocity components that can be positive or negative.
+              Default colormap is <code className="bg-gray-100 px-1 rounded text-sm">bwr</code> (blue-white-red),
+              which auto-adjusts: symmetric around zero for diverging data, half-map for
+              all-positive or all-negative ranges.
             </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              {[
-                { name: "default", desc: "Auto (bwr for diverging)" },
-                { name: "viridis", desc: "Perceptually uniform" },
-                { name: "plasma", desc: "Warm perceptually uniform" },
-                { name: "inferno", desc: "Dark perceptually uniform" },
-                { name: "magma", desc: "Dark-to-bright" },
-                { name: "cividis", desc: "Colorblind-friendly" },
-                { name: "jet", desc: "Classic rainbow" },
-                { name: "hot", desc: "Black-red-yellow-white" },
-                { name: "cool", desc: "Cyan-magenta" },
-                { name: "twilight", desc: "Cyclic colormap" },
-                { name: "gray", desc: "Grayscale" },
-                { name: "bone", desc: "Blue-tinted grayscale" },
-              ].map((cmap, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-3 text-center">
-                  <code className="text-soton-blue font-mono text-sm">{cmap.name}</code>
-                  <p className="text-gray-600 text-xs mt-1">{cmap.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-900 mb-2">Default Colormap Behavior</h4>
-              <p className="text-gray-600 text-sm">
-                When set to &quot;default&quot;, the colormap is selected automatically:
-              </p>
-              <ul className="text-gray-600 text-sm mt-2 space-y-1">
-                <li><strong>Diverging data (min &lt; 0 &lt; max):</strong> Uses <code className="bg-gray-200 px-1 rounded">bwr</code> (blue-white-red), symmetric around zero</li>
-                <li><strong>All positive:</strong> Uses the upper half of <code className="bg-gray-200 px-1 rounded">bwr</code> (white-to-red)</li>
-                <li><strong>All negative:</strong> Uses the lower half of <code className="bg-gray-200 px-1 rounded">bwr</code> (blue-to-white)</li>
-              </ul>
-            </div>
-          </Section>
-
-          {/* YAML Configuration Section */}
-          <Section title="YAML Configuration" icon={<FileText size={32} />} id="yaml">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Video settings can be configured in <code className="bg-gray-100 px-1 rounded">config.yaml</code> under the <code className="bg-gray-100 px-1 rounded">video</code> block.
-              The GUI automatically updates these settings when you make changes.
-            </p>
-
-            <YamlDropdown
-              title="Full YAML Configuration Reference"
-              defaultOpen={true}
-              code={`video:
-  # Data selection
-  base_path_idx: 0           # Index into paths.base_paths array
-  camera: 1                  # Camera number (1-based)
-  data_source: calibrated    # calibrated, uncalibrated, merged, stereo, inst_stats
-  variable: ux               # Variable to visualise
-  run: 1                     # Run number (1-based)
-  piv_type: instantaneous    # Must be instantaneous for videos
-
-  # Visual settings
-  cmap: default              # Colormap name or "default" for auto
-  lower: ""                  # Lower color limit ("" for auto)
-  upper: ""                  # Upper color limit ("" for auto)
-
-  # Output settings
-  fps: 30                    # Frame rate (1-120)
-  crf: 15                    # Quality factor (0-51, lower = better)
-  resolution: 1080p          # "1080p" or "4k"
-
-  # Batch processing (optional)
-  active_paths: [0]          # Which path indices to process
-  cameras: [1, 2]            # Cameras for batch processing
-  include_merged: false      # Include merged data in batch`}
-            />
-
-            <div className="mt-6 overflow-x-auto">
-              <h4 className="text-xl font-semibold text-gray-900 mb-4">GUI to YAML Field Mapping</h4>
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">GUI Control</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">YAML Field</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Type</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Colormap</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Style</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { gui: "Base Path dropdown", yaml: "video.base_path_idx", type: "int" },
-                    { gui: "Camera selector", yaml: "video.camera", type: "int" },
-                    { gui: "Data Source dropdown", yaml: "video.data_source", type: "string" },
-                    { gui: "Variable dropdown", yaml: "video.variable", type: "string" },
-                    { gui: "Run selector", yaml: "video.run", type: "int" },
-                    { gui: "Colormap dropdown", yaml: "video.cmap", type: "string" },
-                    { gui: "Lower limit input", yaml: "video.lower", type: "string" },
-                    { gui: "Upper limit input", yaml: "video.upper", type: "string" },
-                    { gui: "FPS input", yaml: "video.fps", type: "int" },
-                    { gui: "Resolution dropdown", yaml: "video.resolution", type: "string" },
+                    { name: 'default (bwr)', style: 'Diverging blue-white-red (auto)' },
+                    { name: 'viridis', style: 'Perceptually uniform' },
+                    { name: 'plasma', style: 'Warm perceptually uniform' },
+                    { name: 'inferno', style: 'Dark perceptually uniform' },
+                    { name: 'cividis', style: 'Colourblind-friendly' },
+                    { name: 'jet', style: 'Classic rainbow' },
+                    { name: 'hot', style: 'Black-red-yellow-white' },
+                    { name: 'twilight', style: 'Cyclic' },
+                    { name: 'gray', style: 'Greyscale' },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-6 py-3 text-sm text-gray-900">{row.gui}</td>
-                      <td className="px-6 py-3 text-sm font-mono text-soton-blue">{row.yaml}</td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{row.type}</td>
+                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.name}</td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{row.style}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -860,126 +372,116 @@ result = maker.process_video(
             </div>
           </Section>
 
-          {/* Output Structure Section */}
-          <Section title="Output Structure" icon={<FolderOpen size={32} />} id="output">
+          {/* YAML Configuration */}
+          <Section title="YAML Configuration" icon={<FileText size={32} />} id="yaml">
+            <YamlDropdown
+              title="Video Configuration"
+              defaultOpen={true}
+              code={`video:
+  base_path_idx: 0             # Index into paths.base_paths
+  camera: 1                    # Camera number (1-based)
+  data_source: calibrated      # calibrated, uncalibrated, merged, stereo, inst_stats
+  variable: ux                 # Variable to visualise
+  run: 1                       # Pass number (1-based)
+  piv_type: instantaneous      # Must be instantaneous
+
+  cmap: default                # Colormap name or "default"
+  lower: ""                    # Lower colour limit ("" for auto)
+  upper: ""                    # Upper colour limit ("" for auto)
+
+  fps: 30                      # Frame rate (1-120)
+  crf: 15                      # Quality 0-51 (lower = better)
+  resolution: 1080p            # "1080p" or "4k"`}
+            />
+          </Section>
+
+          {/* Output */}
+          <Section title="Output" icon={<FolderOpen size={32} />} id="output">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Videos are saved in a structured directory hierarchy under your base path.
-              The filename includes the run number, camera, variable, and data source for easy identification.
+              Videos are saved under <code className="bg-gray-100 px-1 rounded text-sm">videos/</code> with
+              filenames encoding the pass, camera, variable, and data source.
             </p>
 
             <CodeBlock
-              title="Video Output Directory Structure"
+              title="Output Directory"
               code={`base_path/
-└── videos/
-    └── {num_frame_pairs}/
-        ├── Cam1/
-        │   ├── run1_Cam1_ux.mp4
-        │   ├── run1_Cam1_ux_test.mp4      # Test videos
-        │   ├── run1_Cam1_mag.mp4
-        │   ├── run1_Cam1_uy_uncalibrated.mp4
-        │   └── stats/                      # Statistics videos
-        │       ├── run1_Cam1_vorticity_inst_stats.mp4
-        │       └── run1_Cam1_uv_inst_inst_stats.mp4
-        ├── Cam2/
-        │   └── ...
-        ├── merged/                         # Merged multi-camera videos
-        │   ├── run1_Cam1_ux_merged.mp4
-        │   └── run1_Cam1_mag_merged.mp4
-        └── stereo/                         # Stereo 3D videos
-            ├── run1_Cam1_Cam2_ux_stereo.mp4
-            ├── run1_Cam1_Cam2_uz_stereo.mp4
-            └── run1_Cam1_Cam2_mag_stereo.mp4`}
+  videos/{num_frame_pairs}/
+    Cam1/
+      run1_Cam1_ux.mp4
+      run1_Cam1_mag.mp4
+      run1_Cam1_ux_test.mp4         # Test video (50 frames)
+      stats/
+        run1_Cam1_vorticity_inst_stats.mp4
+    merged/
+      run1_Cam1_ux_merged.mp4
+    stereo/
+      run1_Cam1_Cam2_uz_stereo.mp4`}
             />
 
             <div className="bg-gray-50 rounded-lg p-4 mt-4">
-              <h4 className="font-semibold text-gray-900 mb-2">Filename Convention</h4>
-              <p className="text-gray-600 text-sm mb-2">
-                Video filenames follow the pattern:
+              <h4 className="font-semibold text-gray-900 mb-2">Filename Pattern</h4>
+              <p className="text-gray-600 text-sm">
+                <code className="bg-gray-200 px-1 rounded">run{'{pass}'}_Cam{'{camera}'}_{'{variable}'}[_{'{source}'}][_test].mp4</code>
+                &mdash; suffixes added for uncalibrated, merged, stereo, inst_stats, and test mode.
               </p>
-              <code className="bg-gray-200 px-2 py-1 rounded text-sm">
-                run{'{run}'}_Cam{'{camera}'}_{'{variable}'}[_{'{source}'}][_test].mp4
-              </code>
-              <ul className="text-gray-600 text-sm mt-2 space-y-1">
-                <li><strong>_test:</strong> Added for test videos (50 frames)</li>
-                <li><strong>_uncalibrated:</strong> Added for uncalibrated data</li>
-                <li><strong>_merged:</strong> Added for merged multi-camera data</li>
-                <li><strong>_stereo:</strong> Added for stereo 3D PIV data</li>
-                <li><strong>_inst_stats:</strong> Added for instantaneous statistics</li>
-              </ul>
             </div>
           </Section>
 
-          {/* Video Quality Section */}
-          <Section title="Video Quality Settings" icon={<Settings size={32} />} id="quality">
+          {/* Video Quality */}
+          <Section title="Video Quality" icon={<Settings size={32} />} id="quality">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The Video Maker uses FFmpeg with H.264 encoding optimised for scientific visualisation.
-              These settings ensure sharp, artifact-free videos suitable for publication.
+              H.264 encoding with FFmpeg, optimised for scientific visualisation.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-3">Encoding Settings</h4>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Codec:</span>
-                    <code className="bg-gray-100 px-2 py-1 rounded">libx264</code>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Pixel format:</span>
-                    <code className="bg-gray-100 px-2 py-1 rounded">yuv420p</code>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Default CRF:</span>
-                    <code className="bg-gray-100 px-2 py-1 rounded">15</code>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Preset:</span>
-                    <code className="bg-gray-100 px-2 py-1 rounded">slow</code>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tune:</span>
-                    <code className="bg-gray-100 px-2 py-1 rounded">stillimage</code>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-3">Quality (CRF) Guide</h4>
-                <p className="text-gray-600 text-sm mb-3">
-                  CRF (Constant Rate Factor) controls quality vs file size. Lower values = higher quality.
-                </p>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded">0-15</span>
-                    <span className="text-gray-600">Near-lossless (large files)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">15-23</span>
-                    <span className="text-gray-600">High quality (recommended)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">23-28</span>
-                    <span className="text-gray-600">Medium quality</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-red-100 text-red-700 px-2 py-1 rounded">28+</span>
-                    <span className="text-gray-600">Lower quality</span>
-                  </div>
-                </div>
-              </div>
+            <div className="overflow-x-auto mb-8">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Setting</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Value</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { setting: 'Codec', value: 'libx264' },
+                    { setting: 'Pixel format', value: 'yuv420p' },
+                    { setting: 'Preset', value: 'slow' },
+                    { setting: 'Tune', value: 'stillimage (optimised for smooth gradients)' },
+                    { setting: 'Default CRF', value: '15 (near-lossless)' },
+                    { setting: 'LUT resolution', value: '4096 levels (reduces colour banding)' },
+                    { setting: 'Faststart', value: 'Enabled (streaming playback)' },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.setting}</td>
+                      <td className="px-4 py-3 text-sm font-mono text-gray-600">{row.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
-              <h4 className="font-semibold text-blue-800 mb-2">Optimisations for Scientific Data</h4>
-              <p className="text-blue-700 text-sm">
-                The Video Maker includes special optimisations for smooth gradient visualisation:
-              </p>
-              <ul className="text-blue-700 text-sm mt-2 space-y-1">
-                <li><strong>High LUT resolution (4096 levels):</strong> Reduces color banding</li>
-                <li><strong>Adaptive quantization:</strong> Preserves smooth gradients</li>
-                <li><strong>stillimage tuning:</strong> Optimised for slow-changing content</li>
-                <li><strong>faststart flag:</strong> Enables streaming playback</li>
-              </ul>
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">CRF Range</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Quality</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { range: '0-15', quality: 'Near-lossless (large files)' },
+                    { range: '15-23', quality: 'High quality (recommended)' },
+                    { range: '23-28', quality: 'Medium quality' },
+                    { range: '28+', quality: 'Lower quality (small files)' },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.range}</td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{row.quality}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </Section>
 
@@ -990,16 +492,15 @@ result = maker.process_video(
             transition={{ duration: 0.8 }}
             className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white text-center"
           >
-            <h3 className="text-3xl font-bold mb-4">Ready to Visualise Your Data</h3>
+            <h3 className="text-3xl font-bold mb-4">Back to Results Viewer</h3>
             <p className="text-gray-300 mb-6 text-lg">
-              Create compelling visualisations of your PIV experiments. Start with a test video
-              to verify your settings, then generate the full animation.
+              Return to the Results Viewer to explore all viewing and post-processing options.
             </p>
             <a
-              href="/manual/statistics"
+              href="/manual/results-viewer"
               className="inline-block bg-soton-gold text-soton-darkblue px-8 py-4 rounded-lg font-semibold hover:bg-yellow-400 transition-colors duration-200"
             >
-              Learn About Statistics Processing
+              Results Viewer
             </a>
           </motion.div>
         </div>

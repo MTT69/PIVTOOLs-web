@@ -6,11 +6,9 @@ import {
   Download,
   Terminal,
   CheckCircle,
-  Package,
   Cpu,
   Monitor,
   AlertTriangle,
-  Rocket
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -91,51 +89,26 @@ export default function QuickStartPage() {
               Quick <span className="text-soton-gold">Start</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Get PIVTools up and running in minutes with pre-compiled binaries. No compiler required.
+              Install PIVTools and start processing in minutes. No compiler required.
             </p>
           </motion.div>
 
           {/* Installation Section */}
           <Section title="Installation" icon={<Download size={32} />} id="installation">
             <div className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white mb-8">
-              <h3 className="text-2xl font-bold mb-4">Install PIVTools in 3 Steps</h3>
+              <h3 className="text-2xl font-bold mb-4">Install in 3 Steps</h3>
               <p className="text-gray-200 mb-6 text-lg">
-                PIVTools is distributed via PyPI with all dependencies pre-compiled. Create a virtual environment
-                using <strong>Python 3.12 or 3.13</strong> for compatibility.
+                Requires <strong>Python 3.12, 3.13, or 3.14</strong>. All C extensions and dependencies are pre-compiled.
               </p>
-              <CodeBlock code={`# Step 1: Create a virtual environment (Python 3.12 or 3.13 required)
+              <CodeBlock code={`# 1. Create a virtual environment
 python3.12 -m venv piv
-# or: python3.13 -m venv piv
 
-# Step 2: Activate it
-# On Windows:
-piv\\Scripts\\activate
+# 2. Activate it
+source piv/bin/activate        # macOS/Linux
+piv\\Scripts\\activate           # Windows
 
-# On macOS/Linux:
-source piv/bin/activate
-
-# Step 3: Install PIVTools
+# 3. Install
 pip install pivtools`} />
-              <p className="text-gray-300 text-sm">
-                That&apos;s it! PIVTools is now ready to use with both GUI and CLI interfaces.
-              </p>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
-              <div className="flex items-center gap-2 mb-2">
-                <Rocket className="text-blue-600" size={20} />
-                <h4 className="text-lg font-semibold text-blue-800">What&apos;s Included</h4>
-              </div>
-              <p className="text-blue-700 mb-4">
-                On <code className="bg-blue-100 px-2 py-1 rounded text-sm">pip install</code>, you get:
-              </p>
-              <FeatureList items={[
-                "Pre-compiled C extensions for cross-correlation and peak fitting",
-                "FFTW3 and GSL libraries bundled for all platforms",
-                "Web-based GUI (React) served via Flask",
-                "Command-line interface for batch processing",
-                "Default configuration file ready to edit"
-              ]} />
             </div>
           </Section>
 
@@ -144,69 +117,52 @@ pip install pivtools`} />
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-8">
               <CodeBlock code="pivtools-gui" />
               <p className="text-gray-600 mb-4">
-                Opens a web-based interface at <code className="bg-gray-100 px-2 py-1 rounded text-sm">localhost:5000</code>.
-                Your browser will open automatically.
+                Opens a web interface at <code className="bg-gray-100 px-2 py-1 rounded text-sm">localhost:5000</code>.
+                Your browser opens automatically.
               </p>
               <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
                 <p className="text-green-700">
-                  <strong>Default Configuration:</strong> On first launch, PIVTools creates a default
-                  <code className="bg-green-100 px-2 py-1 rounded text-sm mx-1">config.yaml</code>
-                  in the current directory. Use the GUI to configure file locations, image formats, and processing
-                  settings - your changes are automatically saved.
+                  On first launch, a default <code className="bg-green-100 px-2 py-1 rounded text-sm mx-1">config.yaml</code> is
+                  created in the current directory. The GUI and CLI share this file.
                 </p>
               </div>
             </div>
-
-            {/* [IMAGE PLACEHOLDER: GUI screenshot showing the setup tab] */}
           </Section>
 
           {/* CLI Usage Section */}
           <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The command-line interface provides three core commands for initialising and running PIV processing.
-            </p>
-
             <div className="space-y-6 mb-8">
-              {/* Init Command */}
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Initialise Workspace</h4>
                 <CodeBlock code="pivtools-cli init" />
                 <p className="text-gray-600">
-                  Creates an editable <code className="bg-gray-100 px-2 py-1 rounded text-sm">config.yaml</code> in your
-                  current directory. Edit this file to configure image paths, camera setup, and processing parameters.
+                  Creates an editable <code className="bg-gray-100 px-2 py-1 rounded text-sm">config.yaml</code> in the
+                  current directory. Edit this to set image paths, camera setup, and processing parameters.
                 </p>
               </div>
 
-              {/* Instantaneous Command */}
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Instantaneous PIV</h4>
                 <CodeBlock code="pivtools-cli instantaneous" />
                 <p className="text-gray-600">
-                  Runs per-frame cross-correlation analysis. Produces one velocity field per image pair, ideal for
-                  time-resolved measurements and unsteady flow analysis.
+                  Per-frame cross-correlation. One velocity field per image pair.
                 </p>
               </div>
 
-              {/* Ensemble Command */}
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Ensemble PIV</h4>
                 <CodeBlock code="pivtools-cli ensemble" />
                 <p className="text-gray-600">
-                  Averages correlation planes across all frames before peak detection. Produces a single
-                  time-averaged velocity field with improved signal-to-noise ratio for steady or periodic flows.
+                  Averages correlation planes across all frames before peak detection. Single time-averaged velocity field.
                 </p>
               </div>
             </div>
 
             <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
-              <div className="flex items-center gap-2 mb-2">
-                <Package className="text-blue-600" size={20} />
-                <h4 className="text-lg font-semibold text-blue-800">Shared Configuration</h4>
-              </div>
               <p className="text-blue-700">
-                Both the GUI and CLI share the same <code className="bg-blue-100 px-2 py-1 rounded text-sm">config.yaml</code> file.
-                Changes made in the GUI are automatically available when you run the CLI, and vice versa.
-                This allows you to configure complex setups visually with the option to run via the command line or the GUI.
+                The GUI and CLI share the same <code className="bg-blue-100 px-2 py-1 rounded text-sm">config.yaml</code>.
+                Configure visually in the GUI, then run via CLI -- or vice versa.
+                See the <a href="/manual/cli-reference" className="underline font-medium">CLI Reference</a> for all commands.
               </p>
             </div>
           </Section>
@@ -217,19 +173,18 @@ pip install pivtools`} />
               <div>
                 <h3 className="text-2xl font-bold mb-4 text-gray-900">Supported Platforms</h3>
                 <FeatureList items={[
-                  "Python 3.12 or 3.13 (required)",
-                  "macOS 15+ (Apple Silicon M1/M2/M3/M4)",
+                  "Python 3.12, 3.13, or 3.14",
+                  "macOS 15+ (Apple Silicon M1-M4)",
                   "Windows 10/11 (x86_64)",
                   "Linux (x86_64)"
                 ]} />
               </div>
               <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="text-xl font-semibold mb-4 text-gray-900">Pre-compiled Libraries</h4>
+                <h4 className="text-xl font-semibold mb-4 text-gray-900">Bundled C Libraries</h4>
                 <div className="space-y-3">
                   {[
-                    { title: "libbulkxcorr2d", desc: "FFT-based cross-correlation using FFTW3" },
-                    { title: "libmarquadt", desc: "Gaussian peak fitting using GSL" },
-                    { title: "libpeak_locate_lm", desc: "Levenberg-Marquardt peak localisation" }
+                    { title: "libbulkxcorr2d", desc: "FFT cross-correlation (FFTW3 + OpenMP)" },
+                    { title: "libmarquadt", desc: "Gaussian peak fitting (GSL + OpenMP)" }
                   ].map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <CheckCircle className="text-soton-gold mt-1 flex-shrink-0" size={18} />
@@ -249,11 +204,9 @@ pip install pivtools`} />
                 <h4 className="text-lg font-semibold text-yellow-800">macOS Limitation</h4>
               </div>
               <p className="text-yellow-700">
-                LaVision proprietary formats (<code className="bg-yellow-100 px-2 py-1 rounded text-sm">.im7</code>,
-                <code className="bg-yellow-100 px-2 py-1 rounded text-sm">.set</code>) are <strong>not supported on macOS</strong> due
-                to library limitations. These formats require Windows-specific DLLs from LaVision DaVis.
-                Use standard image formats (<code className="bg-yellow-100 px-2 py-1 rounded text-sm">.tif</code>,
-                <code className="bg-yellow-100 px-2 py-1 rounded text-sm">.png</code>) on macOS, or run PIVTools on Windows/Linux for LaVision files.
+                LaVision formats (<code className="bg-yellow-100 px-2 py-1 rounded text-sm">.im7</code>,
+                <code className="bg-yellow-100 px-2 py-1 rounded text-sm">.set</code>) require the <code className="bg-yellow-100 px-2 py-1 rounded text-sm">lvpyio</code> library,
+                available on Windows and Linux only. macOS users should export calibration images to TIFF.
               </p>
             </div>
           </Section>
@@ -267,7 +220,7 @@ pip install pivtools`} />
           >
             <h3 className="text-3xl font-bold mb-4">Ready to Configure?</h3>
             <p className="text-gray-300 mb-6 text-lg">
-              Learn how to set up your image paths, camera configuration, and file formats.
+              Set up your image paths, camera configuration, and file formats.
             </p>
             <a
               href="/manual/image-configuration"

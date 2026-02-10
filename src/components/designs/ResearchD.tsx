@@ -289,7 +289,7 @@ export default function ResearchD() {
                 University Website
               </a>
               <a
-                href="https://github.com/MTT69/PIVTOOLS"
+                href="https://github.com/MTT69/python-PIVTOOLs"
                 className="inline-flex items-center gap-2 border-2 border-white/30 text-white px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"

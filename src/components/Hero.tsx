@@ -227,7 +227,7 @@ export default function Hero() {
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </Link>
           <a
-            href="https://github.com/MTT69/PIVTOOLS"
+            href="https://github.com/MTT69/python-PIVTOOLs"
             target="_blank"
             rel="noopener noreferrer"
             className="group border-2 border-white/20 hover:border-white/40 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center gap-2 justify-center backdrop-blur-sm"

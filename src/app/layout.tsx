@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "PIVTOOLS - High-Performance PIV Processing",
-  description: "PIVTOOLS is a Python-based 2D planar and stereo PIV processing code, accelerated with C-MEX extensions for superior performance.",
+  description: "PIVTOOLS is a Python-based 2D planar and stereo PIV processing code, accelerated with C extensions for superior performance.",
   keywords: "PIV, Particle Image Velocimetry, Python, Image Processing, Fluid Dynamics, University of Southampton",
   authors: [{ name: "University of Southampton" }],
 };

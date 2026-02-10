@@ -240,7 +240,7 @@ export default function ResearchB() {
               Visit University
             </a>
             <a
-              href="https://github.com/MTT69/PIVTOOLS"
+              href="https://github.com/MTT69/python-PIVTOOLs"
               className="border-2 border-white text-white px-8 py-4 rounded-2xl font-bold hover:bg-white hover:text-soton-darkblue transition-all duration-300 flex items-center gap-2 justify-center"
               target="_blank"
               rel="noopener noreferrer"

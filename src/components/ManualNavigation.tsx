@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, Book, Download, Code, Image as ImageIcon, Layers, Filter, Video, Eye, RotateCw, BarChart2, GitMerge, Target, Zap, Home, Terminal } from 'lucide-react';
+import { ChevronDown, ChevronRight, Book, Download, Code, Image as ImageIcon, Layers, Filter, Video, Eye, RotateCw, BarChart2, GitMerge, Target, Zap, Home, Terminal, Crosshair } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -114,6 +114,8 @@ const manualSections: ManualSection[] = [
       { title: 'Polynomial (LaVision XML)', href: '/manual/planar-calibration#polynomial' },
       { title: 'CLI Usage', href: '/manual/planar-calibration#cli' },
       { title: 'YAML Configuration', href: '/manual/planar-calibration#yaml' },
+      { title: 'Measure Tool', href: '/manual/planar-calibration#measure-tool' },
+      { title: 'Global Coordinates', href: '/manual/planar-calibration#global-coordinates' },
     ],
   },
   {
@@ -128,6 +130,18 @@ const manualSections: ManualSection[] = [
       { title: '3D Reconstruction', href: '/manual/stereo-calibration#reconstruction' },
       { title: 'CLI Usage', href: '/manual/stereo-calibration#cli' },
       { title: 'YAML Configuration', href: '/manual/stereo-calibration#yaml' },
+    ],
+  },
+  {
+    title: 'Global Coordinates',
+    href: '/manual/global-coordinates',
+    icon: <Crosshair size={18} />,
+    subsections: [
+      { title: 'Overview', href: '/manual/global-coordinates#overview' },
+      { title: 'Concepts', href: '/manual/global-coordinates#concepts' },
+      { title: 'GUI Workflow', href: '/manual/global-coordinates#gui-workflow' },
+      { title: 'CLI Usage', href: '/manual/global-coordinates#cli' },
+      { title: 'YAML Configuration', href: '/manual/global-coordinates#yaml' },
     ],
   },
   {
@@ -195,17 +209,15 @@ const manualSections: ManualSection[] = [
       { title: 'Output Files', href: '/manual/statistics#output' },
     ],
   },
-  // Developer Installation kept at bottom
   {
-    title: 'Developer Installation',
+    title: 'Developer Guide',
     href: '/manual/developer',
     icon: <Code size={18} />,
     subsections: [
-      { title: 'Clone Repository', href: '/manual/developer#clone' },
-      { title: 'macOS Setup', href: '/manual/developer#macos' },
-      { title: 'Windows Setup', href: '/manual/developer#windows' },
-      { title: 'Linux Setup', href: '/manual/developer#linux' },
+      { title: 'Getting the Source', href: '/manual/developer#clone' },
+      { title: 'C Extensions', href: '/manual/developer#c-extensions' },
       { title: 'GUI Development', href: '/manual/developer#gui-dev' },
+      { title: 'AI-Assisted Development', href: '/manual/developer#ai-development' },
       { title: 'Running the Code', href: '/manual/developer#running' },
     ],
   },

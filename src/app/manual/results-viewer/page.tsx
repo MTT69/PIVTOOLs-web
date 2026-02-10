@@ -11,15 +11,10 @@ import {
   CheckCircle,
   AlertTriangle,
   Settings,
-  Play,
   Palette,
   Move,
-  BarChart2,
-  Layers,
-  RotateCw,
-  Info,
   Terminal,
-  Monitor
+  Monitor,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -126,85 +121,35 @@ export default function ResultsViewerPage() {
               Results <span className="text-soton-gold">Viewer</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Visualise and analyse your PIV vector fields. The Results Viewer is the central hub for
-              inspecting velocity data, calculating statistics, transforming coordinates, and merging
-              multi-camera fields.
+              Visualise PIV vector fields with interactive controls. The Results Viewer is the central
+              hub for inspecting data, applying transforms, merging cameras, and computing statistics.
             </p>
           </motion.div>
 
-          {/* Quick Overview */}
-          <div className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white mb-16">
-            <h3 className="text-2xl font-bold mb-4">Central Hub for Post-Processing</h3>
-            <p className="text-gray-200 mb-6 text-lg">
-              After running PIV processing, the Results Viewer lets you explore your data and perform
-              additional operations. Choose your data source, select variables to visualise, and access
-              powerful post-processing features.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[
-                { icon: <Eye size={24} />, label: "View", desc: "Visualise any variable" },
-                { icon: <RotateCw size={24} />, label: "Transform", desc: "Rotate, flip, scale" },
-                { icon: <Layers size={24} />, label: "Merge", desc: "Combine cameras" },
-                { icon: <BarChart2 size={24} />, label: "Statistics", desc: "Mean & turbulence" }
-              ].map((item, index) => (
-                <div key={index} className="bg-white/10 rounded-lg p-4 text-center">
-                  <div className="text-soton-gold mb-2 flex justify-center">{item.icon}</div>
-                  <p className="font-semibold text-soton-gold">{item.label}</p>
-                  <p className="text-gray-300 text-sm mt-1">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Overview Section */}
+          {/* Overview */}
           <Section title="Overview" icon={<Eye size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The Results Viewer displays PIV vector fields as colour-mapped images with interactive
-              controls. It supports multiple data sources including calibrated and uncalibrated results,
-              ensemble averages, merged multi-camera fields, and computed statistics.
+              The Results Viewer displays colour-mapped vector fields from any data source. It is a GUI-only
+              feature -- there is no CLI equivalent for interactive viewing.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <Monitor className="text-soton-blue" size={24} />
-                  <h4 className="text-xl font-semibold text-gray-900">GUI Features</h4>
-                </div>
-                <FeatureList items={[
-                  "Interactive frame-by-frame navigation",
-                  "Adjustable colour limits and colormaps",
-                  "Real-time cursor coordinate display",
-                  "Magnifier tool for zoomed inspection",
-                  "Corner coordinates display button",
-                  "One-click image download and copy"
-                ]} />
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <Terminal className="text-soton-blue" size={24} />
-                  <h4 className="text-xl font-semibold text-gray-900">Post-Processing</h4>
-                </div>
-                <FeatureList items={[
-                  "Geometric transforms (rotate, flip, scale)",
-                  "Multi-camera field merging",
-                  "Mean and turbulence statistics",
-                  "Reynolds stress tensor computation",
-                  "Vortex detection (gamma criteria)"
-                ]} />
-              </div>
-            </div>
+            <FeatureList items={[
+              "Frame-by-frame navigation with slider, arrow buttons, and playback (0.5--10 FPS)",
+              "Adjustable colormaps and colour limits (manual or auto-calculated)",
+              "Hover data display: coordinates plus velocity at cursor position",
+              "Axis limits, coordinate offsets, and custom plot titles",
+              "One-click image download and clipboard copy",
+              "Access to Transforms, Merging, and Statistics panels from the viewer",
+            ]} />
           </Section>
 
-          {/* Data Types & Operations Section - CRITICAL */}
-          <Section title="Data Types & Operations" icon={<Settings size={32} />} id="data-types">
+          {/* Data Types */}
+          <Section title="Data Types" icon={<Settings size={32} />} id="data-types">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Different data sources have different capabilities. The table below shows which operations
-              are available for each data type. Understanding these restrictions is essential for planning
-              your post-processing workflow.
+              The data source selector determines which vector files are loaded and which post-processing
+              operations are available.
             </p>
 
-            {/* Main Operations Table */}
             <div className="overflow-x-auto mb-8">
               <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
                 <thead className="bg-gray-100">
@@ -212,493 +157,203 @@ export default function ResultsViewerPage() {
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Data Source</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">View</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Transforms</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Coordinates</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Merge</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Statistics</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { source: "Uncalibrated Instantaneous", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
-                    { source: "Uncalibrated Ensemble", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
-                    { source: "Calibrated Instantaneous", view: true, transform: true, coords: true, merge: true, stats: true, note: "*" },
-                    { source: "Calibrated Ensemble", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
-                    { source: "Merged Instantaneous", view: true, transform: true, coords: true, merge: false, stats: true, note: "" },
-                    { source: "Merged Ensemble", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
-                    { source: "Stereo Instantaneous", view: true, transform: false, coords: false, merge: false, stats: true, note: "†" },
-                    { source: "Stereo Ensemble", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
-                    { source: "Mean Statistics", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
-                    { source: "Merged Statistics", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
-                    { source: "Stereo Statistics", view: true, transform: false, coords: false, merge: false, stats: false, note: "" },
+                    { source: "Calibrated Instantaneous", view: true, transform: true, merge: true, stats: true },
+                    { source: "Calibrated Ensemble", view: true, transform: false, merge: true, stats: false },
+                    { source: "Uncalibrated Instantaneous", view: true, transform: false, merge: false, stats: false },
+                    { source: "Uncalibrated Ensemble", view: true, transform: false, merge: false, stats: false },
+                    { source: "Merged Instantaneous", view: true, transform: true, merge: false, stats: true },
+                    { source: "Merged Ensemble", view: true, transform: true, merge: false, stats: true },
+                    { source: "Stereo Instantaneous", view: true, transform: false, merge: false, stats: true },
+                    { source: "Stereo Ensemble", view: true, transform: false, merge: false, stats: false },
+                    { source: "Statistics (mean/merged/stereo)", view: true, transform: false, merge: false, stats: false },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                        {row.source}{row.note && <sup className="text-soton-blue">{row.note}</sup>}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {row.view ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-600">
-                            <CheckCircle size={14} />
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {row.transform ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-600">
-                            <CheckCircle size={14} />
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {row.coords ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-600">
-                            <CheckCircle size={14} />
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {row.merge ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-600">
-                            <CheckCircle size={14} />
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {row.stats ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-600">
-                            <CheckCircle size={14} />
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">{row.source}</td>
+                      {[row.view, row.transform, row.merge, row.stats].map((val, i) => (
+                        <td key={i} className="px-4 py-3 text-center">
+                          {val ? (
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-600">
+                              <CheckCircle size={14} />
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <p className="text-sm text-gray-600 mb-4">
-              <sup className="text-soton-blue">*</sup> Merge requires 2+ cameras and planar (2D) data only.
-              Stereo setups with a uz component cannot be merged.
-            </p>
-            <p className="text-sm text-gray-600 mb-6">
-              <sup className="text-soton-blue">†</sup> Stereo data includes the out-of-plane velocity component (uz).
-              Statistics can be computed but transforms and merging are not supported.
-            </p>
-
-            {/* Key Restrictions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertTriangle className="text-yellow-600" size={20} />
                   <h4 className="text-lg font-semibold text-yellow-800">Uncalibrated Data</h4>
                 </div>
                 <p className="text-yellow-700 text-sm">
-                  Uncalibrated results can only be viewed. Transforms, merging, and statistics require
-                  calibrated data with physical coordinates. Run calibration first to enable these features.
+                  View-only. Transforms, merging, and statistics require calibrated data with physical coordinates.
                 </p>
               </div>
 
-              <div className="bg-red-50 rounded-lg p-4 border-l-4 border-red-400">
+              <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
                 <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="text-red-600" size={20} />
-                  <h4 className="text-lg font-semibold text-red-800">Stereo (3D) Merging</h4>
+                  <AlertTriangle className="text-yellow-600" size={20} />
+                  <h4 className="text-lg font-semibold text-yellow-800">Stereo Merging</h4>
                 </div>
-                <p className="text-red-700 text-sm">
-                  Merging is blocked for stereo PIV data. When a <code className="bg-red-100 px-1 rounded">uz</code> component
-                  is detected, the merge button will be disabled. Stereo calibration combines both cameras automatically.
+                <p className="text-yellow-700 text-sm">
+                  Merging is blocked for stereo data. Stereo calibration already combines both camera
+                  views into a single 3D field.
                 </p>
               </div>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
-              <div className="flex items-center gap-2 mb-2">
-                <Info className="text-blue-600" size={20} />
-                <h4 className="text-lg font-semibold text-blue-800">Ensemble Data</h4>
-              </div>
-              <p className="text-blue-700 text-sm">
-                Ensemble results are already time-averaged across all frames, so per-frame operations
-                (transforms, statistics calculation) are not applicable. View ensemble data directly
-                to see the mean velocity field from your ensemble PIV processing.
-              </p>
             </div>
           </Section>
 
-          {/* Viewing Controls Section */}
+          {/* Viewing Controls */}
           <Section title="Viewing Controls" icon={<Palette size={32} />} id="viewing">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The viewer provides intuitive controls for customising how your data is displayed.
-              Adjust colour limits, choose colormaps, and navigate through frames to explore your results.
+              Controls for customising the display. All settings are saved to <code className="bg-gray-100 px-2 py-1 rounded text-sm">config.yaml</code> automatically.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* Colormap Selection */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-xl font-semibold text-gray-900 mb-4">Colormap Selection</h4>
-                <p className="text-gray-600 mb-4">
-                  Choose from multiple colormaps to best visualise your data. Different colormaps
-                  are suited to different types of data and analysis goals.
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {['default', 'viridis', 'plasma', 'inferno', 'magma', 'cividis', 'jet', 'gray'].map((cmap) => (
-                    <div key={cmap} className="bg-gray-50 rounded px-3 py-2 text-sm font-mono text-gray-700">
-                      {cmap}
-                    </div>
+            <div className="overflow-x-auto mb-8">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Control</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { control: "Colormap", desc: "default, viridis, plasma, inferno, magma, cividis, jet, gray, and more" },
+                    { control: "Lower / Upper Limit", desc: "Manual colour bounds. Leave blank for automatic scaling per frame." },
+                    { control: "Auto-Calculate", desc: "Samples up to 50 frames and returns 5th/95th percentile limits." },
+                    { control: "Frame Slider", desc: "Drag to any frame. Arrow buttons step +/-1. Playback animates at 0.5--10 FPS." },
+                    { control: "Run / Pass", desc: "Select which multi-pass PIV run to display (highest = most refined)." },
+                    { control: "Axis Limits", desc: "X min/max, Y min/max. Blank = auto from coordinate data." },
+                    { control: "X / Y Offset", desc: "Shift displayed coordinates without modifying data." },
+                    { control: "Plot Title", desc: "Custom title shown above the colour-mapped image." },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.control}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{row.desc}</td>
+                    </tr>
                   ))}
-                </div>
-              </div>
+                </tbody>
+              </table>
+            </div>
+          </Section>
 
-              {/* Colour Limits */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-xl font-semibold text-gray-900 mb-4">Colour Limits</h4>
-                <p className="text-gray-600 mb-4">
-                  Set upper and lower limits for the colour scale. Use &quot;Auto-Calculate&quot; to
-                  automatically determine appropriate limits based on your data range.
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-2"><strong>Lower Limit:</strong> Minimum value (saturates below)</p>
-                  <p className="text-sm text-gray-600 mb-2"><strong>Upper Limit:</strong> Maximum value (saturates above)</p>
-                  <p className="text-sm text-gray-500 mt-3">Leave blank for automatic scaling per frame.</p>
-                </div>
-              </div>
+          {/* Variables */}
+          <Section title="Variables" icon={<Move size={32} />} id="variables">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              The variable dropdown is populated automatically from the data files. Variables are
+              prefixed to indicate their source.
+            </p>
+
+            <div className="overflow-x-auto mb-8">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Prefix</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Source</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Example Variables</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { prefix: "inst:", source: "Instantaneous frame data", vars: "ux, uy, uz, velocity_magnitude, b_mask, peak_mag" },
+                    { prefix: "inst_stat:", source: "Per-frame calculated statistics", vars: "vorticity, divergence, u_prime, v_prime, gamma1, gamma2" },
+                    { prefix: "mean:", source: "Time-averaged statistics", vars: "ux, uy, uu, vv, uv, tke, vorticity, divergence, mean_peak_height" },
+                    { prefix: "ens:", source: "Ensemble-averaged results", vars: "ux, uy, UU_stress, VV_stress, UV_stress" },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.prefix}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{row.source}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600 font-mono">{row.vars}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            {/* Frame Navigation */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Play className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">Frame Navigation</h4>
-              </div>
-              <p className="text-gray-600 mb-4">
-                For instantaneous data, use the frame slider or arrow buttons to navigate through your
-                time series. The playback feature animates through frames at adjustable speeds.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="font-semibold text-gray-900">Frame Slider</p>
-                  <p className="text-gray-600 text-sm">Drag to any frame</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="font-semibold text-gray-900">Arrow Buttons</p>
-                  <p className="text-gray-600 text-sm">Step forward/back</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="font-semibold text-gray-900">Playback</p>
-                  <p className="text-gray-600 text-sm">0.5 to 10 FPS</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Axis Limits */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Axis Limits & Plot Title</h4>
-              <p className="text-gray-600 mb-4">
-                Customise the plot display with specific X and Y axis limits and a custom title.
-                Leave blank for automatic axis scaling based on your coordinate data.
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-lg font-semibold text-gray-900 mb-3">Display Labels</h4>
+              <p className="text-gray-600 mb-3">
+                Some variables use mathematical notation in the dropdown for clarity:
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-white rounded px-3 py-2 text-sm">
-                  <span className="text-gray-500">X Min:</span> <span className="font-mono">auto</span>
-                </div>
-                <div className="bg-white rounded px-3 py-2 text-sm">
-                  <span className="text-gray-500">X Max:</span> <span className="font-mono">auto</span>
-                </div>
-                <div className="bg-white rounded px-3 py-2 text-sm">
-                  <span className="text-gray-500">Y Min:</span> <span className="font-mono">auto</span>
-                </div>
-                <div className="bg-white rounded px-3 py-2 text-sm">
-                  <span className="text-gray-500">Y Max:</span> <span className="font-mono">auto</span>
-                </div>
+                {[
+                  { label: "u'u'", desc: "UU Reynolds stress" },
+                  { label: "v'v'", desc: "VV Reynolds stress" },
+                  { label: "u'v'", desc: "UV shear stress" },
+                  { label: "TKE", desc: "Turbulent kinetic energy" },
+                  { label: "omega", desc: "Vorticity" },
+                  { label: "div u", desc: "Divergence" },
+                  { label: "gamma1", desc: "Gamma 1 criterion" },
+                  { label: "gamma2", desc: "Gamma 2 criterion" },
+                ].map((item) => (
+                  <div key={item.label} className="bg-white rounded px-3 py-2 text-center">
+                    <p className="font-mono text-soton-blue">{item.label}</p>
+                    <p className="text-gray-500 text-xs mt-1">{item.desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </Section>
 
-          {/* Variable Selection Section */}
-          <Section title="Variable Selection" icon={<Move size={32} />} id="variables">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The variable dropdown provides access to all available fields organised by category.
-              Variables are grouped based on their source and calculation type for easy navigation.
-            </p>
-
-            <div className="space-y-6">
-              {/* Variable Groups */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Instantaneous Variables</h4>
-                  <p className="text-gray-600 text-sm mb-4">
-                    Raw velocity components from frame files. Available for all data sources.
-                  </p>
-                  <div className="space-y-2">
-                    {[
-                      { var: 'ux', desc: 'Horizontal velocity component' },
-                      { var: 'uy', desc: 'Vertical velocity component' },
-                      { var: 'uz', desc: 'Out-of-plane velocity (stereo only)' },
-                    ].map((item) => (
-                      <div key={item.var} className="flex items-center gap-3 bg-gray-50 rounded px-3 py-2">
-                        <code className="text-soton-blue font-mono text-sm">{item.var}</code>
-                        <span className="text-gray-600 text-sm">{item.desc}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Calculated Statistics</h4>
-                  <p className="text-gray-600 text-sm mb-4">
-                    Derived quantities from statistics calculation. Requires running the statistics processor.
-                  </p>
-                  <div className="space-y-2">
-                    {[
-                      { var: 'Mean ux/uy', desc: 'Time-averaged velocities' },
-                      { var: 'TKE', desc: 'Turbulent kinetic energy' },
-                      { var: 'uu, vv, uv', desc: 'Reynolds stress tensor' },
-                      { var: 'vorticity', desc: 'Out-of-plane vorticity' },
-                    ].map((item) => (
-                      <div key={item.var} className="flex items-center gap-3 bg-gray-50 rounded px-3 py-2">
-                        <code className="text-soton-blue font-mono text-sm">{item.var}</code>
-                        <span className="text-gray-600 text-sm">{item.desc}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Variable Prefix System */}
-              <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
-                <h4 className="text-lg font-semibold text-blue-800 mb-3">Variable Naming Convention</h4>
-                <p className="text-blue-700 mb-4">
-                  Variables are prefixed to indicate their source. The viewer automatically filters
-                  available variables based on your selected data source.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white rounded-lg p-3">
-                    <code className="text-soton-blue font-mono">inst:</code>
-                    <span className="text-gray-600 ml-2 text-sm">Instantaneous frame data</span>
-                  </div>
-                  <div className="bg-white rounded-lg p-3">
-                    <code className="text-soton-blue font-mono">inst_stat:</code>
-                    <span className="text-gray-600 ml-2 text-sm">Per-frame calculated stats</span>
-                  </div>
-                  <div className="bg-white rounded-lg p-3">
-                    <code className="text-soton-blue font-mono">mean:</code>
-                    <span className="text-gray-600 ml-2 text-sm">Time-averaged statistics</span>
-                  </div>
-                  <div className="bg-white rounded-lg p-3">
-                    <code className="text-soton-blue font-mono">ens:</code>
-                    <span className="text-gray-600 ml-2 text-sm">Ensemble-averaged results</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Special Labels */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Special Variable Labels</h4>
-                <p className="text-gray-600 mb-4">
-                  Some variables use mathematical notation for clarity in the dropdown:
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { label: "u'u'", desc: "uu Reynolds stress" },
-                    { label: "v'v'", desc: "vv Reynolds stress" },
-                    { label: "u'v'", desc: "uv Reynolds stress" },
-                    { label: "TKE", desc: "Turbulent kinetic energy" },
-                    { label: "omega", desc: "Vorticity" },
-                    { label: "div u", desc: "Divergence" },
-                    { label: "gamma1", desc: "Gamma 1 vortex criterion" },
-                    { label: "gamma2", desc: "Gamma 2 vortex criterion" },
-                  ].map((item) => (
-                    <div key={item.label} className="bg-white rounded px-3 py-2 text-center">
-                      <p className="font-mono text-soton-blue">{item.label}</p>
-                      <p className="text-gray-500 text-xs mt-1">{item.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* Configuration Section */}
+          {/* Configuration */}
           <Section title="Configuration" icon={<Settings size={32} />} id="config">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The Results Viewer and all post-processing operations are configured through
-              <code className="bg-gray-100 px-2 py-1 rounded mx-1">config.yaml</code>. The GUI
-              automatically updates this file when you change settings.
+              Viewer settings are stored under the <code className="bg-gray-100 px-2 py-1 rounded text-sm">video</code> key
+              in <code className="bg-gray-100 px-2 py-1 rounded text-sm">config.yaml</code>. The GUI updates this
+              file automatically when you change settings.
             </p>
 
-            {/* GUI vs CLI */}
-            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200 mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Terminal className="text-purple-600" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">GUI vs CLI Processing</h4>
-              </div>
-              <p className="text-gray-700 mb-4">
-                Understanding the difference between GUI and CLI usage is important for batch processing:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Monitor className="text-blue-600" size={18} />
-                    <h5 className="font-semibold text-gray-900">GUI Mode</h5>
-                  </div>
-                  <ul className="text-gray-600 text-sm space-y-1">
-                    <li>- Processes <strong>one base_path</strong> at a time</li>
-                    <li>- Interactive visualisation and controls</li>
-                    <li>- Select path via dropdown</li>
-                    <li>- Ideal for exploration and setup</li>
-                  </ul>
-                </div>
-                <div className="bg-white rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Terminal className="text-green-600" size={18} />
-                    <h5 className="font-semibold text-gray-900">CLI Mode</h5>
-                  </div>
-                  <ul className="text-gray-600 text-sm space-y-1">
-                    <li>- Processes <strong>ALL active_paths</strong> in config</li>
-                    <li>- Batch processing without interaction</li>
-                    <li>- Configure once, run on many datasets</li>
-                    <li>- Ideal for production workflows</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Key Config Sections */}
-            <div className="space-y-4">
-              <YamlDropdown
-                title="Video/Viewing Configuration"
-                defaultOpen={true}
-                code={`video:
+            <YamlDropdown
+              title="Viewer / Video Configuration"
+              defaultOpen={true}
+              code={`video:
   base_path_idx: 0        # Which base path to use (0-indexed)
-  camera: 1               # Camera number to view
-  data_source: calibrated # calibrated or uncalibrated
+  camera: 1               # Camera number (1-based)
+  data_source: calibrated # calibrated, uncalibrated, merged, stereo, inst_stats
   variable: ux            # Variable to display
-  run: 1                  # Run number for multi-run files
+  run: 1                  # Run/pass number (1-based)
   piv_type: instantaneous # instantaneous or ensemble
   cmap: viridis           # Colormap name
   lower: ''               # Lower colour limit (blank = auto)
   upper: ''               # Upper colour limit (blank = auto)`}
-              />
+            />
 
-              <YamlDropdown
-                title="Paths Configuration"
-                code={`paths:
-  base_paths:
-    - /path/to/experiment_1/results
-    - /path/to/experiment_2/results
-  source_paths:
-    - /path/to/experiment_1/images
-    - /path/to/experiment_2/images
-  active_paths:
-    - 0    # CLI will process these indices
-    - 1
-  camera_count: 2
-  camera_numbers: [1, 2]`}
-              />
-            </div>
-
-            <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400 mt-6">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="text-yellow-600" size={20} />
-                <h4 className="text-lg font-semibold text-yellow-800">Batch Processing Note</h4>
-              </div>
-              <p className="text-yellow-700 text-sm">
-                When using CLI commands for transforms, merging, or statistics, the operations will run
-                on <strong>all paths listed in active_paths</strong>. Configure your datasets first
-                using the GUI, then run batch processing via CLI for efficiency.
-              </p>
-            </div>
-          </Section>
-
-          {/* Post-Processing Features */}
-          <Section title="Post-Processing Features" icon={<BarChart2 size={32} />} id="features">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The Results Viewer provides access to three powerful post-processing modules.
-              Each feature has its own detailed documentation page with complete workflows and examples.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Transforms Card */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <RotateCw className="text-purple-600" size={24} />
-                  </div>
-                  <h4 className="text-xl font-semibold text-gray-900">Transforms</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+                <div className="flex items-center gap-2 mb-2">
+                  <Monitor className="text-blue-600" size={20} />
+                  <h4 className="text-lg font-semibold text-blue-800">GUI Mode</h4>
                 </div>
-                <p className="text-gray-600 mb-4">
-                  Rotate, flip, and scale your vector fields. Essential for aligning multi-camera
-                  setups before merging.
+                <p className="text-blue-700 text-sm">
+                  Processes one <code className="bg-blue-100 px-1 rounded">base_path</code> at a time with interactive
+                  controls. Ideal for exploration and verifying settings.
                 </p>
-                <ul className="text-gray-500 text-sm space-y-1 mb-4">
-                  <li>- Geometric: rotate, flip</li>
-                  <li>- Scale velocities & coordinates</li>
-                  <li>- Swap/invert components</li>
-                </ul>
-                <Link
-                  href="/manual/transforms"
-                  className="inline-block bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors"
-                >
-                  Learn More
-                </Link>
               </div>
 
-              {/* Merging Card */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-                    <Layers className="text-green-600" size={24} />
-                  </div>
-                  <h4 className="text-xl font-semibold text-gray-900">Merging</h4>
+              <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
+                <div className="flex items-center gap-2 mb-2">
+                  <Terminal className="text-green-600" size={20} />
+                  <h4 className="text-lg font-semibold text-green-800">CLI Mode</h4>
                 </div>
-                <p className="text-gray-600 mb-4">
-                  Combine vector fields from multiple cameras into a single seamless field using
-                  Hanning window blending.
+                <p className="text-green-700 text-sm">
+                  Transforms, merging, statistics, and video commands process
+                  all <code className="bg-green-100 px-1 rounded">active_paths</code>. Configure once in the GUI,
+                  then batch process via CLI.
                 </p>
-                <ul className="text-gray-500 text-sm space-y-1 mb-4">
-                  <li>- Requires 2+ cameras</li>
-                  <li>- Automatic overlap detection</li>
-                  <li>- Distance-based weighting</li>
-                </ul>
-                <Link
-                  href="/manual/merging"
-                  className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
-                >
-                  Learn More
-                </Link>
-              </div>
-
-              {/* Statistics Card */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <BarChart2 className="text-blue-600" size={24} />
-                  </div>
-                  <h4 className="text-xl font-semibold text-gray-900">Statistics</h4>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Calculate mean velocities, Reynolds stresses, TKE, and turbulence quantities
-                  across your time series.
-                </p>
-                <ul className="text-gray-500 text-sm space-y-1 mb-4">
-                  <li>- Mean & instantaneous stats</li>
-                  <li>- Reynolds stress tensor</li>
-                  <li>- Vortex detection (gamma)</li>
-                </ul>
-                <Link
-                  href="/manual/statistics"
-                  className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Learn More
-                </Link>
               </div>
             </div>
           </Section>
@@ -712,8 +367,8 @@ export default function ResultsViewerPage() {
           >
             <h3 className="text-3xl font-bold mb-4">Next: Transform Your Data</h3>
             <p className="text-gray-300 mb-6 text-lg">
-              Ready to align your camera views? Learn how to rotate, flip, and scale your vector
-              fields to prepare for merging or correct orientation issues.
+              Rotate, flip, and scale your vector fields to correct camera orientations
+              or convert between unit systems.
             </p>
             <Link
               href="/manual/transforms"

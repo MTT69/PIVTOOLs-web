@@ -10,13 +10,11 @@ import {
   ChevronRight,
   CheckCircle,
   AlertTriangle,
-  FlipHorizontal,
   Move,
   Terminal,
   Monitor,
   Info,
   ArrowRight,
-  Scale
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -124,24 +122,6 @@ const FeatureList = ({ items }: FeatureListProps) => (
   </ul>
 );
 
-interface GUIStepProps {
-  step: number;
-  title: string;
-  children: React.ReactNode;
-}
-
-const GUIStep = ({ step, title, children }: GUIStepProps) => (
-  <div className="flex gap-4 mb-6">
-    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-soton-blue text-white flex items-center justify-center font-bold text-lg">
-      {step}
-    </div>
-    <div className="flex-1">
-      <h4 className="text-lg font-semibold text-gray-900 mb-2">{title}</h4>
-      <div className="text-gray-600">{children}</div>
-    </div>
-  </div>
-);
-
 export default function TransformsPage() {
   return (
     <main className="min-h-screen">
@@ -161,62 +141,34 @@ export default function TransformsPage() {
               Vector <span className="text-soton-gold">Transforms</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Rotate, flip, and scale your PIV vector fields to correct camera orientations,
-              align multi-camera setups, and convert between unit systems.
+              Rotate, flip, and scale PIV vector fields to correct camera orientations,
+              align multi-camera setups, or convert between unit systems.
             </p>
           </motion.div>
 
-          {/* Quick Overview */}
-          <div className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white mb-16">
-            <h3 className="text-2xl font-bold mb-4">When to Use Transforms</h3>
-            <p className="text-gray-200 mb-6 text-lg">
-              Transforms are essential when your cameras have different orientations or when you need
-              to align vector fields before merging. They&apos;re also useful for converting between
-              unit systems (e.g., m/s to mm/s).
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { icon: <RotateCw size={24} />, label: "Alignment", desc: "Match camera orientations" },
-                { icon: <FlipHorizontal size={24} />, label: "Correction", desc: "Fix mirrored views" },
-                { icon: <Scale size={24} />, label: "Conversion", desc: "Change units" }
-              ].map((item, index) => (
-                <div key={index} className="bg-white/10 rounded-lg p-4 text-center">
-                  <div className="text-soton-gold mb-2 flex justify-center">{item.icon}</div>
-                  <p className="font-semibold text-soton-gold">{item.label}</p>
-                  <p className="text-gray-300 text-sm mt-1">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Overview Section */}
+          {/* Overview */}
           <Section title="Overview" icon={<RotateCw size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Vector transforms modify the spatial arrangement and/or values of your PIV data.
-              They are applied directly to the .mat files containing your vector fields, making
-              the changes permanent. This is intentional - transformed data can then be used by
-              other operations like merging and statistics.
+              Transforms modify <code className="bg-gray-100 px-2 py-1 rounded text-sm">.mat</code> files directly.
+              Original data is backed up with an <code className="bg-gray-100 px-2 py-1 rounded text-sm">_original</code> suffix
+              for undo capability.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-xl font-semibold text-gray-900 mb-4">Key Features</h4>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h4>
                 <FeatureList items={[
-                  "Geometric transforms (rotate, flip)",
-                  "Velocity component operations",
-                  "Coordinate and velocity scaling",
-                  "Automatic transform simplification",
-                  "Backup of original data"
+                  "Calibrated instantaneous or merged data",
+                  "Not applicable to ensemble or statistics output",
                 ]} />
               </div>
 
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-xl font-semibold text-gray-900 mb-4">Requirements</h4>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Key Behaviours</h4>
                 <FeatureList items={[
-                  "Calibrated vector data only",
-                  "Instantaneous or merged data",
-                  "Not applicable to ensemble results",
-                  "Not applicable to statistics output"
+                  "Coordinates file updated alongside vector data",
+                  "Ensemble stresses (UU, VV, UV) handled correctly",
+                  "Redundant operations automatically simplified",
                 ]} />
               </div>
             </div>
@@ -224,41 +176,37 @@ export default function TransformsPage() {
             <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="text-yellow-600" size={20} />
-                <h4 className="text-lg font-semibold text-yellow-800">Important: Transforms are Permanent</h4>
+                <h4 className="text-lg font-semibold text-yellow-800">Transforms are Permanent</h4>
               </div>
-              <p className="text-yellow-700">
-                Transforms modify your .mat files directly. Original data is backed up with an
-                <code className="bg-yellow-100 px-1 rounded mx-1">_original</code> suffix, but you
-                should ensure you have backups before applying transforms to production data.
+              <p className="text-yellow-700 text-sm">
+                Transforms write directly to your .mat files. Apply transforms <strong>before</strong> merging
+                and statistics. After transforming, recalculate any existing statistics.
               </p>
             </div>
           </Section>
 
-          {/* Available Operations Section */}
-          <Section title="Available Operations" icon={<Move size={32} />} id="operations">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              PIVTools provides a comprehensive set of transform operations. These can be combined
-              in sequence, and redundant operations are automatically simplified.
-            </p>
-
-            {/* Geometric Transforms */}
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Geometric Transforms</h3>
+          {/* Operations */}
+          <Section title="Operations" icon={<Move size={32} />} id="operations">
             <div className="overflow-x-auto mb-8">
               <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Operation</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Effect on Data</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Effect</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { op: 'flip_ud', desc: 'Flip vertically (upside down)', effect: 'Spatial flip + velocity component adjustment' },
-                    { op: 'flip_lr', desc: 'Flip horizontally (left-right)', effect: 'Spatial flip + velocity component adjustment' },
-                    { op: 'rotate_90_cw', desc: 'Rotate 90 degrees clockwise', effect: 'Spatial rotation + velocity vector rotation' },
-                    { op: 'rotate_90_ccw', desc: 'Rotate 90 degrees counter-clockwise', effect: 'Spatial rotation + velocity vector rotation' },
+                    { op: 'flip_ud', desc: 'Flip vertically', effect: 'Spatial flip of all fields' },
+                    { op: 'flip_lr', desc: 'Flip horizontally', effect: 'Spatial flip of all fields' },
+                    { op: 'rotate_90_cw', desc: 'Rotate 90 degrees clockwise', effect: 'Spatial + coordinate rotation' },
+                    { op: 'rotate_90_ccw', desc: 'Rotate 90 degrees counter-clockwise', effect: 'Spatial + coordinate rotation' },
                     { op: 'rotate_180', desc: 'Rotate 180 degrees', effect: 'Equivalent to flip_ud + flip_lr' },
+                    { op: 'swap_ux_uy', desc: 'Swap ux and uy components', effect: 'UU_stress <-> VV_stress for ensemble' },
+                    { op: 'invert_ux_uy', desc: 'Negate ux and uy', effect: 'Stresses unchanged (variance is sign-invariant)' },
+                    { op: 'scale_velocity:<factor>', desc: 'Multiply velocities by factor', effect: 'Stresses scaled by factor squared' },
+                    { op: 'scale_coords:<factor>', desc: 'Multiply coordinates by factor', effect: 'Only x, y grids affected' },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.op}</td>
@@ -270,342 +218,150 @@ export default function TransformsPage() {
               </table>
             </div>
 
-            {/* Velocity Operations */}
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Velocity Component Operations</h3>
-            <div className="overflow-x-auto mb-8">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Operation</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Effect on Data</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { op: 'swap_ux_uy', desc: 'Swap ux and uy components', effect: 'ux becomes uy, uy becomes ux' },
-                    { op: 'invert_ux_uy', desc: 'Negate velocity components', effect: 'ux = -ux, uy = -uy' },
-                  ].map((row, index) => (
-                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.op}</td>
-                      <td className="px-4 py-3 text-gray-700 text-sm">{row.desc}</td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">{row.effect}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Scaling Operations */}
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Scaling Operations</h3>
-            <div className="overflow-x-auto mb-8">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Operation</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Example Use</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { op: 'scale_velocity:factor', desc: 'Multiply all velocities by factor', example: 'scale_velocity:1000 converts m/s to mm/s' },
-                    { op: 'scale_coords:factor', desc: 'Multiply all coordinates by factor', example: 'scale_coords:0.001 converts mm to m' },
-                  ].map((row, index) => (
-                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.op}</td>
-                      <td className="px-4 py-3 text-gray-700 text-sm">{row.desc}</td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">{row.example}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Transform Simplification */}
+            {/* Simplification */}
             <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
               <div className="flex items-center gap-2 mb-2">
                 <Info className="text-blue-600" size={20} />
                 <h4 className="text-lg font-semibold text-blue-800">Automatic Simplification</h4>
               </div>
               <p className="text-blue-700 mb-4">
-                PIVTools automatically simplifies redundant operations. For example:
+                Redundant operations are reduced using algebraic group properties:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-lg p-3">
-                  <code className="text-gray-600 text-sm">flip_ud + flip_ud</code>
-                  <ArrowRight className="inline mx-2 text-gray-400" size={16} />
-                  <code className="text-green-600 text-sm">(no operation)</code>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <code className="text-gray-600 text-sm">rotate_90_cw x 4</code>
-                  <ArrowRight className="inline mx-2 text-gray-400" size={16} />
-                  <code className="text-green-600 text-sm">(no operation)</code>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <code className="text-gray-600 text-sm">flip_lr + flip_ud</code>
-                  <ArrowRight className="inline mx-2 text-gray-400" size={16} />
-                  <code className="text-green-600 text-sm">rotate_180</code>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <code className="text-gray-600 text-sm">scale_velocity:1000 + scale_velocity:0.5</code>
-                  <ArrowRight className="inline mx-2 text-gray-400" size={16} />
-                  <code className="text-green-600 text-sm">scale_velocity:500</code>
-                </div>
+                {[
+                  { from: "flip_ud + flip_ud", to: "(no operation)" },
+                  { from: "rotate_90_cw x 4", to: "(no operation)" },
+                  { from: "flip_lr + flip_ud", to: "rotate_180" },
+                  { from: "scale_velocity:1000 + scale_velocity:0.5", to: "scale_velocity:500" },
+                ].map((item, i) => (
+                  <div key={i} className="bg-white rounded-lg p-3">
+                    <code className="text-gray-600 text-sm">{item.from}</code>
+                    <ArrowRight className="inline mx-2 text-gray-400" size={16} />
+                    <code className="text-green-600 text-sm">{item.to}</code>
+                  </div>
+                ))}
               </div>
             </div>
           </Section>
 
-          {/* GUI Workflow Section */}
+          {/* GUI Workflow */}
           <Section title="GUI Workflow" icon={<Monitor size={32} />} id="gui-workflow">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The GUI provides an interactive way to preview and apply transforms to your data.
-              Follow these steps to transform your vector fields:
+              In the Results Viewer, expand the Transforms panel to add, preview, and apply operations.
             </p>
 
-            <div className="bg-white rounded-xl p-8 border border-gray-100 shadow-sm mb-8">
-              <GUIStep step={1} title="Open the Results Viewer">
-                <p>
-                  Navigate to the Results Viewer and select your calibrated instantaneous data source.
-                  Ensure you have the correct base path and camera selected.
-                </p>
-              </GUIStep>
-
-              <GUIStep step={2} title="Expand the Transforms Panel">
-                <p>
-                  Click the &quot;Transforms&quot; button to expand the transforms control panel.
-                  This reveals all available transform operations and the current transform queue.
-                </p>
-              </GUIStep>
-
-              <GUIStep step={3} title="Add Transform Operations">
-                <p>
-                  Click on transform buttons to add operations to the queue. Each click adds
-                  the operation to the pending list. The current frame preview updates immediately
-                  to show the effect.
-                </p>
-              </GUIStep>
-
-              <GUIStep step={4} title="Preview the Result">
-                <p>
-                  Check the transformed view in the main display. Navigate through frames to
-                  verify the transform looks correct across your dataset. Use &quot;Clear List&quot;
-                  to reset if needed.
-                </p>
-              </GUIStep>
-
-              <GUIStep step={5} title="Apply to All Frames">
-                <p>
-                  Once satisfied, click &quot;Apply to All Frames&quot; to permanently apply the
-                  transforms to all frames in the dataset. A progress bar shows the operation status.
-                </p>
-              </GUIStep>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
-                <h4 className="text-lg font-semibold text-green-800 mb-2">Preview Mode</h4>
-                <p className="text-green-700 text-sm">
-                  Adding transforms updates the current frame preview immediately. This lets you
-                  verify the orientation before committing changes to all frames.
-                </p>
-              </div>
-
-              <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
-                <h4 className="text-lg font-semibold text-yellow-800 mb-2">Undo Frame</h4>
-                <p className="text-yellow-700 text-sm">
-                  Use &quot;Undo Frame&quot; to restore the original data for the current frame.
-                  This reverts to the backed-up data stored with <code className="bg-yellow-100 px-1 rounded">_original</code>.
-                </p>
-              </div>
+            <div className="overflow-x-auto mb-8">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Step</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { step: "1", action: "Select calibrated instantaneous or merged data source." },
+                    { step: "2", action: "Expand the Transforms panel and click operation buttons to build a queue." },
+                    { step: "3", action: "The current frame preview updates immediately. Navigate frames to verify." },
+                    { step: "4", action: "Click \"Apply to All Frames\" to write transforms to all .mat files." },
+                    { step: "5", action: "Use \"Undo Frame\" to restore original data from _original backup." },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 text-sm font-bold text-soton-blue">{row.step}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{row.action}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </Section>
 
-          {/* CLI Usage Section */}
+          {/* CLI Usage */}
           <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli-usage">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              For batch processing across multiple datasets, use the command-line interface.
-              The CLI processes all paths listed in <code className="bg-gray-100 px-2 py-1 rounded">active_paths</code>,
-              making it ideal for production workflows.
+              The CLI processes all <code className="bg-gray-100 px-2 py-1 rounded text-sm">active_paths</code> without
+              preview. Test your configuration in the GUI first.
             </p>
 
             <CodeBlock
-              title="Transform CLI Command"
-              code={`# Apply transforms configured in config.yaml
+              title="Transform CLI"
+              code={`# Apply transforms from config.yaml
 pivtools-cli transform
 
-# Apply specific transforms via command line
+# Override operations via command line
 pivtools-cli transform -o flip_ud,rotate_90_cw
 
-# Transform specific camera only
+# Transform specific camera
 pivtools-cli transform --camera 1
 
 # Transform merged data
 pivtools-cli transform --source-endpoint merged -o flip_lr
 
-# Transform stereo 3D data
-pivtools-cli transform --source-endpoint stereo -o flip_ud
-
-# Process specific paths
-pivtools-cli transform -p 0,1
-
-# The CLI will:
-# 1. Read transforms.cameras configuration (or use -o flag)
-# 2. Process each camera's operations in order
-# 3. Apply to ALL frames in selected paths
-# 4. Show progress for each path/camera combination`}
+# Process specific paths only
+pivtools-cli transform -p 0,1`}
             />
-
-            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200 mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Terminal className="text-purple-600" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">GUI vs CLI Comparison</h4>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Monitor className="text-blue-600" size={18} />
-                    <h5 className="font-semibold text-gray-900">GUI Mode</h5>
-                  </div>
-                  <ul className="text-gray-600 text-sm space-y-1">
-                    <li>- Interactive preview before applying</li>
-                    <li>- One base_path at a time</li>
-                    <li>- Ideal for testing and setup</li>
-                    <li>- Visual verification of results</li>
-                  </ul>
-                </div>
-                <div className="bg-white rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Terminal className="text-green-600" size={18} />
-                    <h5 className="font-semibold text-gray-900">CLI Mode</h5>
-                  </div>
-                  <ul className="text-gray-600 text-sm space-y-1">
-                    <li>- Batch processing all active_paths</li>
-                    <li>- No interaction required</li>
-                    <li>- Configure once, run on many datasets</li>
-                    <li>- Suitable for automated pipelines</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
 
             <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="text-yellow-600" size={20} />
-                <h4 className="text-lg font-semibold text-yellow-800">Batch Processing Warning</h4>
+                <h4 className="text-lg font-semibold text-yellow-800">No Preview in CLI</h4>
               </div>
               <p className="text-yellow-700 text-sm">
-                CLI transforms are applied immediately to all active paths without preview.
-                <strong> Test your transform configuration on one dataset using the GUI first</strong>,
-                then use CLI for batch processing.
+                CLI transforms are applied immediately to all active paths.
+                <strong> Always test on one dataset via the GUI first.</strong>
               </p>
             </div>
           </Section>
 
-          {/* YAML Configuration Section */}
-          <Section title="YAML Configuration" icon={<FileText size={32} />} id="config">
+          {/* Config */}
+          <Section title="Configuration" icon={<FileText size={32} />} id="config">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Transform operations are configured per-camera in the <code className="bg-gray-100 px-2 py-1 rounded">transforms</code>
-              section of config.yaml. Each camera can have its own list of operations.
+              Transform operations are configured per-camera in config.yaml.
             </p>
 
             <YamlDropdown
-              title="Full Transforms Configuration"
+              title="Transforms Configuration"
               defaultOpen={true}
               code={`transforms:
-  base_path_idx: 0          # Which base_path to use (GUI only)
-  type_name: instantaneous  # Temporal type: "instantaneous" or "ensemble"
-  source_endpoint: regular  # Data source: "regular", "merged", or "stereo"
+  base_path_idx: 0          # Which base_path (GUI only)
+  type_name: instantaneous  # "instantaneous" or "ensemble"
+  source_endpoint: regular  # "regular", "merged", or "stereo"
   cameras:
     1:
       operations:
-        - flip_ud           # First: flip vertically
-        - rotate_90_cw      # Then: rotate 90 degrees
+        - flip_ud
+        - rotate_90_cw
     2:
       operations:
-        - flip_lr           # Camera 2: flip horizontally only
-    3:
-      operations:
-        - scale_velocity:1000   # Convert m/s to mm/s
-        - scale_coords:0.001    # Convert mm to m
-
-# Note: Operations are applied in order, top to bottom
-# Redundant operations are automatically simplified
-# For stereo data, transforms are applied to the combined 3D field`}
+        - flip_lr
+        - scale_velocity:1000
+        - scale_coords:0.001`}
             />
 
-            <div className="mt-8">
-              <h4 className="text-xl font-semibold text-gray-900 mb-4">Configuration Parameters</h4>
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Type</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+            <div className="mt-8 overflow-x-auto">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Type</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { param: 'base_path_idx', type: 'int', desc: 'Index into base_paths (0-indexed, GUI only)' },
+                    { param: 'type_name', type: 'string', desc: '"instantaneous" or "ensemble"' },
+                    { param: 'source_endpoint', type: 'string', desc: '"regular" (per-camera), "merged", or "stereo"' },
+                    { param: 'cameras.N.operations', type: 'list', desc: 'Ordered list of transforms for camera N' },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.param}</td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{row.type}</td>
+                      <td className="px-4 py-3 text-gray-700 text-sm">{row.desc}</td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {[
-                      { param: 'base_path_idx', type: 'integer', desc: 'Index into base_paths array (0-indexed)' },
-                      { param: 'type_name', type: 'string', desc: 'Temporal type: "instantaneous" or "ensemble"' },
-                      { param: 'source_endpoint', type: 'string', desc: 'Data source: "regular" (per-camera), "merged", or "stereo"' },
-                      { param: 'cameras', type: 'dict', desc: 'Per-camera transform configuration' },
-                      { param: 'cameras.N.operations', type: 'list', desc: 'List of transform operations for camera N' },
-                    ].map((row, index) => (
-                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.param}</td>
-                        <td className="px-4 py-3 text-gray-600 text-sm">{row.type}</td>
-                        <td className="px-4 py-3 text-gray-700 text-sm">{row.desc}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </Section>
-
-          {/* Important Notes Section */}
-          <Section title="Important Notes" icon={<AlertTriangle size={32} />} id="warnings">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Keep these important considerations in mind when working with transforms:
-            </p>
-
-            <div className="space-y-4">
-              <div className="bg-red-50 rounded-lg p-6 border-l-4 border-red-400">
-                <h4 className="text-lg font-semibold text-red-800 mb-2">Statistics Must Be Recalculated</h4>
-                <p className="text-red-700">
-                  After applying transforms, any previously calculated statistics are no longer valid.
-                  You must recalculate statistics using the Statistics panel to get correct results
-                  with the transformed data.
-                </p>
-              </div>
-
-              <div className="bg-yellow-50 rounded-lg p-6 border-l-4 border-yellow-400">
-                <h4 className="text-lg font-semibold text-yellow-800 mb-2">Transforms Modify Files Permanently</h4>
-                <p className="text-yellow-700">
-                  Transform operations write directly to your .mat files. While original data is
-                  backed up with <code className="bg-yellow-100 px-1 rounded">_original</code> suffix,
-                  you should maintain your own backups of important data.
-                </p>
-              </div>
-
-              <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
-                <h4 className="text-lg font-semibold text-blue-800 mb-2">Transform Before Merging</h4>
-                <p className="text-blue-700">
-                  If you plan to merge multi-camera data, apply transforms <strong>before</strong> merging.
-                  Ensure all cameras have the same orientation before running the merge operation.
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-gray-400">
-                <h4 className="text-lg font-semibold text-gray-800 mb-2">Coordinate Files Updated Automatically</h4>
-                <p className="text-gray-700">
-                  When you apply geometric transforms (rotate, flip), the associated
-                  <code className="bg-gray-200 px-1 rounded mx-1">coordinates.mat</code> file is
-                  also transformed to maintain consistency.
-                </p>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </Section>
 
@@ -618,8 +374,8 @@ pivtools-cli transform -p 0,1
           >
             <h3 className="text-3xl font-bold mb-4">Next: Merge Multi-Camera Data</h3>
             <p className="text-gray-300 mb-6 text-lg">
-              Now that your cameras are aligned, learn how to merge vector fields from multiple
-              cameras into a single seamless field.
+              Combine vector fields from multiple cameras into a single seamless field
+              with Hanning window blending.
             </p>
             <Link
               href="/manual/merging"

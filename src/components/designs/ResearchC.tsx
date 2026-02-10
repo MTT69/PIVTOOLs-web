@@ -226,7 +226,7 @@ export default function ResearchC() {
               University Website
             </a>
             <a
-              href="https://github.com/MTT69/PIVTOOLS"
+              href="https://github.com/MTT69/python-PIVTOOLs"
               className="inline-flex items-center gap-2 border border-white/30 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-white/10 transition-colors duration-200"
               target="_blank"
               rel="noopener noreferrer"

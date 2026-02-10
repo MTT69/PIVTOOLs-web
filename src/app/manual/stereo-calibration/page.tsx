@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useState } from 'react';
 import {
-  Camera,
   Eye,
+  Camera,
   FileText,
   Grid3X3,
   QrCode,
@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   Info,
   Box,
-  Settings
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -127,94 +126,20 @@ export default function StereoCalibrationPage() {
               Stereo <span className="text-soton-gold">Calibration</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Enable three-component (3C) velocity measurements by calibrating stereo camera pairs.
-              PIVTools computes the geometric relationship between cameras for accurate 3D reconstruction.
+              Calibrate stereo camera pairs for three-component (3C) velocity measurements.
+              Two detection methods available: Dotboard and ChArUco.
             </p>
           </motion.div>
 
-          {/* Quick Overview */}
-          <div className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white mb-16">
-            <h3 className="text-2xl font-bold mb-4">Stereo PIV Overview</h3>
-            <p className="text-gray-200 mb-6 text-lg">
-              Stereo PIV uses two cameras viewing the measurement plane from different angles. By combining
-              the 2D velocity fields from each camera, the out-of-plane velocity component (w) can be recovered,
-              giving full 3D velocity vectors (u, v, w).
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[
-                { label: "1. Configure Cameras", desc: "Set up stereo camera pair" },
-                { label: "2. Capture Targets", desc: "Multiple target positions" },
-                { label: "3. Generate Model", desc: "Compute stereo geometry" },
-                { label: "4. Reconstruct 3D", desc: "Convert 2D to 3D velocity" }
-              ].map((item, index) => (
-                <div key={index} className="bg-white/10 rounded-lg p-4 text-center">
-                  <p className="font-semibold text-soton-gold">{item.label}</p>
-                  <p className="text-gray-300 text-sm mt-1">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Overview Section */}
+          {/* Overview */}
           <Section title="Overview" icon={<Eye size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Stereo calibration establishes the geometric relationship between two cameras viewing
-              the same measurement plane. The resulting stereo model contains intrinsic parameters
-              for each camera (focal length, principal point, distortion) as well as extrinsic
-              parameters describing the relative position and orientation of the cameras.
+              Stereo calibration computes the geometric relationship between two cameras viewing the
+              same measurement plane. The stereo model contains intrinsic parameters for each camera
+              and extrinsic parameters (rotation and translation) describing their relative geometry.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                <h4 className="text-xl font-semibold text-blue-800 mb-3">Intrinsic Parameters</h4>
-                <p className="text-blue-700 mb-4">
-                  Computed independently for each camera. Describe the internal optical properties.
-                </p>
-                <ul className="text-blue-600 space-y-2 text-sm">
-                  <li><strong>Camera Matrix:</strong> fx, fy (focal length), cx, cy (principal point)</li>
-                  <li><strong>Distortion:</strong> 5 radial/tangential coefficients</li>
-                </ul>
-              </div>
-
-              <div className="bg-green-50 rounded-xl p-6 border border-green-200">
-                <h4 className="text-xl font-semibold text-green-800 mb-3">Extrinsic Parameters</h4>
-                <p className="text-green-700 mb-4">
-                  Describe the geometric relationship between the two cameras.
-                </p>
-                <ul className="text-green-600 space-y-2 text-sm">
-                  <li><strong>Rotation Matrix (R):</strong> 3×3 rotation from cam1 to cam2</li>
-                  <li><strong>Translation Vector (T):</strong> Position offset between cameras</li>
-                  <li><strong>Essential/Fundamental:</strong> Epipolar geometry matrices</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="bg-purple-50 rounded-lg p-6 border-l-4 border-purple-400 mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Info className="text-purple-600" size={20} />
-                <h4 className="text-lg font-semibold text-purple-800">Quality Metrics</h4>
-              </div>
-              <p className="text-purple-700 mb-4">
-                After calibration, review these metrics to assess quality:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-lg p-3">
-                  <strong className="text-purple-800">Stereo RMS Error</strong>
-                  <p className="text-purple-600 text-sm">Reprojection error (pixels). Target: &lt; 0.5 px</p>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <strong className="text-purple-800">Relative Angle</strong>
-                  <p className="text-purple-600 text-sm">Angle between cameras (degrees). Typical: 30-60°</p>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <strong className="text-purple-800">Baseline Distance</strong>
-                  <p className="text-purple-600 text-sm">Camera separation (mm). Verify against setup</p>
-                </div>
-              </div>
-            </div>
-
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Available Methods</h3>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto mb-6">
               <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
                 <thead className="bg-gray-100">
                   <tr>
@@ -231,225 +156,209 @@ export default function StereoCalibrationPage() {
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">Stereo ChArUco</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">Robust detection, partial visibility</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">Partial target visibility, oblique angles</td>
                     <td className="px-6 py-4 text-sm text-gray-600">ChArUco board, multiple positions</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-          </Section>
 
-          {/* Calibration Image Setup Section */}
-          <Section title="Calibration Image Setup" icon={<Camera size={32} />} id="image-setup">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Stereo calibration requires synchronised images from both cameras at each target position.
-              The configuration options are similar to planar calibration but must accommodate two camera views.
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Quality Metrics</h3>
+            <p className="text-gray-700 mb-4">
+              After calibration, review these metrics to assess quality.
             </p>
-
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Settings className="text-soton-blue" size={24} />
-                <h4 className="text-xl font-semibold text-gray-900">Camera Pair Configuration</h4>
-              </div>
-              <p className="text-gray-600 mb-4">
-                Stereo calibration processes images from both cameras simultaneously. The camera pair
-                is configured in the stereo calibration settings, specifying which cameras (1 and 2)
-                form the stereo pair.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h5 className="font-semibold text-blue-800 mb-2">camera_first (default)</h5>
-                  <p className="text-blue-700 text-sm mb-2">Each camera folder contains calibration images</p>
-                  <div className="text-xs text-blue-600 font-mono bg-white rounded p-2">
-                    source_path/<br />
-                    ├── Cam1/<br />
-                    │   └── calibration/<br />
-                    │       ├── calib_001.tif<br />
-                    │       └── calib_002.tif<br />
-                    └── Cam2/<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;└── calibration/<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── calib_001.tif<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── calib_002.tif
-                  </div>
-                </div>
-                <div className="bg-green-50 rounded-lg p-4">
-                  <h5 className="font-semibold text-green-800 mb-2">calibration_first</h5>
-                  <p className="text-green-700 text-sm mb-2">Calibration folder contains both camera subfolders</p>
-                  <div className="text-xs text-green-600 font-mono bg-white rounded p-2">
-                    source_path/<br />
-                    └── calibration/<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;├── Cam1/<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;│   ├── calib_001.tif<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;│   └── calib_002.tif<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;└── Cam2/<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── calib_001.tif<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── calib_002.tif
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* IM7 Container Format */}
-            <div className="bg-purple-50 rounded-lg p-6 border-l-4 border-purple-400 mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Info className="text-purple-600" size={20} />
-                <h4 className="text-lg font-semibold text-purple-800">Multi-Camera IM7 Files</h4>
-              </div>
-              <p className="text-purple-700 mb-4">
-                LaVision IM7 files often contain synchronised data from both stereo cameras in a single file.
-                Set <code className="bg-purple-100 px-2 py-1 rounded mx-1">use_camera_subfolders: false</code>
-                for this configuration. PIVTools will automatically extract both camera frames.
-              </p>
-              <div className="bg-white rounded-lg p-3 text-sm text-purple-600 font-mono">
-                source_path/calibration/B00001.im7 &rarr; Contains Cam1 + Cam2 frames
-              </div>
-            </div>
-
-            {/* Platform Warning */}
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="text-yellow-600" size={20} />
-                <h4 className="text-lg font-semibold text-yellow-800">Image Synchronisation</h4>
-              </div>
-              <p className="text-yellow-700">
-                <strong>Critical:</strong> Calibration images must be synchronised between cameras. Each image
-                index (e.g., calib_001.tif) must show the target at the exact same position for both cameras.
-                Misaligned images will produce incorrect stereo geometry.
-              </p>
-            </div>
-
-            <YamlDropdown
-              title="YAML Reference - Calibration Image Settings"
-              code={`calibration:
-  # Image file settings (shared with stereo methods)
-  image_format: calib_%03d.tif
-  num_images: 15
-  image_type: standard  # standard, cine, lavision_set, lavision_im7
-  zero_based_indexing: false
-
-  # Directory structure
-  use_camera_subfolders: true
-  subfolder: calibration
-  camera_subfolders: ["Cam1", "Cam2"]
-  path_order: camera_first  # or calibration_first`}
-            />
-          </Section>
-
-          {/* Stereo Dotboard Section */}
-          <Section title="Stereo Dotboard" icon={<Grid3X3 size={32} />} id="dotboard">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Stereo Dotboard calibration extends the planar dotboard model to two cameras. Both cameras
-              are calibrated simultaneously using shared views of a circular dot grid target at multiple
-              positions. The algorithm computes both intrinsic parameters and the stereo geometry.
-            </p>
-
-            <div className="bg-green-50 rounded-lg p-6 border-l-4 border-green-400 mb-6">
-              <h4 className="text-lg font-semibold text-green-800 mb-3">Requirements</h4>
-              <ul className="text-green-700 space-y-2">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="mt-1 flex-shrink-0" size={16} />
-                  <span>Circular dot grid target with known spacing</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="mt-1 flex-shrink-0" size={16} />
-                  <span>10-20 target positions covering the measurement volume</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="mt-1 flex-shrink-0" size={16} />
-                  <span>Synchronised images from both cameras at each position</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="mt-1 flex-shrink-0" size={16} />
-                  <span>Target visible in both camera views simultaneously</span>
-                </li>
-              </ul>
-            </div>
-
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Parameters</h4>
             <div className="overflow-x-auto mb-6">
               <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Metric</th>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Example</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Target</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "camera_pair", desc: "Cameras forming stereo pair [cam1, cam2]", example: "[1, 2]" },
-                    { param: "pattern_cols", desc: "Horizontal dot count", example: "10" },
-                    { param: "pattern_rows", desc: "Vertical dot count", example: "10" },
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dots", example: "12.22" },
-                    { param: "enhance_dots", desc: "Pre-processing for low contrast", example: "false" },
-                    { param: "asymmetric", desc: "Asymmetric grid pattern", example: "false" },
-                    { param: "dt", desc: "Time between frames (seconds)", example: "0.0057553" }
+                    { metric: "Stereo RMS Error", desc: "Overall stereo reprojection error (pixels)", target: "< 0.5 px" },
+                    { metric: "Cam1 / Cam2 RMS Error", desc: "Per-camera reprojection error (pixels)", target: "< 0.5 px each" },
+                    { metric: "Relative Angle", desc: "Angle between camera optical axes (degrees)", target: "30-60 degrees typical" },
+                    { metric: "Baseline Distance", desc: "Physical camera separation (mm)", target: "Verify against setup" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.metric}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.example}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.target}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">GUI Workflow</h4>
-              <ol className="space-y-2">
-                {[
-                  "Configure calibration images (Image Type, Format, Number)",
-                  "Set camera pair (e.g., Camera 1 and Camera 2)",
-                  "Set grid detection parameters (cols, rows, dot spacing)",
-                  "Browse calibration images to verify detection in both views",
-                  "Click \"Generate Model\" to compute stereo calibration",
-                  "Review stereo RMS error, relative angle, and baseline",
-                  "Click \"Calibrate Vectors\" to apply to stereo PIV data",
-                  "Click \"Set as Active\" to make this the active method"
-                ].map((step, idx) => (
-                  <li key={idx} className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
-                      {idx + 1}
-                    </span>
-                    <span className="text-gray-700">{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Stereo Model Outputs</h4>
-                <ul className="text-gray-600 space-y-2 text-sm">
-                  <li><strong>Camera Matrices:</strong> Intrinsics for both cameras</li>
-                  <li><strong>Distortion Coefficients:</strong> 5 params per camera</li>
-                  <li><strong>Rotation Matrix (R):</strong> Camera 1 to Camera 2 rotation</li>
-                  <li><strong>Translation Vector (T):</strong> Baseline offset</li>
-                  <li><strong>Rectification (R1, R2):</strong> For image alignment</li>
-                  <li><strong>Projection (P1, P2):</strong> Rectified projection matrices</li>
-                  <li><strong>Q Matrix:</strong> Disparity-to-depth mapping</li>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Stereo Model Outputs</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-800 mb-2">Intrinsic Parameters (per camera)</h4>
+                <ul className="text-blue-700 space-y-1 text-sm">
+                  <li><strong>Camera Matrix:</strong> fx, fy (focal length), cx, cy (principal point)</li>
+                  <li><strong>Distortion:</strong> 5 radial/tangential coefficients</li>
                 </ul>
               </div>
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-green-800 mb-2">Extrinsic Parameters</h4>
+                <ul className="text-green-700 space-y-1 text-sm">
+                  <li><strong>Rotation Matrix (R):</strong> 3x3 rotation from Cam1 to Cam2</li>
+                  <li><strong>Translation Vector (T):</strong> Baseline offset</li>
+                  <li><strong>Rectification:</strong> R1, R2, P1, P2, Q matrices</li>
+                </ul>
+              </div>
+            </div>
+          </Section>
 
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Output Directory</h4>
-                <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3">
-                  base_path/<br />
+          {/* Calibration Image Setup */}
+          <Section title="Calibration Image Setup" icon={<Camera size={32} />} id="image-setup">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Stereo calibration requires synchronised images from both cameras at each target position.
+              Image settings are shared with planar calibration.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Directory Structure</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h5 className="font-semibold text-blue-800 mb-2">camera_first (default)</h5>
+                <div className="text-xs text-blue-600 font-mono bg-white rounded p-2">
+                  source_path/<br />
+                  ├── Cam1/<br />
+                  │   └── calibration/<br />
+                  │       └── calib_001.tif<br />
+                  └── Cam2/<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;└── calibration/<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── calib_001.tif
+                </div>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4">
+                <h5 className="font-semibold text-green-800 mb-2">calibration_first</h5>
+                <div className="text-xs text-green-600 font-mono bg-white rounded p-2">
+                  source_path/<br />
                   └── calibration/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;└── stereo_Cam1_Cam2/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── dotboard/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── model/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│   └── stereo_model.mat<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── indices/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── figures/
+                  &nbsp;&nbsp;&nbsp;&nbsp;├── Cam1/<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;│   └── calib_001.tif<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;└── Cam2/<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── calib_001.tif
                 </div>
               </div>
             </div>
 
+            <div className="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-400 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Info className="text-purple-600" size={18} />
+                <strong className="text-purple-800">IM7 Container Format</strong>
+              </div>
+              <p className="text-purple-700 text-sm">
+                LaVision IM7 files can contain both stereo cameras in a single file.
+                Set <code className="bg-purple-100 px-1 rounded">use_camera_subfolders: false</code> and
+                PIVTools will extract each camera frame automatically.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="text-yellow-600" size={18} />
+                <strong className="text-yellow-800">Image Synchronisation</strong>
+              </div>
+              <p className="text-yellow-700 text-sm">
+                Each image index must show the target at the same position for both cameras.
+                Misaligned images produce incorrect stereo geometry.
+              </p>
+            </div>
+
             <YamlDropdown
-              title="YAML Reference - Stereo Dotboard Calibration"
+              title="config.yaml - Calibration Image Settings"
+              code={`calibration:
+  image_format: calib_%03d.tif
+  num_images: 15
+  image_type: standard
+  zero_based_indexing: false
+  use_camera_subfolders: true
+  subfolder: calibration
+  camera_subfolders: ["Cam1", "Cam2"]
+  path_order: camera_first`}
+            />
+          </Section>
+
+          {/* Stereo Dotboard */}
+          <Section title="Stereo Dotboard" icon={<Grid3X3 size={32} />} id="dotboard">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Both cameras are calibrated simultaneously using shared views of a circular dot grid
+              at multiple target positions. Uses the same optimised detection algorithm as planar
+              dotboard (histogram-based blob detection, cKDTree neighbour search, RANSAC filtering).
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Parameters</h3>
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { param: "camera_pair", desc: "Camera numbers forming the stereo pair", def: "[1, 2]" },
+                    { param: "pattern_cols", desc: "Horizontal dot count", def: "10" },
+                    { param: "pattern_rows", desc: "Vertical dot count", def: "10" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "12.22" },
+                    { param: "asymmetric", desc: "Asymmetric grid pattern", def: "false" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "0.0057553" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.def}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
+            <ol className="space-y-2 mb-6">
+              {[
+                "Configure calibration images (format, count, subfolder)",
+                "Set camera pair (e.g. Camera 1 and Camera 2)",
+                "Set grid parameters (cols, rows, dot spacing)",
+                "Browse images to verify both camera views show the target",
+                "Click \"Generate Model\" to compute stereo calibration",
+                "Review stereo RMS error, relative angle, and baseline distance",
+                "Click \"Calibrate Vectors\" to apply calibration to PIV data",
+                "Click \"Set as Active\" to make this the active method",
+              ].map((step, idx) => (
+                <li key={idx} className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
+                    {idx + 1}
+                  </span>
+                  <span className="text-gray-700">{step}</span>
+                </li>
+              ))}
+            </ol>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
+            <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
+              base_path/calibration/stereo_cam1_cam2/<br />
+              ├── model/stereo_model.mat<br />
+              ├── indices/indexing_*.mat<br />
+              └── figures/
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
+              <p className="text-blue-700 text-sm">
+                <strong>Validation:</strong> Stereo validation checks that images exist for both cameras
+                and reports the matching count (minimum of frames found in each camera).
+              </p>
+            </div>
+
+            <YamlDropdown
+              title="config.yaml - Stereo Dotboard"
               code={`calibration:
   active: stereo_dotboard
   stereo_dotboard:
@@ -457,98 +366,75 @@ export default function StereoCalibrationPage() {
     pattern_cols: 10
     pattern_rows: 10
     dot_spacing_mm: 12.2222
-    enhance_dots: false
     asymmetric: false
     dt: 0.0057553
     stereo_model_type: dotboard`}
             />
           </Section>
 
-          {/* Stereo ChArUco Section */}
+          {/* Stereo ChArUco */}
           <Section title="Stereo ChArUco" icon={<QrCode size={32} />} id="charuco">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Stereo ChArUco calibration combines the robustness of ArUco marker detection with
-              stereo geometry computation. The ChArUco board allows for reliable corner detection
-              even with partial occlusion, making it ideal for setups with limited visibility.
+              Combines ArUco marker detection with stereo geometry computation.
+              ArUco markers identify which corners are visible, so detection works
+              with partial occlusion and oblique viewing angles.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                <h4 className="text-xl font-semibold text-blue-800 mb-3">Advantages</h4>
-                <ul className="text-blue-700 space-y-2">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="mt-1 flex-shrink-0" size={16} />
-                    <span>Works when target is partially visible</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="mt-1 flex-shrink-0" size={16} />
-                    <span>Robust detection at oblique viewing angles</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="mt-1 flex-shrink-0" size={16} />
-                    <span>ArUco markers identify which corners are visible</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="mt-1 flex-shrink-0" size={16} />
-                    <span>Better performance in varying lighting conditions</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <h4 className="text-xl font-semibold text-gray-800 mb-3">ArUco Dictionary Options</h4>
-                <p className="text-gray-600 text-sm mb-3">
-                  Choose dictionary based on board size and detection requirements.
-                </p>
-                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="bg-white rounded p-2">DICT_4X4_50/100/250/1000</div>
-                  <div className="bg-white rounded p-2">DICT_5X5_50/100/250/1000</div>
-                  <div className="bg-white rounded p-2">DICT_6X6_50/100/250/1000</div>
-                  <div className="bg-white rounded p-2">DICT_7X7_50/100/250/1000</div>
-                </div>
-              </div>
-            </div>
-
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Parameters</h4>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Parameters</h3>
             <div className="overflow-x-auto mb-6">
               <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Example</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "camera_pair", desc: "Cameras forming stereo pair", example: "[1, 2]" },
-                    { param: "squares_h", desc: "Horizontal squares", example: "10" },
-                    { param: "squares_v", desc: "Vertical squares", example: "9" },
-                    { param: "square_size", desc: "Square size in meters", example: "0.03" },
-                    { param: "marker_ratio", desc: "Marker size relative to square", example: "0.5" },
-                    { param: "aruco_dict", desc: "ArUco dictionary type", example: "DICT_4X4_1000" },
-                    { param: "min_corners", desc: "Minimum corners per frame", example: "6" },
-                    { param: "dt", desc: "Time between frames (seconds)", example: "0.0057553" }
+                    { param: "camera_pair", desc: "Camera numbers forming the stereo pair", def: "[1, 2]" },
+                    { param: "squares_h", desc: "Horizontal square count", def: "10" },
+                    { param: "squares_v", desc: "Vertical square count", def: "9" },
+                    { param: "square_size", desc: "Square size in metres", def: "0.03" },
+                    { param: "marker_ratio", desc: "Marker size relative to square", def: "0.5" },
+                    { param: "aruco_dict", desc: "ArUco dictionary type", def: "DICT_4X4_1000" },
+                    { param: "min_corners", desc: "Minimum corners to accept a frame", def: "6" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "0.0057553" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.example}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.def}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <p className="text-gray-600 text-sm">
-                <strong>GUI Workflow:</strong> Same as Stereo Dotboard - configure images, set camera pair
-                and board parameters, generate model, verify quality metrics, and apply to vectors.
+            <h3 className="text-xl font-bold text-gray-900 mb-3">ArUco Dictionaries</h3>
+            <p className="text-gray-700 mb-4">
+              Available dictionaries: <code className="bg-gray-100 px-1 rounded text-sm">DICT_4X4</code>,{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">DICT_5X5</code>,{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">DICT_6X6</code>,{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">DICT_7X7</code> -- each with 50, 100, 250, or 1000 markers.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
+            <p className="text-gray-700 mb-4">
+              Same as Stereo Dotboard: configure images, set camera pair and board parameters,
+              generate model, review quality metrics, apply to vectors, and set as active.
+            </p>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
+              <p className="text-blue-700 text-sm">
+                <strong>Shared board parameters:</strong> ChArUco board settings (squares_h, squares_v, etc.)
+                are read from the <code className="bg-blue-100 px-1 rounded">calibration.charuco</code> section,
+                shared with the planar ChArUco method.
               </p>
             </div>
 
             <YamlDropdown
-              title="YAML Reference - Stereo ChArUco Calibration"
+              title="config.yaml - Stereo ChArUco"
               code={`calibration:
   active: stereo_charuco
 
@@ -561,250 +447,186 @@ export default function StereoCalibrationPage() {
   charuco:
     squares_h: 10
     squares_v: 9
-    square_size: 0.03      # meters
+    square_size: 0.03
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6`}
             />
           </Section>
 
-          {/* 3D Reconstruction Section */}
+          {/* 3D Reconstruction */}
           <Section title="3D Velocity Reconstruction" icon={<Box size={32} />} id="reconstruction">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Once the stereo model is computed, PIVTools can reconstruct three-component (3C) velocity
-              fields from the 2D PIV data captured by each camera. The reconstruction uses the stereo
-              geometry to triangulate corresponding velocity vectors.
+              After computing the stereo model, use reconstruction to convert the 2D PIV velocity
+              fields from each camera into 3D velocity vectors (u, v, w) in world coordinates.
             </p>
 
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200 mb-6">
-              <h4 className="text-xl font-semibold text-gray-800 mb-4">Reconstruction Process</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-lg p-4 text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">1</div>
-                  <h5 className="font-semibold text-gray-900 mb-1">2D PIV (Cam 1)</h5>
-                  <p className="text-gray-600 text-sm">u&apos;, v&apos; in image plane</p>
-                </div>
-                <div className="bg-white rounded-lg p-4 text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2">2</div>
-                  <h5 className="font-semibold text-gray-900 mb-1">2D PIV (Cam 2)</h5>
-                  <p className="text-gray-600 text-sm">u&apos;&apos;, v&apos;&apos; in image plane</p>
-                </div>
-                <div className="bg-white rounded-lg p-4 text-center">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">3</div>
-                  <h5 className="font-semibold text-gray-900 mb-1">3D Velocity</h5>
-                  <p className="text-gray-600 text-sm">u, v, w in world coordinates</p>
-                </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Process</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
+                <div className="text-2xl font-bold text-blue-600 mb-1">1</div>
+                <h5 className="font-semibold text-gray-900 mb-1">2D PIV (Cam 1)</h5>
+                <p className="text-gray-600 text-sm">ux, uy in image plane</p>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
+                <div className="text-2xl font-bold text-green-600 mb-1">2</div>
+                <h5 className="font-semibold text-gray-900 mb-1">2D PIV (Cam 2)</h5>
+                <p className="text-gray-600 text-sm">ux, uy in image plane</p>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4 text-center border border-purple-200">
+                <div className="text-2xl font-bold text-purple-600 mb-1">3</div>
+                <h5 className="font-semibold text-gray-900 mb-1">3D Velocity</h5>
+                <p className="text-gray-600 text-sm">ux, uy, uz in world coords</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Input Requirements</h4>
-                <ul className="text-gray-600 space-y-2 text-sm">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="text-soton-gold mt-0.5" size={16} />
-                    <span>Valid stereo calibration model</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="text-soton-gold mt-0.5" size={16} />
-                    <span>2D PIV vectors from Camera 1</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="text-soton-gold mt-0.5" size={16} />
-                    <span>2D PIV vectors from Camera 2</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="text-soton-gold mt-0.5" size={16} />
-                    <span>Matching grid coordinates between cameras</span>
-                  </li>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+                <h4 className="font-semibold text-gray-900 mb-2">Requirements</h4>
+                <ul className="text-gray-600 space-y-1 text-sm">
+                  <li>Valid stereo calibration model</li>
+                  <li>2D PIV vectors from Camera 1</li>
+                  <li>2D PIV vectors from Camera 2</li>
+                  <li>Matching grid coordinates between cameras</li>
                 </ul>
               </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Output Variables</h4>
-                <ul className="text-gray-600 space-y-2 text-sm">
-                  <li><strong>u:</strong> Velocity component in x-direction (m/s)</li>
-                  <li><strong>v:</strong> Velocity component in y-direction (m/s)</li>
-                  <li><strong>w:</strong> Out-of-plane velocity component (m/s)</li>
-                  <li><strong>x, y:</strong> World coordinates (mm)</li>
+              <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+                <h4 className="font-semibold text-gray-900 mb-2">Output Variables</h4>
+                <ul className="text-gray-600 space-y-1 text-sm">
+                  <li><strong>ux:</strong> x-velocity (m/s)</li>
+                  <li><strong>uy:</strong> y-velocity (m/s)</li>
+                  <li><strong>uz:</strong> out-of-plane velocity (m/s)</li>
+                  <li><strong>x, y:</strong> world coordinates (mm)</li>
                 </ul>
               </div>
             </div>
 
-            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
+            <ol className="space-y-2 mb-6">
+              {[
+                "Ensure a stereo model has been generated (Dotboard or ChArUco)",
+                "Run PIV processing for both cameras",
+                "Select data type (instantaneous or ensemble)",
+                "Click \"Reconstruct 3D\" to start reconstruction",
+                "View reconstructed vectors in the Vector Viewer with the Stereo data source",
+              ].map((step, idx) => (
+                <li key={idx} className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
+                    {idx + 1}
+                  </span>
+                  <span className="text-gray-700">{step}</span>
+                </li>
+              ))}
+            </ol>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
+            <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
+              base_path/stereo_calibrated/&#123;N&#125;/Cam1_Cam2/&#123;type&#125;/<br />
+              ├── B00001.mat ... B0NNNN.mat<br />
+              └── coordinates.mat
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
               <p className="text-blue-700 text-sm">
-                <strong>Note:</strong> 3D reconstruction quality depends on stereo calibration accuracy
-                and proper overlap between the PIV fields from both cameras. Ensure both cameras cover
-                the same measurement region with matching interrogation windows.
+                <strong>Note:</strong> Reconstruction quality depends on stereo calibration accuracy
+                and proper overlap between the PIV fields from both cameras.
               </p>
             </div>
-
-            <YamlDropdown
-              title="YAML Reference - Reconstruction Settings"
-              code={`calibration:
-  piv_type: instantaneous  # or ensemble
-  stereo:
-    camera_pair: [1, 2]
-    dt: 0.0057553  # Used for velocity conversion`}
-            />
           </Section>
 
-          {/* CLI Usage Section */}
+          {/* CLI */}
           <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Stereo calibration uses separate CLI commands: one to <strong>generate</strong> the stereo model
-              from calibration images, and <code className="bg-gray-100 px-1 rounded">apply-stereo</code> to
-              reconstruct 3D velocities from PIV vectors.
+              Stereo calibration uses two CLI steps: <strong>detect</strong> targets to generate
+              a stereo model, then <strong>apply-stereo</strong> to reconstruct 3D velocities.
             </p>
 
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <h4 className="text-xl font-semibold text-gray-900 mb-4">Step 1: Generate Stereo Model</h4>
-              <p className="text-gray-600 mb-4">
-                Detect calibration targets from both cameras and generate the stereo calibration model.
-              </p>
-              <CodeBlock
-                title="Stereo Model Generation Commands"
-                code={`# Detect dot/circle grid and generate stereo model
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Step 1: Generate Stereo Model</h3>
+            <CodeBlock
+              title="Detection Commands"
+              code={`# Dotboard stereo detection
 pivtools-cli detect-stereo-planar
 
-# Detect ChArUco board and generate stereo model
+# ChArUco stereo detection
 pivtools-cli detect-stereo-charuco
 
 # Process specific paths
-pivtools-cli detect-stereo-planar -p 0`}
-              />
+pivtools-cli detect-stereo-planar -p 0,1`}
+            />
 
-              <h5 className="text-lg font-semibold text-gray-900 mt-4 mb-3">Options</h5>
-              <div className="overflow-x-auto mb-4">
-                <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Flag</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    <tr>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">--active-paths, -p</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">Comma-separated path indices</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">From config</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <h4 className="text-xl font-semibold text-gray-900 mb-4">Step 2: Reconstruct 3D Velocity</h4>
-              <p className="text-gray-600 mb-4">
-                Use the <code className="bg-gray-100 px-1 rounded">apply-stereo</code> command to reconstruct
-                3D velocity vectors (ux, uy, uz) from the 2D PIV data of both cameras.
-              </p>
-              <CodeBlock
-                title="Apply Stereo Calibration"
-                code={`pivtools-cli apply-stereo [OPTIONS]`}
-              />
-
-              <h5 className="text-lg font-semibold text-gray-900 mt-4 mb-3">Options</h5>
-              <div className="overflow-x-auto mb-4">
-                <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Flag</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    <tr>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">--method, -m</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">Stereo method: dotboard or charuco</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">From config</td>
-                    </tr>
-                    <tr className="bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">--camera-pair, -c</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">Camera pair as &quot;1,2&quot;</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">From config</td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">--type-name, -t</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">Data type (instantaneous/ensemble)</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">instantaneous</td>
-                    </tr>
-                    <tr className="bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">--runs, -r</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">Comma-separated run numbers</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">All runs</td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">--active-paths, -p</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">Comma-separated path indices</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">From config</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <CodeBlock
-                title="Examples"
-                code={`# Reconstruct 3D velocity (uses config settings)
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Step 2: Reconstruct 3D Velocity</h3>
+            <CodeBlock
+              title="Apply Stereo Calibration"
+              code={`# Use active settings from config.yaml
 pivtools-cli apply-stereo
 
 # Specify camera pair explicitly
 pivtools-cli apply-stereo --camera-pair 1,2
 
-# Use charuco stereo model with specific method
-pivtools-cli apply-stereo --method charuco -c 1,2
+# Use charuco stereo model
+pivtools-cli apply-stereo --method charuco
 
-# Reconstruct specific runs
+# Specific data type and runs
 pivtools-cli apply-stereo -t instantaneous -r 1,2,3
 
 # Process specific paths
 pivtools-cli apply-stereo -p 0,1`}
-              />
+            />
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">apply-stereo Options</h3>
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Flag</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { flag: "--method, -m", desc: "Stereo method: dotboard or charuco", def: "From config" },
+                    { flag: "--camera-pair, -c", desc: "Camera pair as \"1,2\"", def: "From config" },
+                    { flag: "--type-name, -t", desc: "Data type (instantaneous / ensemble)", def: "instantaneous" },
+                    { flag: "--runs, -r", desc: "Comma-separated run numbers", def: "All runs" },
+                    { flag: "--active-paths, -p", desc: "Comma-separated path indices", def: "From config" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.def}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            <div className="bg-green-50 rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
-              <h4 className="text-xl font-semibold text-gray-900 mb-4">Complete Stereo Workflow</h4>
-              <CodeBlock
-                title="Full Stereo PIV Workflow"
-                code={`# 1. Generate stereo calibration model
-pivtools-cli detect-stereo-charuco
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Complete Workflow</h3>
+            <CodeBlock
+              title="Full Stereo PIV Workflow"
+              code={`# 1. Generate stereo calibration model
+pivtools-cli detect-stereo-planar       # or detect-stereo-charuco
 
 # 2. Run PIV processing for both cameras
 pivtools-cli instantaneous
 
-# 3. Apply stereo 3D reconstruction
+# 3. Reconstruct 3D velocities
 pivtools-cli apply-stereo --camera-pair 1,2
 
-# 4. Compute statistics
-pivtools-cli statistics`}
-              />
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
-              <p className="text-blue-700 text-sm">
-                <strong>Tip:</strong> Use <code className="bg-blue-100 px-1 rounded">--method</code> to specify
-                the stereo calibration method (dotboard or charuco) and <code className="bg-blue-100 px-1 rounded">--camera-pair</code>
-                to specify which cameras to use for 3D reconstruction.
-              </p>
-            </div>
+# 4. Compute statistics on stereo data
+pivtools-cli statistics --source-endpoint stereo`}
+            />
           </Section>
 
-          {/* Complete YAML Configuration Section */}
-          <Section title="Complete YAML Configuration" icon={<FileText size={32} />} id="yaml">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Complete reference for all stereo calibration settings in config.yaml.
-            </p>
-
+          {/* YAML */}
+          <Section title="Complete YAML Reference" icon={<FileText size={32} />} id="yaml">
             <YamlDropdown
-              title="Full YAML Configuration Example"
+              title="Full Stereo Calibration Configuration"
               defaultOpen={true}
               code={`calibration:
-  # Active method selection
+  # Active method
   active: stereo_dotboard  # stereo_dotboard or stereo_charuco
-  piv_type: instantaneous  # instantaneous or ensemble
+  piv_type: instantaneous
 
   # Calibration image settings (shared)
   image_format: calib_%03d.tif
@@ -816,18 +638,17 @@ pivtools-cli statistics`}
   camera_subfolders: ["Cam1", "Cam2"]
   path_order: camera_first
 
-  # Stereo Dotboard Method
+  # Stereo Dotboard
   stereo_dotboard:
     camera_pair: [1, 2]
     pattern_cols: 10
     pattern_rows: 10
     dot_spacing_mm: 12.2222
-    enhance_dots: false
     asymmetric: false
     dt: 0.0057553
     stereo_model_type: dotboard
 
-  # Stereo ChArUco Method (board params from charuco section)
+  # Stereo ChArUco (board params from charuco section)
   stereo_charuco:
     camera_pair: [1, 2]
     dt: 0.0057553
@@ -850,26 +671,27 @@ pivtools-cli statistics`}
                     <tr>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">GUI Control</th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">YAML Field</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Values</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {[
-                      { gui: "Active Method Button", yaml: "calibration.active", desc: "stereo_dotboard or stereo_charuco" },
-                      { gui: "Camera 1 Selector", yaml: "calibration.stereo_dotboard.camera_pair[0]", desc: "First camera in pair" },
-                      { gui: "Camera 2 Selector", yaml: "calibration.stereo_dotboard.camera_pair[1]", desc: "Second camera in pair" },
-                      { gui: "Pattern Columns", yaml: "calibration.stereo_dotboard.pattern_cols", desc: "Horizontal dot count (dotboard)" },
-                      { gui: "Pattern Rows", yaml: "calibration.stereo_dotboard.pattern_rows", desc: "Vertical dot count (dotboard)" },
-                      { gui: "Dot Spacing (mm)", yaml: "calibration.stereo_dotboard.dot_spacing_mm", desc: "Physical grid spacing (dotboard)" },
-                      { gui: "Squares H", yaml: "calibration.charuco.squares_h", desc: "ChArUco horizontal squares" },
-                      { gui: "Squares V", yaml: "calibration.charuco.squares_v", desc: "ChArUco vertical squares" },
-                      { gui: "Square Size", yaml: "calibration.charuco.square_size", desc: "Square size in meters" },
-                      { gui: "ArUco Dictionary", yaml: "calibration.charuco.aruco_dict", desc: "Marker dictionary type" }
+                      { gui: "Active Method", yaml: "calibration.active", values: "stereo_dotboard or stereo_charuco" },
+                      { gui: "Camera 1", yaml: "*.camera_pair[0]", values: "Integer (1-based)" },
+                      { gui: "Camera 2", yaml: "*.camera_pair[1]", values: "Integer (1-based)" },
+                      { gui: "Pattern Columns", yaml: "stereo_dotboard.pattern_cols", values: "Integer" },
+                      { gui: "Pattern Rows", yaml: "stereo_dotboard.pattern_rows", values: "Integer" },
+                      { gui: "Dot Spacing (mm)", yaml: "stereo_dotboard.dot_spacing_mm", values: "Float (mm)" },
+                      { gui: "Squares H", yaml: "charuco.squares_h", values: "Integer" },
+                      { gui: "Squares V", yaml: "charuco.squares_v", values: "Integer" },
+                      { gui: "Square Size", yaml: "charuco.square_size", values: "Float (metres)" },
+                      { gui: "ArUco Dictionary", yaml: "charuco.aruco_dict", values: "DICT_{4-7}X{4-7}_{50-1000}" },
+                      { gui: "dt", yaml: "stereo_dotboard.dt / stereo_charuco.dt", values: "Float (seconds)" },
                     ].map((row, index) => (
                       <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-6 py-4 text-sm text-gray-900">{row.gui}</td>
                         <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.yaml}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{row.values}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -887,7 +709,7 @@ pivtools-cli statistics`}
           >
             <h3 className="text-3xl font-bold mb-4">Next: Create Visualisation Videos</h3>
             <p className="text-gray-300 mb-6 text-lg">
-              Visualise your calibrated 3D velocity fields with animated videos using the Video Maker tool.
+              Visualise your calibrated velocity fields with animated videos.
             </p>
             <a
               href="/manual/video-maker"

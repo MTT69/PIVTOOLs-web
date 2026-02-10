@@ -13,7 +13,9 @@ export default function Footer() {
       { name: 'Manual', href: '/manual' }
     ],
     resources: [
-      { name: 'GitHub Repository', href: 'https://github.com/MTT69/PIVTOOLS' },
+      { name: 'Backend Repository', href: 'https://github.com/MTT69/python-PIVTOOLs' },
+      { name: 'Frontend Repository', href: 'https://github.com/MTT69/PIVTOOLs-GUI' },
+      { name: 'Demo Videos', href: 'https://www.youtube.com/@pivtools/playlists' },
       { name: 'PyPI Package', href: 'https://pypi.org/project/pivtools/' },
       { name: 'Cite PIVTOOLS', href: '#research' }
     ],
@@ -40,7 +42,7 @@ export default function Footer() {
             </p>
             <div className="flex space-x-4">
               <a
-                href="https://github.com/MTT69/PIVTOOLS"
+                href="https://github.com/MTT69/python-PIVTOOLs"
                 className="text-gray-400 hover:text-soton-gold transition-colors duration-200"
                 target="_blank"
                 rel="noopener noreferrer"

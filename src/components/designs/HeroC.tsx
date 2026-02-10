@@ -220,7 +220,7 @@ export default function HeroC() {
                 <ArrowRight size={18} />
               </Link>
               <a
-                href="https://github.com/MTT69/PIVTOOLS"
+                href="https://github.com/MTT69/python-PIVTOOLs"
                 className="inline-flex items-center gap-2 border-2 border-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:border-soton-blue hover:text-soton-blue transition-colors duration-200"
                 target="_blank"
                 rel="noopener noreferrer"

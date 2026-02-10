@@ -22,7 +22,7 @@ import {
   ArrowRight,
   CheckCircle,
   FileText,
-  HelpCircle
+  Crosshair
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -63,11 +63,9 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   description: string;
   capabilities: string[];
-  cli?: string | null;
-  gui?: boolean;
 }
 
-const FeatureCard = ({ title, href, icon, description, capabilities, cli, gui }: FeatureCardProps) => (
+const FeatureCard = ({ title, href, icon, description, capabilities }: FeatureCardProps) => (
   <Link href={href} className="block group">
     <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-soton-blue transition-all duration-200 h-full">
       <div className="flex items-start justify-between mb-3">
@@ -119,127 +117,106 @@ export default function ManualOverviewPage() {
       title: "Quick Start",
       href: "/manual/quick-start",
       icon: <Download size={20} />,
-      description: "Get PIVTools installed and running in minutes with pip install.",
-      capabilities: ["pip install pivtools", "Python 3.12/3.13 support", "Pre-compiled C extensions"],
-      cli: "pivtools-cli",
-      gui: true,
+      description: "Install and run PIVTools in minutes.",
+      capabilities: ["pip install pivtools", "Python 3.12 - 3.14 support", "Pre-compiled C extensions"],
     },
     {
       title: "CLI Reference",
       href: "/manual/cli-reference",
       icon: <Terminal size={20} />,
-      description: "Complete command-line reference with all 12 commands and options.",
-      capabilities: ["12 CLI commands", "Batch processing", "Workflow examples"],
-      cli: "pivtools-cli",
-      gui: false,
+      description: "All CLI commands with options and examples.",
+      capabilities: ["14 CLI commands", "Batch processing", "Workflow examples"],
     },
     {
       title: "Image Configuration",
       href: "/manual/image-configuration",
       icon: <ImageIcon size={20} />,
-      description: "Configure input images, camera setups, and file formats for your experiments.",
+      description: "Set up input images, cameras, and file formats.",
       capabilities: ["Multiple image formats", "Multi-camera support", "Batch processing paths"],
-      cli: null,
-      gui: true,
     },
     {
       title: "Masking",
       href: "/manual/masking",
       icon: <Layers size={20} />,
-      description: "Define regions to exclude from PIV processing with interactive tools.",
+      description: "Exclude regions from PIV processing.",
       capabilities: ["Polygon mask editor", "Pixel border mode", "Per-camera masks"],
-      cli: null,
-      gui: true,
     },
     {
       title: "Preprocessing",
       href: "/manual/preprocessing",
       icon: <Filter size={20} />,
-      description: "Apply temporal and spatial filters to enhance image quality before PIV.",
+      description: "Temporal and spatial filters for image enhancement.",
       capabilities: ["POD background removal", "Gaussian/median filters", "Live preview"],
-      cli: null,
-      gui: true,
     },
     {
       title: "PIV Processing",
       href: "/manual/piv-processing",
       icon: <Zap size={20} />,
-      description: "Run cross-correlation analysis with multi-pass refinement and outlier detection.",
+      description: "Cross-correlation with multi-pass refinement.",
       capabilities: ["Multi-pass windowing", "Ensemble averaging", "Outlier detection & infilling"],
-      cli: "instantaneous / ensemble",
-      gui: true,
     },
     {
       title: "Planar Calibration",
       href: "/manual/planar-calibration",
       icon: <Target size={20} />,
-      description: "Convert pixel displacements to physical units using calibration targets.",
+      description: "Convert pixels to physical units.",
       capabilities: ["Scale factor method", "Dotboard/ChArUco patterns", "LaVision polynomial"],
-      cli: "detect-* / apply-calibration",
-      gui: true,
     },
     {
       title: "Stereo Calibration",
       href: "/manual/stereo-calibration",
       icon: <Eye size={20} />,
-      description: "Set up stereo PIV for 3D velocity reconstruction from camera pairs.",
+      description: "3D velocity reconstruction from camera pairs.",
       capabilities: ["Intrinsic/extrinsic params", "3D reconstruction", "Stereo RMS validation"],
-      cli: "detect-stereo-*",
-      gui: true,
+    },
+    {
+      title: "Global Coordinates",
+      href: "/manual/global-coordinates",
+      icon: <Crosshair size={20} />,
+      description: "Align multi-camera coordinate systems.",
+      capabilities: ["Chain topology alignment", "Auto invert detection", "CLI & GUI support"],
     },
     {
       title: "Video Maker",
       href: "/manual/video-maker",
       icon: <Video size={20} />,
-      description: "Create MP4 animations of velocity fields with customisable colormaps.",
+      description: "Create MP4 animations of velocity fields.",
       capabilities: ["1080p/4K resolution", "Multiple variables", "Auto color scaling"],
-      cli: "pivtools-cli video",
-      gui: true,
     },
     {
       title: "Results Viewer",
       href: "/manual/results-viewer",
       icon: <Eye size={20} />,
-      description: "Interactively visualise PIV vector fields and derived quantities.",
+      description: "Interactive vector field visualisation.",
       capabilities: ["Vector overlays", "Colormap controls", "Frame navigation"],
-      cli: null,
-      gui: true,
     },
     {
       title: "Transforms",
       href: "/manual/transforms",
       icon: <RotateCw size={20} />,
-      description: "Apply geometric transformations like rotation and flipping to vector fields.",
+      description: "Geometric transformations on vector fields.",
       capabilities: ["Flip/rotate operations", "Batch processing", "Operation chaining"],
-      cli: "pivtools-cli transform",
-      gui: true,
     },
     {
       title: "Merging",
       href: "/manual/merging",
       icon: <GitMerge size={20} />,
-      description: "Combine vector fields from multiple cameras with smooth blending.",
+      description: "Combine multi-camera vector fields.",
       capabilities: ["Hanning window blend", "Overlap detection", "Multi-camera fields"],
-      cli: "pivtools-cli merge",
-      gui: true,
     },
     {
       title: "Statistics",
       href: "/manual/statistics",
       icon: <BarChart2 size={20} />,
-      description: "Compute mean velocities, Reynolds stresses, vorticity, and more.",
+      description: "Mean velocities, Reynolds stresses, TKE, and more.",
       capabilities: ["Time-averaged stats", "Per-frame statistics", "TKE & vorticity"],
-      cli: "pivtools-cli statistics",
-      gui: true,
     },
     {
-      title: "Developer Installation",
+      title: "Developer Guide",
       href: "/manual/developer",
       icon: <Code size={20} />,
-      description: "Build PIVTools from source for development and contribution.",
-      capabilities: ["Clone & build", "C extension compilation", "Development setup"],
-      cli: null,
-      gui: false,
+      description: "Build from source and contribute.",
+      capabilities: ["Clone & build", "C extension compilation", "AI-assisted development"],
     },
   ];
 
@@ -261,19 +238,13 @@ export default function ManualOverviewPage() {
               PIVTools <span className="text-soton-gold">Manual</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              A complete Particle Image Velocimetry processing solution with GUI and CLI interfaces.
-              From raw images to publication-ready visualisations.
+              Complete PIV processing from raw images to publication-ready results.
+              GUI and CLI interfaces share the same engine.
             </p>
           </motion.div>
 
           {/* Processing Pipeline */}
           <Section title="Processing Pipeline" icon={<Home size={32} />} id="pipeline">
-            <p className="text-gray-700 text-lg leading-relaxed mb-8">
-              PIVTools guides you through the complete PIV workflow, from loading raw images to generating
-              statistical analysis and visualisations. Each step is documented with both GUI instructions
-              and CLI commands where available.
-            </p>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
                 <PipelineStep
@@ -320,11 +291,7 @@ export default function ManualOverviewPage() {
           </Section>
 
           {/* Feature Cards */}
-          <Section title="Documentation Sections" icon={<FileText size={32} />} id="sections">
-            <p className="text-gray-700 text-lg leading-relaxed mb-8">
-              Click any card below to access detailed documentation for each feature.
-            </p>
-
+          <Section title="Documentation" icon={<FileText size={32} />} id="sections">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature, index) => (
                 <motion.div
@@ -340,54 +307,39 @@ export default function ManualOverviewPage() {
           </Section>
 
           {/* CLI vs GUI Comparison */}
-          <Section title="CLI vs GUI Comparison" icon={<Terminal size={32} />} id="comparison">
+          <Section title="CLI vs GUI" icon={<Terminal size={32} />} id="comparison">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              PIVTools offers two interfaces: a command-line interface for scripting and batch processing,
-              and a graphical interface for interactive work. Both use the same underlying processing engine.
+              Both interfaces use the same processing engine and <code className="bg-gray-100 px-2 py-1 rounded">config.yaml</code>.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* CLI Panel */}
               <div className="bg-gray-900 rounded-xl p-6 text-white">
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 mb-3">
                   <Terminal className="text-green-400" size={24} />
-                  <h3 className="text-xl font-bold">Command Line Interface</h3>
+                  <h3 className="text-xl font-bold">CLI</h3>
                 </div>
-                <p className="text-gray-400 text-sm mb-4">
-                  Best for batch processing, automation, and scripted workflows.
-                </p>
+                <p className="text-gray-400 text-sm mb-3">Batch processing and scripted workflows.</p>
                 <div className="space-y-2 text-sm font-mono">
-                  <div className="bg-gray-800 rounded p-2">
-                    <span className="text-gray-500">$</span> <span className="text-green-400">pivtools-cli</span> instantaneous
-                  </div>
-                  <div className="bg-gray-800 rounded p-2">
-                    <span className="text-gray-500">$</span> <span className="text-green-400">pivtools-cli</span> detect-planar
-                  </div>
-                  <div className="bg-gray-800 rounded p-2">
-                    <span className="text-gray-500">$</span> <span className="text-green-400">pivtools-cli</span> apply-calibration
-                  </div>
-                  <div className="bg-gray-800 rounded p-2">
-                    <span className="text-gray-500">$</span> <span className="text-green-400">pivtools-cli</span> statistics
-                  </div>
+                  {["instantaneous", "detect-planar", "apply-calibration", "statistics"].map((cmd, i) => (
+                    <div key={i} className="bg-gray-800 rounded p-2">
+                      <span className="text-gray-500">$</span> <span className="text-green-400">pivtools-cli</span> {cmd}
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* GUI Panel */}
               <div className="bg-gradient-to-br from-soton-blue to-soton-darkblue rounded-xl p-6 text-white">
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 mb-3">
                   <Monitor className="text-soton-gold" size={24} />
-                  <h3 className="text-xl font-bold">Graphical Interface</h3>
+                  <h3 className="text-xl font-bold">GUI</h3>
                 </div>
-                <p className="text-gray-200 text-sm mb-4">
-                  Best for interactive exploration, visualisation, and configuration.
-                </p>
+                <p className="text-gray-200 text-sm mb-3">Interactive exploration and visual configuration.</p>
                 <ul className="space-y-2 text-sm">
                   {[
-                    "Visual image preprocessing with live preview",
+                    "Live image preprocessing preview",
                     "Interactive polygon mask drawing",
-                    "Real-time vector field visualisation",
-                    "Point-and-click calibration workflows",
-                    "Drag-and-drop configuration",
+                    "Real-time vector field viewer",
+                    "Point-and-click calibration",
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <CheckCircle size={14} className="text-soton-gold flex-shrink-0" />
@@ -397,66 +349,21 @@ export default function ManualOverviewPage() {
                 </ul>
               </div>
             </div>
-
           </Section>
 
           {/* Where to Start */}
-          <Section title="Where to Start" icon={<HelpCircle size={32} />} id="start">
-            <p className="text-gray-700 text-lg leading-relaxed mb-8">
-              Not sure where to begin? Use this guide to find the right documentation for your task.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Section title="Where to Start" icon={<ArrowRight size={32} />} id="start">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                {
-                  question: "I'm new to PIVTools",
-                  answer: "Start with Quick Start for installation, then Image Configuration to set up your data.",
-                  links: [
-                    { text: "Quick Start", href: "/manual/quick-start" },
-                    { text: "Image Configuration", href: "/manual/image-configuration" },
-                  ],
-                },
-                {
-                  question: "I want to run PIV analysis",
-                  answer: "Head to PIV Processing for cross-correlation settings and multi-pass configuration.",
-                  links: [
-                    { text: "PIV Processing", href: "/manual/piv-processing" },
-                  ],
-                },
-                {
-                  question: "I need to calibrate my data",
-                  answer: "Choose Planar Calibration for 2D PIV or Stereo Calibration for 3D reconstruction.",
-                  links: [
-                    { text: "Planar Calibration", href: "/manual/planar-calibration" },
-                    { text: "Stereo Calibration", href: "/manual/stereo-calibration" },
-                  ],
-                },
-                {
-                  question: "I want to compute statistics",
-                  answer: "The Statistics page covers mean velocities, Reynolds stresses, vorticity, and more.",
-                  links: [
-                    { text: "Statistics", href: "/manual/statistics" },
-                  ],
-                },
-                {
-                  question: "I want to create videos",
-                  answer: "Video Maker explains how to generate MP4 animations with custom colormaps.",
-                  links: [
-                    { text: "Video Maker", href: "/manual/video-maker" },
-                  ],
-                },
-                {
-                  question: "I want to automate processing",
-                  answer: "Use the CLI commands for batch processing. See the CLI Reference for all 12 commands.",
-                  links: [
-                    { text: "CLI Reference", href: "/manual/cli-reference" },
-                    { text: "Quick Start (CLI)", href: "/manual/quick-start#cli" },
-                  ],
-                },
+                { label: "New user", links: [{ text: "Quick Start", href: "/manual/quick-start" }] },
+                { label: "Run PIV", links: [{ text: "PIV Processing", href: "/manual/piv-processing" }] },
+                { label: "Calibrate", links: [{ text: "Planar", href: "/manual/planar-calibration" }, { text: "Stereo", href: "/manual/stereo-calibration" }] },
+                { label: "Statistics", links: [{ text: "Statistics", href: "/manual/statistics" }] },
+                { label: "Create videos", links: [{ text: "Video Maker", href: "/manual/video-maker" }] },
+                { label: "Automate", links: [{ text: "CLI Reference", href: "/manual/cli-reference" }] },
               ].map((item, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-5 border border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-2">{item.question}</h4>
-                  <p className="text-gray-600 text-sm mb-3">{item.answer}</p>
+                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">{item.label}</h4>
                   <div className="flex flex-wrap gap-2">
                     {item.links.map((link, i) => (
                       <Link
@@ -483,8 +390,7 @@ export default function ManualOverviewPage() {
           >
             <h3 className="text-3xl font-bold mb-4">Ready to Get Started?</h3>
             <p className="text-gray-300 mb-6 text-lg max-w-2xl mx-auto">
-              Install PIVTools with pip and begin processing your PIV data in minutes.
-              Full documentation is available for every feature.
+              Install PIVTools with pip and begin processing your data in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

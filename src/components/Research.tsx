@@ -247,7 +247,7 @@ export default function Research() {
               Visit University
             </a>
             <a
-              href="https://github.com/your-repo/pivtools"
+              href="https://github.com/MTT69/python-PIVTOOLs"
               className="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-soton-darkblue transition-colors duration-200 flex items-center gap-2 justify-center"
               target="_blank"
               rel="noopener noreferrer"
