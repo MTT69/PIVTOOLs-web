@@ -354,11 +354,13 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--type-name', short: '-t', description: 'instantaneous | ensemble (default: instantaneous)' },
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
+        { flag: '--force', short: '-f', description: 'Force alignment even if already applied (WARNING: will double shifts)' },
       ],
       examples: [
         'pivtools-cli align-coordinates',
         'pivtools-cli align-coordinates -t ensemble',
         'pivtools-cli align-coordinates -p 0,1',
+        'pivtools-cli align-coordinates --force',
       ],
       link: '/manual/global-coordinates#cli',
     },

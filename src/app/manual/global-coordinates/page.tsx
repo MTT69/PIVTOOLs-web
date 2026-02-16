@@ -333,7 +333,10 @@ pivtools-cli align-coordinates
 pivtools-cli align-coordinates -t ensemble
 
 # Process specific paths
-pivtools-cli align-coordinates -p 0,1`}
+pivtools-cli align-coordinates -p 0,1
+
+# Force re-alignment (skip idempotency guard)
+pivtools-cli align-coordinates --force`}
             />
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Combined with Calibration</h3>
@@ -360,6 +363,7 @@ pivtools-cli apply-calibration --method dotboard --align-coordinates`}
                   {[
                     { flag: "--type-name, -t", desc: "Data type: instantaneous or ensemble", def: "instantaneous" },
                     { flag: "--active-paths, -p", desc: "Comma-separated path indices", def: "From config" },
+                    { flag: "--force, -f", desc: "Force alignment even if already applied (will double shifts)", def: "false" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
@@ -369,6 +373,18 @@ pivtools-cli apply-calibration --method dotboard --align-coordinates`}
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-700 text-sm">
+                <strong>Idempotency guard:</strong> Running{' '}
+                <code className="bg-blue-100 px-1 rounded">align-coordinates</code> twice without
+                re-calibrating will be blocked to prevent doubling coordinate shifts. A sidecar
+                marker file (<code className="bg-blue-100 px-1 rounded">alignment_applied.json</code>)
+                tracks whether alignment has already been applied. Fresh calibration automatically
+                clears this marker. Use <code className="bg-blue-100 px-1 rounded">--force</code> to
+                override if needed.
+              </p>
             </div>
 
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
