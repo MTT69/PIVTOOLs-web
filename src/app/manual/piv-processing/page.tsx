@@ -19,6 +19,9 @@ import {
   FileText,
   ChevronDown,
   ChevronRight,
+  AlertTriangle,
+  Sliders,
+  Crosshair,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -150,7 +153,7 @@ export default function PIVProcessingPage() {
                     { label: "Correlation", inst: "Per frame pair", ens: "Averaged across all pairs" },
                     { label: "Use case", inst: "Time-resolved data, turbulence statistics", ens: "Mean flow, low seeding, max resolution" },
                     { label: "Pass types", inst: "Standard only", ens: "Standard + Single mode" },
-                    { label: "Peak finder", inst: "Configurable (gauss3-6)", ens: "gauss6 (fixed)" },
+                    { label: "Peak finder", inst: "Configurable (gauss3-6)", ens: "Configurable (default gauss6)" },
                     { label: "Live preview", inst: "Yes (per-frame)", ens: "No (accumulated)" },
                     { label: "Resume", inst: "No", ens: "Yes (resume_from_pass)" },
                   ].map((row, idx) => (
@@ -278,7 +281,7 @@ instantaneous_piv:
           <Section title="Peak Finding" icon={<Target size={32} />} id="peak-finding">
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
               <p className="text-blue-700 text-sm">
-                <strong>Instantaneous only.</strong> Ensemble uses gauss6 by default.
+                <strong>Both modes.</strong> Instantaneous defaults to gauss3. Ensemble defaults to gauss6.
               </p>
             </div>
 
@@ -312,6 +315,147 @@ instantaneous_piv:
   peak_finder: gauss3   # Options: gauss3, gauss4, gauss5, gauss6`} title="config.yaml" />
           </Section>
 
+          {/* Predictor & Peak Settings */}
+          <Section title="Predictor & Peak Settings" icon={<Sliders size={32} />} id="predictor-peak">
+            <p className="text-gray-700 text-lg mb-6">
+              Control how the predictor field is refined between multi-pass iterations and configure multi-peak detection.
+            </p>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Setting</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Default</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Mode</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { setting: "predictor_smoothing", default: "true / false", mode: "Inst / Ens", desc: "Gaussian-smooth the predictor between passes. Recommended for instantaneous (reduces single-pair noise). For ensemble, smoothing can destroy real gradients — leave disabled unless data is very noisy." },
+                    { setting: "predictor_interpolation", default: "cubic", mode: "Ensemble", desc: "Interpolation for upscaling the predictor field between passes. Options: nearest, linear, cubic." },
+                    { setting: "image_warp_interpolation", default: "cubic", mode: "Ensemble", desc: "Interpolation for image dewarping based on the predictor field. Options: nearest, linear, cubic." },
+                    { setting: "secondary_peak", default: "false", mode: "Instantaneous", desc: "Extract the second-highest correlation peak per window. Useful for reverse flow or multiple particle populations." },
+                    { setting: "num_peaks", default: "1", mode: "Instantaneous", desc: "Number of correlation peaks to detect per window. Usually 1; increase for multi-peak analysis." },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-purple-600">{row.setting}</td>
+                      <td className="px-4 py-3 font-mono text-green-600">{row.default}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.mode}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <CodeBlock code={`instantaneous_piv:
+  predictor_smoothing: true
+  secondary_peak: false
+  num_peaks: 1
+
+ensemble_piv:
+  predictor_smoothing: false
+  predictor_interpolation: cubic
+  image_warp_interpolation: cubic`} title="config.yaml" />
+          </Section>
+
+          {/* Boundary Conditions */}
+          <Section title="Boundary Conditions" icon={<Crosshair size={32} />} id="boundary-conditions">
+            <div className="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6">
+              <p className="text-purple-700 text-sm">
+                <strong>Ensemble only.</strong> Overrides edge-replicated predictor padding near walls with prescribed velocity values.
+              </p>
+            </div>
+
+            <p className="text-gray-700 text-lg mb-6">
+              In wall-bounded flows, the predictor field near boundaries can be corrupted by edge replication. Boundary conditions let you prescribe known velocities (e.g., no-slip: ux=0, uy=0) at specific wall positions.
+            </p>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Field</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Type</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { field: "y_position", type: "int (px)", desc: "Row position of the wall in the image" },
+                    { field: "ux", type: "float (px/frame)", desc: "Prescribed horizontal displacement at the wall" },
+                    { field: "uy", type: "float (px/frame)", desc: "Prescribed vertical displacement at the wall" },
+                    { field: "edge", type: "'bottom' | 'top'", desc: "Which image edge the wall is near" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-purple-600">{row.field}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.type}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <CodeBlock code={`ensemble_piv:
+  predictor_boundary_conditions:
+  - y_position: 10
+    ux: 0
+    uy: 0
+    edge: bottom
+  - y_position: 950
+    ux: 0
+    uy: 0
+    edge: top`} title="config.yaml — no-slip walls at top and bottom" />
+          </Section>
+
+          {/* Correlation & Fitting */}
+          <Section title="Correlation & Fitting" icon={<Crosshair size={32} />} id="correlation-fitting">
+            <div className="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6">
+              <p className="text-purple-700 text-sm">
+                <strong>Ensemble only.</strong> Advanced controls for peak fitting and memory management.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Setting</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Default</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { setting: "fit_offset", default: "true", desc: "Include a constant offset in the Gaussian sub-pixel fit. Accounts for correlation plane background level." },
+                    { setting: "mask_center_pixel", default: "true", desc: "Mask the autocorrelation center pixel before peak fitting. Prevents the zero-lag spike from biasing displacement estimates." },
+                    { setting: "persist_images", default: "false", desc: "Keep all filtered images in worker RAM across passes. Faster on HPC with lots of memory, but significantly increases RAM usage." },
+                    { setting: "sum_fitting_window_enabled", default: "false", desc: "Extract a central sub-region from the summed correlation plane before peak fitting. Reduces memory and speeds up fitting." },
+                    { setting: "sum_fitting_window", default: "[16, 16]", desc: "Size [H, W] of the central extraction window. Only active when sum_fitting_window_enabled is true." },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-purple-600">{row.setting}</td>
+                      <td className="px-4 py-3 font-mono text-green-600">{row.default}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <CodeBlock code={`ensemble_piv:
+  fit_offset: true
+  mask_center_pixel: true
+  persist_images: false
+  sum_fitting_window_enabled: false
+  sum_fitting_window:
+  - 16
+  - 16`} title="config.yaml" />
+          </Section>
+
           {/* Ensemble Options */}
           <Section title="Ensemble Options" icon={<Database size={32} />} id="ensemble-options">
             <div className="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6">
@@ -331,9 +475,10 @@ instantaneous_piv:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { setting: "fit_method", default: "gaussian", desc: "Peak fitting: 'gaussian' (C, fast) or 'kspace' (Python, BETA -- better Reynolds stresses)" },
-                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation' or 'image' based background removal" },
-                    { setting: "gradient_correction", default: "false", desc: "Reynolds stress gradient correction" },
+                    { setting: "fit_method", default: "gaussian", desc: "Peak fitting: 'gaussian' (C, fast) or 'kspace' (Python, better Reynolds stresses at small windows)" },
+                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation': R = <AB> - <A><B> (single-pass, memory efficient). 'image': R = <(A-μA)(B-μB)> (two-pass, more stable for k-space)" },
+                    { setting: "gradient_correction", default: "false", desc: "Reynolds stress gradient correction near walls" },
+                    { setting: "kspace_snr_threshold", default: "3.0", desc: "SNR threshold for k-space fitting. Only active when fit_method is 'kspace'" },
                     { setting: "store_planes", default: "false", desc: "Save AA, BB, AB correlation planes to disk (large files)" },
                     { setting: "save_diagnostics", default: "false", desc: "Save debug images and peak fitting data to filters/ directory" },
                     { setting: "resume_from_pass", default: "0", desc: "Resume from pass N (1-based). 0 = fresh start. Requires existing ensemble_result.mat." },
@@ -367,9 +512,11 @@ instantaneous_piv:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { setting: "backend", default: "cpu", desc: "Processing backend" },
-                    { setting: "omp_threads", default: "1", desc: "OpenMP threads per worker for C extensions" },
-                    { setting: "dask_workers_per_node", default: "1", desc: "Number of parallel Dask workers" },
-                    { setting: "dask_memory_limit", default: "4GB", desc: "RAM allocation per worker" },
+                    { setting: "omp_threads", default: "4", desc: "OpenMP threads per worker for C extensions" },
+                    { setting: "dask_workers_per_node", default: "2", desc: "Number of parallel Dask workers" },
+                    { setting: "dask_memory_limit", default: "8GB", desc: "RAM allocation per worker" },
+                    { setting: "dask_max_in_flight_per_worker", default: "3", desc: "Max concurrent tasks queued per worker. Higher values (4-6) improve I/O pipelining on HPC with fast storage." },
+                    { setting: "open_dashboard", default: "false", desc: "Auto-open the Dask performance dashboard in your browser when processing starts" },
                     { setting: "cluster_type", default: "local", desc: "'local' or 'slurm'" },
                     { setting: "filter_worker_count", default: "1", desc: "Workers for preprocessing. Set 1 for temporal filters, 2+ for spatial-only." },
                   ].map((row, idx) => (
@@ -385,9 +532,11 @@ instantaneous_piv:
 
             <CodeBlock code={`processing:
   backend: cpu
-  omp_threads: 2
-  dask_workers_per_node: 4
-  dask_memory_limit: 4GB
+  omp_threads: 4
+  dask_workers_per_node: 2
+  dask_memory_limit: 8GB
+  dask_max_in_flight_per_worker: 3
+  open_dashboard: false
   cluster_type: local
   filter_worker_count: 1`} title="config.yaml" />
           </Section>
@@ -483,6 +632,63 @@ instantaneous_piv:
       ksize: 3`} title="config.yaml" />
           </Section>
 
+          {/* NaN Reason Codes */}
+          <Section title="NaN Reason Codes" icon={<AlertTriangle size={32} />} id="nan-reason">
+            <p className="text-gray-700 text-lg mb-4">
+              Every interrogation window is assigned a <code className="bg-gray-100 px-1 rounded font-mono text-sm">nan_reason</code> code
+              indicating why it was marked invalid, or <strong>0</strong> if it passed all checks.
+              This field is saved in the output <code className="bg-gray-100 px-1 rounded font-mono text-sm">.mat</code> file
+              and is shared by both Gaussian and k-space fitters.
+            </p>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Code</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Stage</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { code: '-1', stage: 'Pre-fitting', desc: 'Masked vector (outside ROI / polygon mask)' },
+                    { code: '0', stage: 'Success', desc: 'Fit succeeded and passed all validation checks' },
+                    { code: '1', stage: 'Fitting', desc: 'Solver did not converge (LM for Gaussian, TRF for k-space)' },
+                    { code: '2', stage: 'Post-fit validation', desc: 'AB peak height invalid (Gaussian) or SNR too low (k-space)' },
+                    { code: '3', stage: 'Post-fit validation', desc: 'Displacement exceeds 3/4 window rule (peak too far from centre)' },
+                    { code: '5', stage: 'Post-fit validation', desc: 'Negative sigma / variance values (unphysical fit)' },
+                    { code: '6', stage: 'Displacement check', desc: 'Displacement exceeds 3/4 window rule (checked in accumulator)' },
+                    { code: '10', stage: 'Outlier detection', desc: 'Velocity outlier: fit succeeded but flagged by median-based displacement outlier detection' },
+                    { code: '11', stage: 'Outlier detection', desc: 'Stress outlier: fit succeeded but flagged by stress field median test or Cauchy-Schwarz realizability violation (ensemble only)' },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-red-600 font-bold">{row.code}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.stage}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-amber-50 rounded-lg p-4 mb-6">
+              <h5 className="font-semibold text-gray-900 mb-2">Validation pipeline order</h5>
+              <ol className="list-decimal list-inside text-gray-600 space-y-1 text-sm">
+                <li>Fitter attempts fit (codes 1, 2)</li>
+                <li>Post-fit parameter validation (codes 3, 5)</li>
+                <li>Displacement magnitude check in accumulator (code 6)</li>
+                <li>Velocity outlier detection via median test (code 10)</li>
+                <li>Stress outlier detection + realizability check, ensemble final pass only (code 11)</li>
+                <li>Vectors with code 0 after all checks are valid</li>
+              </ol>
+            </div>
+
+            <p className="text-gray-500 text-sm">
+              Codes 3 and 6 both enforce the 3/4 displacement rule but at different stages: code 3 is checked inside the fitter, code 6 in the accumulator after the fitter returns. Vectors flagged with codes 10 or 11 are infilled from neighbours if infilling is enabled.
+            </p>
+          </Section>
+
           {/* Running PIV */}
           <Section title="Running PIV" icon={<Play size={32} />} id="running">
             <p className="text-gray-700 text-lg mb-6">
@@ -535,12 +741,24 @@ processing:
                     { path: '*_piv.window_size', inst: 'Y', ens: 'Y', desc: 'List of [H, W] per pass' },
                     { path: '*_piv.overlap', inst: 'Y', ens: 'Y', desc: 'Overlap % per pass' },
                     { path: '*_piv.runs', inst: 'Y', ens: 'Y', desc: 'Passes to save (1-based)' },
-                    { path: 'instantaneous_piv.peak_finder', inst: 'Y', ens: '-', desc: 'gauss3 / gauss4 / gauss5 / gauss6' },
+                    { path: '*_piv.peak_finder', inst: 'Y', ens: 'Y', desc: 'gauss3 (inst default) / gauss4 / gauss5 / gauss6 (ens default)' },
+                    { path: '*_piv.predictor_smoothing', inst: 'Y', ens: 'Y', desc: 'Smooth predictor between passes (inst: true, ens: false)' },
+                    { path: 'instantaneous_piv.secondary_peak', inst: 'Y', ens: '-', desc: 'Detect secondary correlation peak (default false)' },
+                    { path: 'instantaneous_piv.num_peaks', inst: 'Y', ens: '-', desc: 'Number of peaks to detect (default 1)' },
                     { path: 'ensemble_piv.type', inst: '-', ens: 'Y', desc: 'Per-pass: std or single' },
                     { path: 'ensemble_piv.sum_window', inst: '-', ens: 'Y', desc: '[H, W] for single mode' },
-                    { path: 'ensemble_piv.fit_method', inst: '-', ens: 'Y', desc: 'gaussian or kspace [BETA]' },
+                    { path: 'ensemble_piv.fit_method', inst: '-', ens: 'Y', desc: 'gaussian or kspace' },
+                    { path: 'ensemble_piv.kspace_snr_threshold', inst: '-', ens: 'Y', desc: 'K-space SNR threshold (default 3.0)' },
                     { path: 'ensemble_piv.background_subtraction_method', inst: '-', ens: 'Y', desc: 'correlation or image' },
                     { path: 'ensemble_piv.gradient_correction', inst: '-', ens: 'Y', desc: 'Reynolds stress gradient correction' },
+                    { path: 'ensemble_piv.fit_offset', inst: '-', ens: 'Y', desc: 'Include offset in Gaussian fit (default true)' },
+                    { path: 'ensemble_piv.mask_center_pixel', inst: '-', ens: 'Y', desc: 'Mask autocorrelation center pixel (default true)' },
+                    { path: 'ensemble_piv.persist_images', inst: '-', ens: 'Y', desc: 'Keep filtered images in worker RAM (default false)' },
+                    { path: 'ensemble_piv.predictor_interpolation', inst: '-', ens: 'Y', desc: 'Predictor upscaling: nearest/linear/cubic' },
+                    { path: 'ensemble_piv.image_warp_interpolation', inst: '-', ens: 'Y', desc: 'Image warp: nearest/linear/cubic' },
+                    { path: 'ensemble_piv.predictor_boundary_conditions', inst: '-', ens: 'Y', desc: 'Wall boundary conditions array' },
+                    { path: 'ensemble_piv.sum_fitting_window_enabled', inst: '-', ens: 'Y', desc: 'Extract central sub-region for fitting' },
+                    { path: 'ensemble_piv.sum_fitting_window', inst: '-', ens: 'Y', desc: '[H, W] extraction size (default [16,16])' },
                     { path: 'ensemble_piv.store_planes', inst: '-', ens: 'Y', desc: 'Save correlation planes' },
                     { path: 'ensemble_piv.save_diagnostics', inst: '-', ens: 'Y', desc: 'Save debug data' },
                     { path: 'ensemble_piv.resume_from_pass', inst: '-', ens: 'Y', desc: '0 = fresh, N = resume from pass N' },
@@ -548,9 +766,11 @@ processing:
                     { path: 'ensemble_outlier_detection.*', inst: '-', ens: 'Y', desc: 'Same structure as outlier_detection' },
                     { path: 'infilling.*', inst: 'Y', ens: '-', desc: 'mid_pass + final_pass config' },
                     { path: 'ensemble_infilling.*', inst: '-', ens: 'Y', desc: 'Same structure as infilling' },
-                    { path: 'processing.omp_threads', inst: 'Y', ens: 'Y', desc: 'OpenMP threads (default 1)' },
-                    { path: 'processing.dask_workers_per_node', inst: 'Y', ens: 'Y', desc: 'Dask workers (default 1)' },
-                    { path: 'processing.dask_memory_limit', inst: 'Y', ens: 'Y', desc: 'Per-worker RAM (default 4GB)' },
+                    { path: 'processing.omp_threads', inst: 'Y', ens: 'Y', desc: 'OpenMP threads (default 4)' },
+                    { path: 'processing.dask_workers_per_node', inst: 'Y', ens: 'Y', desc: 'Dask workers (default 2)' },
+                    { path: 'processing.dask_memory_limit', inst: 'Y', ens: 'Y', desc: 'Per-worker RAM (default 8GB)' },
+                    { path: 'processing.dask_max_in_flight_per_worker', inst: 'Y', ens: 'Y', desc: 'Max tasks per worker (default 3)' },
+                    { path: 'processing.open_dashboard', inst: 'Y', ens: 'Y', desc: 'Auto-open Dask dashboard (default false)' },
                     { path: 'processing.cluster_type', inst: 'Y', ens: 'Y', desc: 'local or slurm' },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -571,9 +791,11 @@ processing:
   instantaneous: true
   ensemble: false
   backend: cpu
-  omp_threads: 2
-  dask_workers_per_node: 4
-  dask_memory_limit: 4GB
+  omp_threads: 4
+  dask_workers_per_node: 2
+  dask_memory_limit: 8GB
+  dask_max_in_flight_per_worker: 3
+  open_dashboard: false
   cluster_type: local
   filter_worker_count: 1
 
@@ -589,6 +811,9 @@ instantaneous_piv:
   runs:
   - 3
   peak_finder: gauss3
+  predictor_smoothing: true
+  secondary_peak: false
+  num_peaks: 1
 
 ensemble_piv:
   window_size:
@@ -611,6 +836,18 @@ ensemble_piv:
   fit_method: gaussian
   background_subtraction_method: correlation
   gradient_correction: false
+  kspace_snr_threshold: 3.0
+  fit_offset: true
+  mask_center_pixel: true
+  persist_images: false
+  predictor_smoothing: false
+  predictor_interpolation: cubic
+  image_warp_interpolation: cubic
+  predictor_boundary_conditions: []
+  sum_fitting_window_enabled: false
+  sum_fitting_window:
+  - 16
+  - 16
   store_planes: false
   save_diagnostics: false
   resume_from_pass: 0
