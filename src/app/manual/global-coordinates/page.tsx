@@ -176,6 +176,18 @@ export default function GlobalCoordinatesPage() {
               </div>
             </div>
 
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="text-yellow-600" size={18} />
+                <strong className="text-yellow-800">Continuous Chain Required</strong>
+              </div>
+              <p className="text-yellow-700 text-sm">
+                The camera chain must be continuous — every adjacent pair needs an overlap point.
+                For example, cameras 1, 2, 3, 4 require pairs 1→2, 2→3, 3→4.
+                Gaps (e.g., 1→3 without 2) are not supported.
+              </p>
+            </div>
+
             <h3 className="text-xl font-bold text-gray-900 mb-4">Datum Point</h3>
             <p className="text-gray-700 mb-4">
               The datum is a point on Camera 1{"'"}s calibration image that defines where the
@@ -317,6 +329,17 @@ export default function GlobalCoordinatesPage() {
             </div>
           </Section>
 
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="text-red-600" size={18} />
+              <strong className="text-red-800">Unsupported Methods</strong>
+            </div>
+            <p className="text-red-700 text-sm">
+              Global coordinate alignment is <strong>not supported</strong> for polynomial (LaVision XML) calibration.
+              Use dotboard, ChArUco, or scale factor calibration methods instead.
+            </p>
+          </div>
+
           {/* CLI */}
           <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
@@ -434,7 +457,7 @@ pivtools-cli statistics`}
               code={`calibration:
   global_coordinates:
     enabled: true
-    datum_camera: 1
+    datum_camera: 1                     # Always 1 (not configurable)
     datum_pixel: [512.0, 384.0]       # Pixel position of origin on Camera 1
     datum_physical: [0.0, 0.0]        # Physical coordinates (mm) at datum
     datum_frame: 1                    # Calibration frame for datum selection
@@ -468,10 +491,10 @@ pivtools-cli statistics`}
                   <tbody className="divide-y divide-gray-100">
                     {[
                       { field: "enabled", type: "bool", desc: "Enable global coordinate alignment" },
-                      { field: "datum_camera", type: "int", desc: "Camera that holds the origin (always 1)" },
+                      { field: "datum_camera", type: "int", desc: "Camera that holds the origin (always Camera 1, not user-configurable)" },
                       { field: "datum_pixel", type: "[x, y]", desc: "Pixel position of origin on datum camera image" },
                       { field: "datum_physical", type: "[x, y]", desc: "Physical coordinates (mm) at datum point" },
-                      { field: "datum_frame", type: "int", desc: "Frame index used for datum selection" },
+                      { field: "datum_frame", type: "int", desc: "Calibration frame used for datum point pixel-to-physical conversion" },
                       { field: "invert_ux", type: "bool", desc: "Negate ux, UV_stress, and reflect x-coordinates" },
                       { field: "overlap_pairs", type: "list", desc: "List of adjacent camera pair feature points" },
                       { field: "overlap_pairs[].camera_a", type: "int", desc: "First camera in the pair" },

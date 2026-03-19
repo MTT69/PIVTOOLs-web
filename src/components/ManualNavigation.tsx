@@ -128,6 +128,8 @@ const manualSections: ManualSection[] = [
       { title: 'Stereo Dotboard', href: '/manual/stereo-calibration#dotboard' },
       { title: 'Stereo ChArUco', href: '/manual/stereo-calibration#charuco' },
       { title: '3D Reconstruction', href: '/manual/stereo-calibration#reconstruction' },
+      { title: 'Self-Calibration', href: '/manual/stereo-calibration#self-calibration' },
+      { title: 'Stereo Ensemble PIV', href: '/manual/stereo-calibration#stereo-ensemble' },
       { title: 'CLI Usage', href: '/manual/stereo-calibration#cli' },
       { title: 'YAML Configuration', href: '/manual/stereo-calibration#yaml' },
     ],

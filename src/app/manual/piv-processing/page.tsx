@@ -334,10 +334,12 @@ instantaneous_piv:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { setting: "predictor_smoothing", default: "true / false", mode: "Inst / Ens", desc: "Gaussian-smooth the predictor between passes. Recommended for instantaneous (reduces single-pair noise). For ensemble, smoothing can destroy real gradients — leave disabled unless data is very noisy." },
-                    { setting: "predictor_interpolation", default: "cubic", mode: "Ensemble", desc: "Interpolation for upscaling the predictor field between passes. Options: nearest, linear, cubic." },
-                    { setting: "image_warp_interpolation", default: "cubic", mode: "Ensemble", desc: "Interpolation for image dewarping based on the predictor field. Options: nearest, linear, cubic." },
+                    { setting: "predictor_interpolation", default: "cubic", mode: "Ensemble", desc: "Interpolation for upscaling the predictor field between passes. Options: linear or cubic." },
+                    { setting: "image_warp_interpolation", default: "cubic", mode: "Both", desc: "Interpolation kernel for image warping during predictor deformation. cubic = bicubic (4\u00d74 stencil), lanczos = Lanczos-3 (6\u00d76 stencil, slightly sharper)." },
                     { setting: "secondary_peak", default: "false", mode: "Instantaneous", desc: "Extract the second-highest correlation peak per window. Useful for reverse flow or multiple particle populations." },
                     { setting: "num_peaks", default: "1", mode: "Instantaneous", desc: "Number of correlation peaks to detect per window. Usually 1; increase for multi-peak analysis." },
+                    { setting: "save_mode", default: "minimal", mode: "Instantaneous", desc: "Output fields per vector file. 'minimal' saves ux, uy, b_mask only (fastest). 'full' saves all 11 fields including peak height, sigma, stresses." },
+                    { setting: "save_compression", default: "false", mode: "Instantaneous", desc: "Enable ZLIB compression on .mat output files. Slower writes but smaller file size." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-purple-600">{row.setting}</td>
@@ -354,6 +356,9 @@ instantaneous_piv:
   predictor_smoothing: true
   secondary_peak: false
   num_peaks: 1
+  save_mode: minimal
+  save_compression: false
+  image_warp_interpolation: cubic
 
 ensemble_piv:
   predictor_smoothing: false
@@ -475,10 +480,11 @@ ensemble_piv:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { setting: "fit_method", default: "gaussian", desc: "Peak fitting: 'gaussian' (C, fast) or 'kspace' (Python, better Reynolds stresses at small windows)" },
-                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation': R = <AB> - <A><B> (single-pass, memory efficient). 'image': R = <(A-μA)(B-μB)> (two-pass, more stable for k-space)" },
+                    { setting: "fit_method", default: "kspace", desc: "'kspace' (Fourier-space, 5-param, default, 50-100x faster) or 'gaussian' (Levenberg-Marquardt, 16-param). K-space recommended for all use cases." },
+                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation': R = <AB> - <A><B> (single-pass, memory efficient). 'image': R = <(A-\u03BCA)(B-\u03BCB)> (two-pass, more stable for k-space)" },
                     { setting: "gradient_correction", default: "false", desc: "Reynolds stress gradient correction near walls" },
-                    { setting: "kspace_snr_threshold", default: "3.0", desc: "SNR threshold for k-space fitting. Only active when fit_method is 'kspace'" },
+                    { setting: "kspace_soft_weighting", default: "true", desc: "Anisotropic soft spectral weighting in k-space fitting. Improves Reynolds stress accuracy, especially at small window sizes." },
+                    { setting: "kspace_k_max_cap", default: "0.35", desc: "Maximum wavenumber cap for k-space fitting (0.0-0.5). Controls the spectral bandwidth used for displacement estimation." },
                     { setting: "store_planes", default: "false", desc: "Save AA, BB, AB correlation planes to disk (large files)" },
                     { setting: "save_diagnostics", default: "false", desc: "Save debug images and peak fitting data to filters/ directory" },
                     { setting: "resume_from_pass", default: "0", desc: "Resume from pass N (1-based). 0 = fresh start. Requires existing ensemble_result.mat." },
@@ -519,6 +525,11 @@ ensemble_piv:
                     { setting: "open_dashboard", default: "false", desc: "Auto-open the Dask performance dashboard in your browser when processing starts" },
                     { setting: "cluster_type", default: "local", desc: "'local' or 'slurm'" },
                     { setting: "filter_worker_count", default: "1", desc: "Workers for preprocessing. Set 1 for temporal filters, 2+ for spatial-only." },
+                    { setting: "auto_compute_params", default: "false", desc: "Auto-compute omp_threads, dask_workers, and dask_memory from system resources" },
+                    { setting: "n_nodes", default: "1", desc: "Number of compute nodes (SLURM cluster only)" },
+                    { setting: "slurm_walltime", default: "01:00:00", desc: "Job walltime for SLURM submissions" },
+                    { setting: "slurm_partition", default: "(none)", desc: "SLURM partition name" },
+                    { setting: "post_processing_workers", default: "auto", desc: "Max parallel workers for calibration, statistics, merge, and transform. auto = min(cpu_count, 16)" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-purple-600">{row.setting}</td>
@@ -622,14 +633,10 @@ ensemble_piv:
 
             <CodeBlock code={`infilling:                  # or ensemble_infilling:
   mid_pass:
-    method: biharmonic
-    parameters:
-      ksize: 3
+    method: biharmonic        # no parameters needed
   final_pass:
     enabled: true
-    method: biharmonic
-    parameters:
-      ksize: 3`} title="config.yaml" />
+    method: biharmonic        # no parameters needed`} title="config.yaml" />
           </Section>
 
           {/* NaN Reason Codes */}
@@ -748,14 +755,18 @@ processing:
                     { path: 'ensemble_piv.type', inst: '-', ens: 'Y', desc: 'Per-pass: std or single' },
                     { path: 'ensemble_piv.sum_window', inst: '-', ens: 'Y', desc: '[H, W] for single mode' },
                     { path: 'ensemble_piv.fit_method', inst: '-', ens: 'Y', desc: 'gaussian or kspace' },
-                    { path: 'ensemble_piv.kspace_snr_threshold', inst: '-', ens: 'Y', desc: 'K-space SNR threshold (default 3.0)' },
+                    { path: 'ensemble_piv.kspace_soft_weighting', inst: '-', ens: 'Y', desc: 'Soft spectral weighting for k-space (default true)' },
+                    { path: 'ensemble_piv.kspace_k_max_cap', inst: '-', ens: 'Y', desc: 'Max wavenumber cap (default 0.35)' },
                     { path: 'ensemble_piv.background_subtraction_method', inst: '-', ens: 'Y', desc: 'correlation or image' },
                     { path: 'ensemble_piv.gradient_correction', inst: '-', ens: 'Y', desc: 'Reynolds stress gradient correction' },
                     { path: 'ensemble_piv.fit_offset', inst: '-', ens: 'Y', desc: 'Include offset in Gaussian fit (default true)' },
                     { path: 'ensemble_piv.mask_center_pixel', inst: '-', ens: 'Y', desc: 'Mask autocorrelation center pixel (default true)' },
                     { path: 'ensemble_piv.persist_images', inst: '-', ens: 'Y', desc: 'Keep filtered images in worker RAM (default false)' },
-                    { path: 'ensemble_piv.predictor_interpolation', inst: '-', ens: 'Y', desc: 'Predictor upscaling: nearest/linear/cubic' },
-                    { path: 'ensemble_piv.image_warp_interpolation', inst: '-', ens: 'Y', desc: 'Image warp: nearest/linear/cubic' },
+                    { path: 'ensemble_piv.predictor_interpolation', inst: '-', ens: 'Y', desc: 'Predictor upscaling: linear or cubic' },
+                    { path: 'ensemble_piv.image_warp_interpolation', inst: '-', ens: 'Y', desc: 'Image warp kernel: cubic or lanczos' },
+                    { path: 'instantaneous_piv.image_warp_interpolation', inst: 'Y', ens: '-', desc: 'Image warp kernel: cubic or lanczos (default cubic)' },
+                    { path: 'instantaneous_piv.save_mode', inst: 'Y', ens: '-', desc: 'minimal (3 fields) or full (11 fields)' },
+                    { path: 'instantaneous_piv.save_compression', inst: 'Y', ens: '-', desc: 'ZLIB compression on .mat files (default false)' },
                     { path: 'ensemble_piv.predictor_boundary_conditions', inst: '-', ens: 'Y', desc: 'Wall boundary conditions array' },
                     { path: 'ensemble_piv.sum_fitting_window_enabled', inst: '-', ens: 'Y', desc: 'Extract central sub-region for fitting' },
                     { path: 'ensemble_piv.sum_fitting_window', inst: '-', ens: 'Y', desc: '[H, W] extraction size (default [16,16])' },
@@ -772,6 +783,8 @@ processing:
                     { path: 'processing.dask_max_in_flight_per_worker', inst: 'Y', ens: 'Y', desc: 'Max tasks per worker (default 3)' },
                     { path: 'processing.open_dashboard', inst: 'Y', ens: 'Y', desc: 'Auto-open Dask dashboard (default false)' },
                     { path: 'processing.cluster_type', inst: 'Y', ens: 'Y', desc: 'local or slurm' },
+                    { path: 'processing.auto_compute_params', inst: 'Y', ens: 'Y', desc: 'Auto-compute worker/thread settings (default false)' },
+                    { path: 'processing.post_processing_workers', inst: 'Y', ens: 'Y', desc: 'Parallel post-processing workers (default auto)' },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-3 py-2 font-mono text-purple-600">{row.path}</td>
@@ -798,6 +811,8 @@ processing:
   open_dashboard: false
   cluster_type: local
   filter_worker_count: 1
+  auto_compute_params: false
+  post_processing_workers: null
 
 instantaneous_piv:
   window_size:
@@ -814,6 +829,9 @@ instantaneous_piv:
   predictor_smoothing: true
   secondary_peak: false
   num_peaks: 1
+  image_warp_interpolation: cubic
+  save_mode: minimal
+  save_compression: false
 
 ensemble_piv:
   window_size:
@@ -833,10 +851,11 @@ ensemble_piv:
   sum_window:
   - 64
   - 64
-  fit_method: gaussian
+  fit_method: kspace
   background_subtraction_method: correlation
   gradient_correction: false
-  kspace_snr_threshold: 3.0
+  kspace_soft_weighting: true
+  kspace_k_max_cap: 0.35
   fit_offset: true
   mask_center_pixel: true
   persist_images: false
@@ -871,24 +890,20 @@ ensemble_outlier_detection:
 infilling:
   mid_pass:
     method: biharmonic
-    parameters:
-      ksize: 3
+    parameters: {}
   final_pass:
     enabled: true
     method: biharmonic
-    parameters:
-      ksize: 3
+    parameters: {}
 
 ensemble_infilling:
   mid_pass:
     method: biharmonic
-    parameters:
-      ksize: 3
+    parameters: {}
   final_pass:
     enabled: true
     method: biharmonic
-    parameters:
-      ksize: 3`}
+    parameters: {}`}
             />
           </Section>
 

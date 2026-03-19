@@ -125,7 +125,7 @@ export default function ManualOverviewPage() {
       href: "/manual/cli-reference",
       icon: <Terminal size={20} />,
       description: "All CLI commands with options and examples.",
-      capabilities: ["14 CLI commands", "Batch processing", "Workflow examples"],
+      capabilities: ["15 CLI commands", "Batch processing", "Workflow examples"],
     },
     {
       title: "Image Configuration",
@@ -167,7 +167,7 @@ export default function ManualOverviewPage() {
       href: "/manual/stereo-calibration",
       icon: <Eye size={20} />,
       description: "3D velocity reconstruction from camera pairs.",
-      capabilities: ["Intrinsic/extrinsic params", "3D reconstruction", "Stereo RMS validation"],
+      capabilities: ["3D reconstruction (ux, uy, uz)", "Self-calibration (Wieneke 2005)", "Stereo ensemble PIV"],
     },
     {
       title: "Global Coordinates",
@@ -357,7 +357,7 @@ export default function ManualOverviewPage() {
               {[
                 { label: "New user", links: [{ text: "Quick Start", href: "/manual/quick-start" }] },
                 { label: "Run PIV", links: [{ text: "PIV Processing", href: "/manual/piv-processing" }] },
-                { label: "Calibrate", links: [{ text: "Planar", href: "/manual/planar-calibration" }, { text: "Stereo", href: "/manual/stereo-calibration" }] },
+                { label: "Calibrate", links: [{ text: "Planar", href: "/manual/planar-calibration" }, { text: "Stereo", href: "/manual/stereo-calibration" }, { text: "Self-Cal", href: "/manual/stereo-calibration#self-calibration" }] },
                 { label: "Statistics", links: [{ text: "Statistics", href: "/manual/statistics" }] },
                 { label: "Create videos", links: [{ text: "Video Maker", href: "/manual/video-maker" }] },
                 { label: "Automate", links: [{ text: "CLI Reference", href: "/manual/cli-reference" }] },

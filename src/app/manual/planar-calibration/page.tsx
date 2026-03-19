@@ -262,6 +262,19 @@ export default function PlanarCalibrationPage() {
               </table>
             </div>
 
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <h5 className="font-semibold text-blue-800 mb-2">Image Viewer Tools</h5>
+              <p className="text-blue-700 text-sm mb-2">
+                The Calibration Image Viewer includes interactive tools for verifying your setup:
+              </p>
+              <ul className="text-blue-700 text-sm space-y-1">
+                <li><strong>Measure Tool:</strong> Click two points on the image to measure distance in pixels (dx, dy, and total length). Useful for verifying dot spacing and image scale.</li>
+                <li><strong>Grid Overlay:</strong> Toggleable grid with configurable size (8x8 to 64x64) and adjustable line thickness. Helps verify alignment and spacing.</li>
+                <li><strong>Magnifier:</strong> 2.5x circular zoom lens following the cursor for precise feature inspection.</li>
+                <li><strong>Contrast Controls:</strong> Dual-slider for manual min/max adjustment, with auto-scale toggle.</li>
+              </ul>
+            </div>
+
             <div className="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-400 mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <Info className="text-purple-600" size={18} />
