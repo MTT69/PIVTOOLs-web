@@ -117,7 +117,7 @@ export default function ManualOverviewPage() {
       title: "Quick Start",
       href: "/manual/quick-start",
       icon: <Download size={20} />,
-      description: "Install and run PIVTools in minutes.",
+      description: "Install and run PIVtools in minutes.",
       capabilities: ["pip install pivtools", "Python 3.12 - 3.14 support", "Pre-compiled C extensions"],
     },
     {

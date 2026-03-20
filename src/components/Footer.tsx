@@ -17,7 +17,7 @@ export default function Footer() {
       { name: 'Frontend Repository', href: 'https://github.com/MTT69/PIVTOOLs-GUI' },
       { name: 'Demo Videos', href: 'https://www.youtube.com/@pivtools/playlists' },
       { name: 'PyPI Package', href: 'https://pypi.org/project/pivtools/' },
-      { name: 'Cite PIVTOOLS', href: '#research' }
+      { name: 'Cite PIVtools', href: '#research' }
     ],
     university: [
       { name: 'University of Southampton', href: 'https://www.southampton.ac.uk' },
@@ -34,7 +34,7 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <div className="flex items-center mb-4">
-              <span className="text-2xl font-bold text-soton-gold">PIVTOOLS</span>
+              <span className="text-2xl font-bold text-soton-gold">PIVtools</span>
             </div>
             <p className="text-gray-300 mb-6 text-sm leading-relaxed">
               The complete open-source platform for PIV analysis.
@@ -132,6 +132,17 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-12 pt-8">
+          <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+            The initial architecture of this software was developed with assistance from the High Performance Computing RSE team, within the{' '}
+            <a
+              href="https://rsgsoton.net/"
+              className="text-soton-gold hover:text-yellow-300 transition-colors duration-200"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Southampton Research Software Group
+            </a>.
+          </p>
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-sm text-gray-400 mb-4 md:mb-0">
               © {currentYear} University of Southampton. All rights reserved.

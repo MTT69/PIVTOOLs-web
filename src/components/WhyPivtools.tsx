@@ -83,7 +83,7 @@ export default function WhyPivtools() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Why <span className="text-soton-gold">PIVTOOLS</span>?
+            Why <span className="text-soton-gold">PIVtools</span>?
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Everything you need for professional PIV analysis in one unified, accessible platform.

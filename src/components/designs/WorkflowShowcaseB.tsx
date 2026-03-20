@@ -117,7 +117,7 @@ export default function WorkflowShowcaseB() {
             <span className="text-gray-400 text-sm font-mono">terminal</span>
           </div>
           <div className="p-8 font-mono text-base">
-            <div className="text-gray-500 mb-2"># Install PIVTOOLS</div>
+            <div className="text-gray-500 mb-2"># Install PIVtools</div>
             <div className="text-green-400 mb-6">
               <span className="text-soton-gold">$</span> pip install pivtools
             </div>

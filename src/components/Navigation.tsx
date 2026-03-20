@@ -23,7 +23,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <span className="text-4xl font-bold text-soton-blue">PIVTOOLS</span>
+              <span className="text-4xl font-bold text-soton-blue">PIVtools</span>
             </div>
           </div>
           

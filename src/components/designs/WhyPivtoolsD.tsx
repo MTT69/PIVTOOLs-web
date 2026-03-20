@@ -180,7 +180,7 @@ export default function WhyPivtoolsD() {
           <h2 className="text-4xl md:text-6xl font-black text-white mb-6">
             Why{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-200">
-              PIVTOOLS
+              PIVtools
             </span>
             ?
           </h2>

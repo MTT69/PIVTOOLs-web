@@ -127,11 +127,11 @@ export default function ResearchD() {
     }
   ];
 
-  const bibtex = `@article{pivtools2024,
-  title={PIVTOOLS: A Unified Open-Source Platform for PIV Analysis},
+  const bibtex = `@article{pivtools2026,
+  title={PIVtools: A Unified Open Source Platform for Particle Image Velocimetry (PIV) Analysis},
   author={Author, A. and Author, B. and Author, C.},
   journal={University of Southampton},
-  year={2024},
+  year={2026},
   note={Paper coming soon}
 }`;
 
@@ -174,16 +174,16 @@ export default function ResearchD() {
               <FileText size={24} className="text-yellow-400" />
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-white mb-2">Cite PIVTOOLS</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Cite PIVtools</h3>
               <p className="text-gray-400 text-sm mb-4">
-                If you use PIVTOOLS in your research, please cite our work:
+                If you use PIVtools in your research, please cite our work:
               </p>
               <div className="bg-gray-800/50 rounded-xl p-4 mb-4">
                 <p className="text-white font-medium">
-                  &ldquo;PIVTOOLS: A Unified Open-Source Platform for PIV Analysis&rdquo;
+                  &ldquo;PIVtools: A Unified Open Source Platform for Particle Image Velocimetry (PIV) Analysis&rdquo;
                 </p>
                 <p className="text-gray-500 text-sm mt-1">
-                  University of Southampton (2024) &mdash; Paper coming soon
+                  University of Southampton (2026) &mdash; Paper coming soon
                 </p>
               </div>
               <details className="group">

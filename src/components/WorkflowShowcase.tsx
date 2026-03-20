@@ -98,7 +98,7 @@ export default function WorkflowShowcase() {
           </div>
           <div className="p-6">
             <code className="text-green-400 font-mono text-sm block">
-              <span className="text-gray-500"># Install PIVTOOLS</span>
+              <span className="text-gray-500"># Install PIVtools</span>
               {'\n'}
               <span className="text-blue-400">$</span> pip install pivtools
               {'\n\n'}

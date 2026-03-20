@@ -72,7 +72,7 @@ export default function FigurePage() {
 	return (
 		<div className="bg-white p-8">
 			<h1 className="text-3xl font-bold mb-6 text-center">
-				PIVTOOLS Workflow Diagram
+				PIVtools Workflow Diagram
 			</h1>
 			<div className="overflow-auto">
 				<svg

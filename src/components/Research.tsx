@@ -134,11 +134,11 @@ export default function Research() {
     }
   ];
 
-  const bibtex = `@article{pivtools2024,
-  title={PIVTOOLS: A Unified Open-Source Platform for PIV Analysis},
+  const bibtex = `@article{pivtools2026,
+  title={PIVtools: A Unified Open Source Platform for Particle Image Velocimetry (PIV) Analysis},
   author={Author, A. and Author, B. and Author, C.},
   journal={University of Southampton},
-  year={2024},
+  year={2026},
   note={Paper coming soon}
 }`;
 
@@ -164,16 +164,16 @@ export default function Research() {
               <FileText size={24} className="text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-soton-blue mb-2">Cite PIVTOOLS</h3>
+              <h3 className="text-xl font-bold text-soton-blue mb-2">Cite PIVtools</h3>
               <p className="text-gray-700 mb-4">
-                If you use PIVTOOLS in your research, please cite our work:
+                If you use PIVtools in your research, please cite our work:
               </p>
               <div className="bg-white rounded-lg p-4 mb-4">
                 <p className="text-gray-800 font-medium">
-                  &ldquo;PIVTOOLS: A Unified Open-Source Platform for PIV Analysis&rdquo;
+                  &ldquo;PIVtools: A Unified Open Source Platform for Particle Image Velocimetry (PIV) Analysis&rdquo;
                 </p>
                 <p className="text-gray-600 text-sm mt-1">
-                  University of Southampton (2024) &mdash; Paper coming soon
+                  University of Southampton (2026) &mdash; Paper coming soon
                 </p>
               </div>
               <details className="group">
@@ -208,7 +208,7 @@ export default function Research() {
             Meet the Team
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            PIVTOOLS is developed by researchers at the University of Southampton, combining expertise
+            PIVtools is developed by researchers at the University of Southampton, combining expertise
             in fluid dynamics, image processing, and scientific software development.
           </p>
         </motion.div>

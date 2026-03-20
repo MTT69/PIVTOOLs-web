@@ -119,7 +119,7 @@ export default function WhyPivtoolsC() {
           </div>
 
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 text-center mb-4">
-            Why PIVTOOLS?
+            Why PIVtools?
           </h2>
 
           <p className="text-lg text-gray-600 text-center max-w-2xl mx-auto">

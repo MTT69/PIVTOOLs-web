@@ -298,7 +298,7 @@ export default function ManualNavigation() {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden"
             >
-              <div className="mt-2 bg-white rounded-lg border border-gray-200 shadow-lg">
+              <div className="mt-2 bg-white rounded-lg border border-gray-200 shadow-lg max-h-[calc(100vh-12rem)] overflow-y-auto">
                 {manualSections.map((section, index) => (
                   <div key={index} className="border-b border-gray-100 last:border-b-0">
                     {/* Section Header */}

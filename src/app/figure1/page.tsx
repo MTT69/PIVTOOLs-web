@@ -2,24 +2,57 @@
 
 import React, { useRef } from 'react';
 
-// Colors - clean, professional
-const COLORS = {
-	black: '#1a1a1a',
-	darkGray: '#1a1a1a',
-	mediumGray: '#1a1a1a',
-	lightGray: '#1a1a1a',
-	veryLightGray: '#f3f4f6',
-	// Stage colors - subtle but distinct
-	setupBg: '#eff6ff',
-	setupBorder: '#bfdbfe',
-	processingBg: '#fefce8',
-	processingBorder: '#fde68a',
-	outputBg: '#ecfdf5',
-	outputBorder: '#a7f3d0',
-	// Box colors
-	boxBg: '#ffffff',
-	boxBorder: '#d1d5db',
+// ── Palette ─────────────────────────────────────────────────────
+// Muted, print-safe, greyscale-distinguishable by luminance
+const C = {
+	fg1: '#1C2B3A', // headings
+	fg2: '#2E3F50', // box titles
+	fg3: '#64748B', // body / muted
+
+	setup: { bg: '#EDF2F7', accent: '#4878AA' },
+	processing: { bg: '#FDF7ED', accent: '#B07D22' },
+	calibration: { bg: '#EBF4F1', accent: '#2A8A7A' },
+	analysis: { bg: '#F0ECF6', accent: '#6D4FA0' },
+
+	box: '#FFFFFF',
+	boxStroke: '#CBD5E0',
+	arrow: '#94A3B4',
+	bar: '#F7F9FB',
+	barStroke: '#E2E8F0',
+	panelBg: '#F8F9FA',
+	panelStroke: '#CBD5E0',
+	footerBg: '#F1F5F9',
 };
+
+const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+
+// ── Layout constants ────────────────────────────────────────────
+const LX = 24;
+const LW = 346;
+const RX = 388;
+const RW = 184;
+const BOX_W = 98;
+const BOX_H = 56;
+const BX = [12, 124, 236]; // box x-offsets within section
+const BAR_PAD = 12;
+const BAR_W = LW - BAR_PAD * 2;
+
+// ── Section vertical positions ──────────────────────────────────
+const S = {
+	setup: { y: 50, h: 90 },
+	processing: { y: 158, h: 164 },
+	calibration: { y: 340, h: 90 },
+	analysis: { y: 448, h: 90 },
+	footer: { y: 554, h: 22 },
+};
+
+// ── Panel positions (right column) ──────────────────────────────
+const PANELS = [
+	{ y: 50, h: 120, label: '(a) GUI interface' },
+	{ y: 184, h: 120, label: '(b) Velocity field' },
+	{ y: 318, h: 120, label: '(c) Reynolds stress' },
+	{ y: 452, h: 120, label: '(d) Multi-camera' },
+];
 
 export default function Figure1Page() {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -31,7 +64,7 @@ export default function Figure1Page() {
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = 'pivtools-schematic.svg';
+		a.download = 'pivtools-figure.svg';
 		a.click();
 		URL.revokeObjectURL(url);
 	};
@@ -42,12 +75,9 @@ export default function Figure1Page() {
 		const canvas = document.createElement('canvas');
 		const ctx = canvas.getContext('2d');
 		const img = new Image();
-
-		// A4 at 600 DPI
-		const scale = 8;
-		canvas.width = 595 * scale;  // A4 width in points
-		canvas.height = 842 * scale; // A4 height in points
-
+		// ~600 DPI for A4 (210×297 mm)
+		canvas.width = 4961;
+		canvas.height = 7016;
 		img.onload = () => {
 			if (ctx) {
 				ctx.fillStyle = 'white';
@@ -56,223 +86,514 @@ export default function Figure1Page() {
 				const pngUrl = canvas.toDataURL('image/png');
 				const a = document.createElement('a');
 				a.href = pngUrl;
-				a.download = 'pivtools-schematic.png';
+				a.download = 'pivtools-figure.png';
 				a.click();
 			}
 		};
-		img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+		img.src =
+			'data:image/svg+xml;base64,' +
+			btoa(unescape(encodeURIComponent(svgData)));
 	};
 
-	// Portrait A4 proportions: 210mm x 297mm ≈ 1:1.414
-	// Using viewBox 595 x 842 (A4 in points at 72 DPI)
+	// ── SVG helpers ─────────────────────────────────────────────
+
+	/** Section background with rounded rect */
+	const SectionBg = ({
+		y,
+		h,
+		colors,
+	}: {
+		y: number;
+		h: number;
+		colors: { bg: string; accent: string };
+	}) => <rect x={LX} y={y} width={LW} height={h} rx="5" fill={colors.bg} />;
+
+	/** Section label — tracked uppercase */
+	const SectionLabel = ({
+		y,
+		text,
+		accent,
+	}: {
+		y: number;
+		text: string;
+		accent: string;
+	}) => (
+		<text
+			x={LX + 14}
+			y={y + 17}
+			fontSize="9.5"
+			fontWeight="700"
+			fill={accent}
+			fontFamily={FONT}
+			letterSpacing="1.2"
+		>
+			{text}
+		</text>
+	);
+
+	/** White box with title, separator, and detail lines */
+	const Box = ({
+		sx,
+		sy,
+		bx,
+		title,
+		lines,
+	}: {
+		sx: number;
+		sy: number;
+		bx: number;
+		title: string;
+		lines: string[];
+	}) => {
+		const x = sx + bx;
+		const y = sy;
+		return (
+			<g>
+				<rect
+					x={x}
+					y={y}
+					width={BOX_W}
+					height={BOX_H}
+					rx="3"
+					fill={C.box}
+					stroke={C.boxStroke}
+					strokeWidth="0.75"
+				/>
+				<text
+					x={x + BOX_W / 2}
+					y={y + 17}
+					textAnchor="middle"
+					fontSize="9"
+					fontWeight="700"
+					fill={C.fg2}
+					fontFamily={FONT}
+				>
+					{title}
+				</text>
+				<line
+					x1={x + 10}
+					y1={y + 22}
+					x2={x + BOX_W - 10}
+					y2={y + 22}
+					stroke="#E8ECF0"
+					strokeWidth="0.5"
+				/>
+				{lines.map((line, i) => (
+					<text
+						key={i}
+						x={x + BOX_W / 2}
+						y={y + 35 + i * 11}
+						textAnchor="middle"
+						fontSize="7.5"
+						fill={C.fg3}
+						fontFamily={FONT}
+					>
+						{line}
+					</text>
+				))}
+			</g>
+		);
+	};
+
+	/** Horizontal feature bar */
+	const FeatureBar = ({
+		x,
+		y,
+		w,
+		h,
+		lines,
+	}: {
+		x: number;
+		y: number;
+		w: number;
+		h: number;
+		lines: string[];
+	}) => (
+		<g>
+			<rect
+				x={x}
+				y={y}
+				width={w}
+				height={h}
+				rx="3"
+				fill={C.bar}
+				stroke={C.barStroke}
+				strokeWidth="0.5"
+			/>
+			{lines.map((line, i) => (
+				<text
+					key={i}
+					x={x + w / 2}
+					y={y + 12 + i * 11}
+					textAnchor="middle"
+					fontSize="7"
+					fill={C.fg3}
+					fontFamily={FONT}
+				>
+					{line}
+				</text>
+			))}
+		</g>
+	);
+
+	/** Connecting arrow between sections */
+	const Arrow = ({ y1, y2 }: { y1: number; y2: number }) => (
+		<line
+			x1={LX + LW / 2}
+			y1={y1}
+			x2={LX + LW / 2}
+			y2={y2}
+			stroke={C.arrow}
+			strokeWidth="1"
+			markerEnd="url(#arrowhead)"
+		/>
+	);
+
+	/** Right-column image panel placeholder */
+	const Panel = ({
+		y,
+		h,
+		label,
+	}: {
+		y: number;
+		h: number;
+		label: string;
+	}) => (
+		<g>
+			<rect
+				x={RX}
+				y={y}
+				width={RW}
+				height={h}
+				rx="4"
+				fill={C.panelBg}
+				stroke={C.panelStroke}
+				strokeWidth="0.75"
+			/>
+			{/* Dashed inner frame — image placeholder */}
+			<rect
+				x={RX + 8}
+				y={y + 24}
+				width={RW - 16}
+				height={h - 32}
+				rx="2"
+				fill="none"
+				stroke="#E2E8F0"
+				strokeWidth="0.5"
+				strokeDasharray="3,3"
+			/>
+			<text
+				x={RX + 10}
+				y={y + 15}
+				fontSize="8.5"
+				fontWeight="600"
+				fill={C.fg2}
+				fontFamily={FONT}
+			>
+				{label}
+			</text>
+		</g>
+	);
+
 	return (
 		<div className="min-h-screen bg-gray-100 p-8">
 			<div className="max-w-3xl mx-auto">
-				<div className="mb-4 flex gap-4">
+				<div className="mb-4 flex gap-3">
 					<button
 						onClick={downloadSVG}
-						className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors font-medium"
+						className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
 					>
 						Download SVG
 					</button>
 					<button
 						onClick={downloadPNG}
-						className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors font-medium"
+						className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
 					>
 						Download PNG (600 DPI)
 					</button>
 				</div>
 
-				<div className="bg-white shadow-lg overflow-hidden border border-gray-300" style={{ aspectRatio: '210/297' }}>
+				<div
+					className="bg-white shadow-lg overflow-hidden border border-gray-300"
+					style={{ aspectRatio: '210/297' }}
+				>
 					<svg
 						ref={svgRef}
 						viewBox="0 0 595 842"
 						xmlns="http://www.w3.org/2000/svg"
-						style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+						style={{ fontFamily: FONT }}
+						textRendering="geometricPrecision"
 					>
-						{/* Definitions */}
 						<defs>
 							<marker
-								id="arrow"
-								markerWidth="8"
-								markerHeight="8"
-								refX="7"
+								id="arrowhead"
+								markerWidth="7"
+								markerHeight="7"
+								refX="6"
 								refY="3"
 								orient="auto"
 							>
-								<path d="M0,0 L0,6 L8,3 z" fill={COLORS.darkGray} />
+								<path d="M0,0.5 L0,5.5 L6.5,3 z" fill={C.arrow} />
 							</marker>
 						</defs>
 
-						{/* Background */}
+						{/* White page background */}
 						<rect width="595" height="842" fill="white" />
 
-						{/* ============ LEFT COLUMN: FLOWCHART (62%) ============ */}
+						{/* ═══════════════════════════════════════════════════
+						    LEFT COLUMN — Processing Pipeline
+						    ═══════════════════════════════════════════════════ */}
 
-						{/* === SETUP SECTION === */}
-						<g transform="translate(18, 75)">
-							<rect x="0" y="0" width="350" height="100" rx="6" fill={COLORS.setupBg} stroke={COLORS.setupBorder} strokeWidth="1" />
-							<text x="12" y="18" fontSize="11" fontWeight="bold" fill={COLORS.darkGray}>SETUP</text>
+						{/* ── SETUP ──────────────────────────────────────── */}
+						<SectionBg
+							y={S.setup.y}
+							h={S.setup.h}
+							colors={C.setup}
+						/>
+						<SectionLabel
+							y={S.setup.y}
+							text="SETUP"
+							accent={C.setup.accent}
+						/>
+						<Box
+							sx={LX}
+							sy={S.setup.y + 28}
+							bx={BX[0]}
+							title="Install"
+							lines={[
+								'pip install pivtools',
+								'GUI + CLI · Cross-platform',
+							]}
+						/>
+						<Box
+							sx={LX}
+							sy={S.setup.y + 28}
+							bx={BX[1]}
+							title="Load Images"
+							lines={[
+								'Standard & proprietary',
+								'LaVision, Phantom SDK',
+							]}
+						/>
+						<Box
+							sx={LX}
+							sy={S.setup.y + 28}
+							bx={BX[2]}
+							title="Configure"
+							lines={[
+								'Interactive GUI or CLI',
+								'Reproducible YAML',
+							]}
+						/>
 
-							<g transform="translate(10, 28)">
-								{/* Install */}
-								<rect x="0" y="0" width="105" height="62" rx="4" fill={COLORS.boxBg} stroke={COLORS.boxBorder} strokeWidth="1" />
-								<text x="52" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill={COLORS.black}>Install</text>
-								<text x="52" y="30" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>pip install pivtools</text>
-								<text x="52" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Integrated GUI</text>
-								<text x="52" y="54" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>CLI commands</text>
+						<Arrow
+							y1={S.setup.y + S.setup.h}
+							y2={S.processing.y}
+						/>
 
-								{/* Images */}
-								<rect x="115" y="0" width="105" height="62" rx="4" fill={COLORS.boxBg} stroke={COLORS.boxBorder} strokeWidth="1" />
-								<text x="167" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill={COLORS.black}>Load Images</text>
-								<text x="167" y="30" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Any format</text>
-								<text x="167" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>LaVision, Phantom</text>
-								<text x="167" y="54" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>SDK support</text>
+						{/* ── PROCESSING ─────────────────────────────────── */}
+						<SectionBg
+							y={S.processing.y}
+							h={S.processing.h}
+							colors={C.processing}
+						/>
+						<SectionLabel
+							y={S.processing.y}
+							text="PROCESSING"
+							accent={C.processing.accent}
+						/>
 
-								{/* Config */}
-								<rect x="230" y="0" width="105" height="62" rx="4" fill={COLORS.boxBg} stroke={COLORS.boxBorder} strokeWidth="1" />
-								<text x="282" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill={COLORS.black}>Configure</text>
-								<text x="282" y="30" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Interactive GUI</text>
-								<text x="282" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>or CLI scripts</text>
-								<text x="282" y="54" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Reproducible YAML</text>
-							</g>
-						</g>
+						{/* Pre-processing feature bar */}
+						<FeatureBar
+							x={LX + BAR_PAD}
+							y={S.processing.y + 28}
+							w={BAR_W}
+							h={22}
+							lines={[
+								'Spatial & temporal filtering · Interactive masking · Background removal',
+							]}
+						/>
 
-						{/* Arrow down */}
-						<line x1="193" y1="180" x2="193" y2="198" stroke={COLORS.darkGray} strokeWidth="1.2" markerEnd="url(#arrow)" />
+						{/* PIV method boxes */}
+						<Box
+							sx={LX}
+							sy={S.processing.y + 56}
+							bx={BX[0]}
+							title="Frame-pair"
+							lines={[
+								'Time-resolved velocity',
+								'Multi-pass, deformation',
+							]}
+						/>
+						<Box
+							sx={LX}
+							sy={S.processing.y + 56}
+							bx={BX[1]}
+							title="Ensemble"
+							lines={[
+								'Mean + Reynolds stresses',
+								'Direct from correlations',
+							]}
+						/>
+						<Box
+							sx={LX}
+							sy={S.processing.y + 56}
+							bx={BX[2]}
+							title="Stereo"
+							lines={[
+								'3-component (u, v, w)',
+								'Multi-camera setup',
+							]}
+						/>
 
-						{/* === PIV PROCESSING SECTION (with preprocessing integrated) === */}
-						<g transform="translate(18, 208)">
-							<rect x="0" y="0" width="350" height="195" rx="6" fill={COLORS.processingBg} stroke={COLORS.processingBorder} strokeWidth="1" />
-							<text x="12" y="18" fontSize="11" fontWeight="bold" fill={COLORS.darkGray}>PROCESSING</text>
+						{/* Engine / performance bar */}
+						<FeatureBar
+							x={LX + BAR_PAD}
+							y={S.processing.y + 120}
+							w={BAR_W}
+							h={34}
+							lines={[
+								'Dask distributed · C / FFTW / OpenMP acceleration',
+								'Laptop to HPC cluster · Automated validation & infilling',
+							]}
+						/>
 
-							{/* Preprocessing bar at top */}
-							<g transform="translate(10, 28)">
-								<rect x="0" y="0" width="330" height="32" rx="4" fill={COLORS.boxBg} stroke={COLORS.veryLightGray} strokeWidth="1" />
-								<text x="165" y="12" textAnchor="middle" fontSize="8" fill={COLORS.darkGray}>
-									Spatial &amp; temporal filters (min subtraction, POD)
-								</text>
-								<text x="165" y="25" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>
-									Interactive polygon masking • Contrast normalisation
-								</text>
-							</g>
+						<Arrow
+							y1={S.processing.y + S.processing.h}
+							y2={S.calibration.y}
+						/>
 
-							{/* Three PIV method boxes */}
-							<g transform="translate(10, 68)">
-								{/* Frame-pair */}
-								<rect x="0" y="0" width="105" height="62" rx="4" fill={COLORS.boxBg} stroke={COLORS.boxBorder} strokeWidth="1" />
-								<text x="52" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill={COLORS.black}>Frame-pair</text>
-								<text x="52" y="30" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Time-resolved</text>
-								<text x="52" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>velocity fields</text>
-								<text x="52" y="54" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Multi-pass</text>
+						{/* ── CALIBRATION & ALIGNMENT ────────────────────── */}
+						<SectionBg
+							y={S.calibration.y}
+							h={S.calibration.h}
+							colors={C.calibration}
+						/>
+						<SectionLabel
+							y={S.calibration.y}
+							text="CALIBRATION & ALIGNMENT"
+							accent={C.calibration.accent}
+						/>
+						<Box
+							sx={LX}
+							sy={S.calibration.y + 28}
+							bx={BX[0]}
+							title="Target Detection"
+							lines={[
+								'ChArUco & dotboard',
+								'DaVis polynomial',
+							]}
+						/>
+						<Box
+							sx={LX}
+							sy={S.calibration.y + 28}
+							bx={BX[1]}
+							title="Scale & Stereo"
+							lines={[
+								'Scale factor · Stereo',
+								'Self-calibration',
+							]}
+						/>
+						<Box
+							sx={LX}
+							sy={S.calibration.y + 28}
+							bx={BX[2]}
+							title="Multi-camera"
+							lines={[
+								'Global coordinates',
+								'Vector field merging',
+							]}
+						/>
 
-								{/* Ensemble */}
-								<rect x="115" y="0" width="105" height="62" rx="4" fill={COLORS.boxBg} stroke={COLORS.boxBorder} strokeWidth="1" />
-								<text x="167" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill={COLORS.black}>Ensemble</text>
-								<text x="167" y="30" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>High-fidelity mean</text>
-								<text x="167" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Reynolds stress</text>
-								<text x="167" y="54" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>from correlations</text>
+						<Arrow
+							y1={S.calibration.y + S.calibration.h}
+							y2={S.analysis.y}
+						/>
 
-								{/* Stereo */}
-								<rect x="230" y="0" width="105" height="62" rx="4" fill={COLORS.boxBg} stroke={COLORS.boxBorder} strokeWidth="1" />
-								<text x="282" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill={COLORS.black}>Stereo</text>
-								<text x="282" y="30" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>All 3 components</text>
-								<text x="282" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>(u, v, w)</text>
-								<text x="282" y="54" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Multi-camera</text>
-							</g>
+						{/* ── ANALYSIS & OUTPUT ──────────────────────────── */}
+						<SectionBg
+							y={S.analysis.y}
+							h={S.analysis.h}
+							colors={C.analysis}
+						/>
+						<SectionLabel
+							y={S.analysis.y}
+							text="ANALYSIS & OUTPUT"
+							accent={C.analysis.accent}
+						/>
+						<Box
+							sx={LX}
+							sy={S.analysis.y + 28}
+							bx={BX[0]}
+							title="Statistics"
+							lines={[
+								'TKE, vorticity, stresses',
+								'Divergence, \u0393 criterion',
+							]}
+						/>
+						<Box
+							sx={LX}
+							sy={S.analysis.y + 28}
+							bx={BX[1]}
+							title="Visualise"
+							lines={[
+								'Interactive vector viewer',
+								'Animated 4K video',
+							]}
+						/>
+						<Box
+							sx={LX}
+							sy={S.analysis.y + 28}
+							bx={BX[2]}
+							title="Export"
+							lines={[
+								'MATLAB (.mat) files',
+								'Publication figures',
+							]}
+						/>
 
-							{/* Bottom features bar */}
-							<g transform="translate(10, 138)">
-								<rect x="0" y="0" width="330" height="48" rx="4" fill={COLORS.boxBg} stroke={COLORS.veryLightGray} strokeWidth="1" />
-								<text x="165" y="14" textAnchor="middle" fontSize="8" fill={COLORS.darkGray}>
-									Scales from laptop to HPC cluster • Parallel processing
-								</text>
-								<text x="165" y="28" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>
-									Automated validation and vector infilling
-								</text>
-								<text x="165" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>
-									Multi-pass with window deformation
-								</text>
-							</g>
-						</g>
+						{/* ── FOOTER BAR ─────────────────────────────────── */}
+						<rect
+							x={LX}
+							y={S.footer.y}
+							width={LW}
+							height={S.footer.h}
+							rx="3"
+							fill={C.footerBg}
+						/>
+						<text
+							x={LX + LW / 2}
+							y={S.footer.y + 14}
+							textAnchor="middle"
+							fontSize="7"
+							fontWeight="600"
+							fill={C.fg3}
+							fontFamily={FONT}
+						>
+							PIVtools · Open source (BSD-3-Clause) · University
+							of Southampton · DNS validated
+						</text>
 
-						{/* Arrow down */}
-						<line x1="193" y1="408" x2="193" y2="426" stroke={COLORS.darkGray} strokeWidth="1.2" markerEnd="url(#arrow)" />
+						{/* ═══════════════════════════════════════════════════
+						    RIGHT COLUMN — Image Panels
+						    ═══════════════════════════════════════════════════ */}
 
-						{/* === OUTPUT SECTION === */}
-						<g transform="translate(18, 436)">
-							<rect x="0" y="0" width="350" height="100" rx="6" fill={COLORS.outputBg} stroke={COLORS.outputBorder} strokeWidth="1" />
-							<text x="12" y="18" fontSize="11" fontWeight="bold" fill={COLORS.darkGray}>OUTPUT</text>
-
-							<g transform="translate(10, 28)">
-								{/* Calibrate */}
-								<rect x="0" y="0" width="105" height="62" rx="4" fill={COLORS.boxBg} stroke={COLORS.boxBorder} strokeWidth="1" />
-								<text x="52" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill={COLORS.black}>Calibrate</text>
-								<text x="52" y="30" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>ChArUco</text>
-								<text x="52" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Dotboard</text>
-								<text x="52" y="54" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Stereo</text>
-
-								{/* Statistics */}
-								<rect x="115" y="0" width="105" height="62" rx="4" fill={COLORS.boxBg} stroke={COLORS.boxBorder} strokeWidth="1" />
-								<text x="167" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill={COLORS.black}>Statistics</text>
-								<text x="167" y="30" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Reynolds stress</text>
-								<text x="167" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>TKE, vorticity</text>
-								<text x="167" y="54" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Divergence</text>
-
-								{/* Visualise */}
-								<rect x="230" y="0" width="105" height="62" rx="4" fill={COLORS.boxBg} stroke={COLORS.boxBorder} strokeWidth="1" />
-								<text x="282" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill={COLORS.black}>Visualise</text>
-								<text x="282" y="30" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>Interactive viewer</text>
-								<text x="282" y="42" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>4K video</text>
-								<text x="282" y="54" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>MAT, PNG export</text>
-							</g>
-						</g>
-
-						{/* Key features bar */}
-						<g transform="translate(18, 551)">
-							<rect x="0" y="0" width="350" height="28" rx="4" fill={COLORS.veryLightGray} stroke="none" />
-							<text x="175" y="11" textAnchor="middle" fontSize="8" fontWeight="bold" fill={COLORS.darkGray}>
-								GUI + CLI • Cross-platform • HPC scalable
-							</text>
-							<text x="175" y="23" textAnchor="middle" fontSize="8" fill={COLORS.mediumGray}>
-								BSD-3-Clause • University of Southampton
-							</text>
-						</g>
-
-						{/* ============ RIGHT COLUMN: IMAGE PLACEHOLDERS (38%) ============ */}
-
-						<g transform="translate(385, 75)">
-							{/* Panel (a) - GUI */}
-							<g transform="translate(0, 0)">
-								<rect x="0" y="0" width="192" height="118" fill={COLORS.veryLightGray} stroke={COLORS.boxBorder} strokeWidth="1" rx="4" />
-								<text x="10" y="18" fontSize="9" fontWeight="bold" fill={COLORS.darkGray}>(a) GUI</text>
-							</g>
-
-							{/* Panel (b) - Velocity */}
-							<g transform="translate(0, 133)">
-								<rect x="0" y="0" width="192" height="118" fill={COLORS.veryLightGray} stroke={COLORS.boxBorder} strokeWidth="1" rx="4" />
-								<text x="10" y="18" fontSize="9" fontWeight="bold" fill={COLORS.darkGray}>(b) Velocity field</text>
-							</g>
-
-							{/* Panel (c) - Reynolds stress */}
-							<g transform="translate(0, 266)">
-								<rect x="0" y="0" width="192" height="118" fill={COLORS.veryLightGray} stroke={COLORS.boxBorder} strokeWidth="1" rx="4" />
-								<text x="10" y="18" fontSize="9" fontWeight="bold" fill={COLORS.darkGray}>(c) Reynolds stress</text>
-							</g>
-
-							{/* Panel (d) - Stereo */}
-							<g transform="translate(0, 399)">
-								<rect x="0" y="0" width="192" height="118" fill={COLORS.veryLightGray} stroke={COLORS.boxBorder} strokeWidth="1" rx="4" />
-								<text x="10" y="18" fontSize="9" fontWeight="bold" fill={COLORS.darkGray}>(d) Stereo 3C</text>
-							</g>
-						</g>
-
+						{PANELS.map((p, i) => (
+							<Panel
+								key={i}
+								y={p.y}
+								h={p.h}
+								label={p.label}
+							/>
+						))}
 					</svg>
 				</div>
 
-				<div className="mt-4 text-sm text-gray-500">
-					<p>Portrait A4 format (595 × 842 points, ~210 × 297mm)</p>
-					<p>Left: Processing pipeline • Right: Image placeholders for your screenshots</p>
+				<div className="mt-3 text-sm text-gray-500">
+					<p>
+						A4 format (595 x 842 pt) · Left: Processing pipeline ·
+						Right: Image panels
+					</p>
 				</div>
 			</div>
 		</div>

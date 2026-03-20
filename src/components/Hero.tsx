@@ -199,7 +199,7 @@ export default function Hero() {
 
           {/* Main heading */}
           <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white mb-6 tracking-tight">
-            PIV<span className="text-soton-gold">TOOLS</span>
+            PIV<span className="text-soton-gold">tools</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto mb-4 font-light">
