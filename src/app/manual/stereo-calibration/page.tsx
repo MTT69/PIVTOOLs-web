@@ -16,6 +16,8 @@ import {
   AlertTriangle,
   Info,
   Box,
+  Crosshair,
+  Cpu,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -534,6 +536,180 @@ export default function StereoCalibrationPage() {
             </div>
           </Section>
 
+          {/* Self-Calibration */}
+          <Section title="Self-Calibration (Wieneke 2005)" icon={<Crosshair size={32} />} id="self-calibration">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Self-calibration automatically detects and corrects laser-sheet misalignment in stereo PIV
+              setups. The laser sheet may be offset from the calibration plane (Z-offset) or tilted
+              relative to it. Self-calibration measures the disparity between camera views and iteratively
+              refines the dewarping parameters until the residual disparity converges.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Algorithm Steps</h3>
+            <ol className="space-y-2 mb-6">
+              {[
+                "Dewarp both camera images to a common reference plane using the existing stereo model",
+                "Cross-correlate Camera 1 vs Camera 2 (same time instant, different viewpoints)",
+                "Extract the disparity field -- residual displacement between the two dewarped views",
+                "Fit the disparity to a plane model, extracting Z-offset and tilt angles",
+                "Update the dewarping maps and repeat until RMS disparity converges",
+              ].map((step, idx) => (
+                <li key={idx} className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
+                    {idx + 1}
+                  </span>
+                  <span className="text-gray-700">{step}</span>
+                </li>
+              ))}
+            </ol>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Parameters</h3>
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { param: "n_images", desc: "Number of image pairs used for disparity estimation", def: "20" },
+                    { param: "window_size", desc: "Correlation window size (pixels)", def: "64" },
+                    { param: "overlap", desc: "Window overlap percentage", def: "50.0" },
+                    { param: "convergence_threshold", desc: "RMS disparity convergence target (pixels)", def: "0.05" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.def}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Output Parameters</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-800 mb-2">Estimated Parameters</h4>
+                <ul className="text-blue-700 space-y-1 text-sm">
+                  <li><strong>z_offset:</strong> Laser sheet Z-offset (mm)</li>
+                  <li><strong>tilt_x:</strong> Tilt about X-axis (radians)</li>
+                  <li><strong>tilt_y:</strong> Tilt about Y-axis (radians)</li>
+                </ul>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-green-800 mb-2">Quality Metrics</h4>
+                <ul className="text-green-700 space-y-1 text-sm">
+                  <li><strong>RMS disparity:</strong> Residual disparity (pixels)</li>
+                  <li><strong>Iteration count:</strong> Number of refinement iterations</li>
+                  <li><strong>Convergence status:</strong> Whether threshold was reached</li>
+                </ul>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
+            <ol className="space-y-2 mb-6">
+              {[
+                "Complete stereo calibration (Dotboard or ChArUco)",
+                "Open the Self-Calibration panel below the stereo calibration section",
+                "Preview the dewarp alignment (red-cyan overlay shows before/after)",
+                "Set number of images and window size",
+                "Click \"Run Self-Calibration\" to start the iterative process",
+                "Review convergence history and final RMS disparity",
+                "Results are automatically saved to config and applied during reconstruction",
+              ].map((step, idx) => (
+                <li key={idx} className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
+                    {idx + 1}
+                  </span>
+                  <span className="text-gray-700">{step}</span>
+                </li>
+              ))}
+            </ol>
+
+            <YamlDropdown
+              title="config.yaml - Self-Calibration"
+              code={`calibration:
+  self_calibration:
+    z_offset: 0.0          # Laser sheet Z-offset (mm) — estimated by self-cal
+    tilt_x: 0.0            # Tilt about X-axis (radians)
+    tilt_y: 0.0            # Tilt about Y-axis (radians)
+    method: dotboard       # Calibration method used for stereo model
+    n_images: 20           # Image pairs for disparity estimation
+    window_size: 64        # Correlation window (pixels)
+    convergence_history: [] # Per-iteration RMS disparity values`}
+            />
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mt-4">
+              <p className="text-blue-700 text-sm">
+                <strong>Note:</strong> Self-calibration results are automatically applied during 3D
+                reconstruction. The corrected dewarping maps account for the measured Z-offset and tilt,
+                eliminating systematic errors caused by laser-sheet misalignment.
+              </p>
+            </div>
+          </Section>
+
+          {/* Stereo Ensemble PIV */}
+          <Section title="Stereo Ensemble PIV" icon={<Cpu size={32} />} id="stereo-ensemble">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Stereo ensemble PIV combines correlation-of-correlations with stereo reconstruction to
+              estimate all three velocity components (U, V, W) and the full 3D Reynolds stress tensor
+              (6 components) from time-averaged data.
+            </p>
+
+            <div className="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-400 mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <Info className="text-purple-600" size={18} />
+                <strong className="text-purple-800">Ensemble only</strong>
+              </div>
+              <p className="text-purple-700 text-sm">
+                Requires a stereo camera pair and uses the <code className="bg-purple-100 px-1 rounded">stereo_ensemble_piv</code> config
+                section (falls back to <code className="bg-purple-100 px-1 rounded">ensemble_piv</code> for unset keys).
+              </p>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Outputs</h3>
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Output</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { output: "ux, uy, uz", desc: "Time-averaged 3D velocity (m/s)" },
+                    { output: "UU, VV, WW", desc: "Normal Reynolds stresses" },
+                    { output: "UV, UW, VW", desc: "Shear Reynolds stresses" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.output}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <YamlDropdown
+              title="config.yaml - Stereo Ensemble PIV"
+              code={`processing:
+  ensemble: true
+
+stereo_ensemble_piv:
+  # Inherits all settings from ensemble_piv
+  # Override specific settings here if needed
+  window_size:
+  - [128, 128]
+  - [64, 64]
+  - [32, 32]`}
+            />
+          </Section>
+
           {/* CLI */}
           <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
@@ -571,6 +747,13 @@ pivtools-cli apply-stereo -t instantaneous -r 1,2,3
 
 # Process specific paths
 pivtools-cli apply-stereo -p 0,1`}
+            />
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Step 3: Self-Calibration (Optional)</h3>
+            <CodeBlock
+              title="Self-Calibration Command"
+              code={`# Run self-calibration to correct laser-sheet misalignment
+pivtools-cli self-calibrate --camera-pair 1,2 --method dotboard --n-images 20`}
             />
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">apply-stereo Options</h3>
@@ -660,7 +843,26 @@ pivtools-cli statistics --source-endpoint stereo`}
     square_size: 0.03
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
-    min_corners: 6`}
+    min_corners: 6
+
+  # Self-calibration (Wieneke 2005)
+  self_calibration:
+    z_offset: 0.0          # Laser sheet Z-offset (mm)
+    tilt_x: 0.0            # Tilt about X-axis (radians)
+    tilt_y: 0.0            # Tilt about Y-axis (radians)
+    method: dotboard       # Calibration method used for stereo model
+    n_images: 20           # Image pairs for disparity estimation
+    window_size: 64        # Correlation window (pixels)
+    convergence_history: [] # Per-iteration RMS disparity values
+
+# Stereo Ensemble PIV
+stereo_ensemble_piv:
+  # Inherits all settings from ensemble_piv
+  # Override specific settings here if needed
+  window_size:
+  - [128, 128]
+  - [64, 64]
+  - [32, 32]`}
             />
 
             <div className="mt-8">

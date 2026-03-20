@@ -15,6 +15,7 @@ import {
   Move,
   Terminal,
   Monitor,
+  Ruler,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -248,6 +249,47 @@ export default function ResultsViewerPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </Section>
+
+          {/* Interactive Tools */}
+          <Section title="Interactive Tools" icon={<Ruler size={32} />} id="interactive-tools">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              The viewer toolbar provides interactive tools for inspecting and exporting your data.
+            </p>
+
+            <div className="overflow-x-auto mb-8">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Tool</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { tool: "Magnifier", desc: "Circular 2.5x zoom lens that follows the cursor. Toggle on/off with the magnifier button. Useful for inspecting individual vectors and fine details." },
+                    { tool: "Box Zoom", desc: "Click and drag to draw a rectangular selection, then automatically zoom into that region. Use the \"Fit\" button to reset to full view." },
+                    { tool: "Hover Info", desc: "Displays coordinates (x, y in mm) and velocity components (ux, uy, uz if stereo) at the cursor position. Updates in real time as you move the mouse." },
+                    { tool: "Download Image", desc: "Saves the current vector field view as a PNG image file." },
+                    { tool: "Copy to Clipboard", desc: "Copies the current view directly to the clipboard for pasting into documents or presentations." },
+                    { tool: "Datum Setting", desc: "Click \"Set New Datum\" to interactively choose a new coordinate origin. The cursor changes to a crosshair — click any point to set (0, 0) there. Available in the Coordinates panel." },
+                    { tool: "Corner Coordinates", desc: "Displays the physical coordinates of the four corners of the current field. Useful for verifying alignment after global coordinate adjustment." },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.tool}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{row.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+              <p className="text-blue-700 text-sm">
+                <strong>Keyboard shortcuts:</strong> Use arrow keys to step through frames. The playback
+                speed can be adjusted from 0.5 to 10 FPS using the speed selector.
+              </p>
             </div>
           </Section>
 

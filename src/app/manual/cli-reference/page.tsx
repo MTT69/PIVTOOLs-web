@@ -277,6 +277,24 @@ export default function CLIReferencePage() {
       link: '/manual/stereo-calibration#cli',
     },
     {
+      command: 'pivtools-cli self-calibrate',
+      description: 'Run stereo self-calibration to correct laser-sheet misalignment',
+      options: [
+        { flag: '--camera-pair', short: '-c', description: 'Camera pair as "1,2" (default: from config)' },
+        { flag: '--method', short: '-m', description: 'Stereo model type: dotboard | charuco' },
+        { flag: '--n-images', short: '-n', description: 'Number of image pairs for disparity estimation (default: 20)' },
+        { flag: '--window-size', short: '-w', description: 'Correlation window size in pixels (default: 64)' },
+        { flag: '--overlap', short: '-o', description: 'Window overlap percentage (default: 50)' },
+        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
+      ],
+      examples: [
+        'pivtools-cli self-calibrate',
+        'pivtools-cli self-calibrate --camera-pair 1,2 --method dotboard',
+        'pivtools-cli self-calibrate -n 30 -w 128',
+      ],
+      link: '/manual/stereo-calibration#self-calibration',
+    },
+    {
       command: 'pivtools-cli transform',
       description: 'Apply geometric transforms to vector fields',
       options: [
@@ -414,6 +432,7 @@ export default function CLIReferencePage() {
                   <div className="text-gray-500 mb-2"># Post-Processing</div>
                   <div className="text-green-400">pivtools-cli apply-calibration</div>
                   <div className="text-green-400">pivtools-cli apply-stereo</div>
+                  <div className="text-green-400">pivtools-cli self-calibrate</div>
                   <div className="text-green-400">pivtools-cli align-coordinates</div>
                   <div className="text-green-400">pivtools-cli transform</div>
                   <div className="text-green-400">pivtools-cli merge</div>
@@ -447,6 +466,7 @@ pivtools-cli video -v mag                   # Create video`}</CodeBlock>
                 <h3 className="font-semibold text-gray-900 mb-3">Stereo PIV</h3>
                 <CodeBlock>{`pivtools-cli detect-stereo-charuco           # Stereo camera model
 pivtools-cli instantaneous                   # PIV for both cameras
+pivtools-cli self-calibrate --camera-pair 1,2 # Correct laser-sheet misalignment (optional)
 pivtools-cli apply-stereo --camera-pair 1,2  # 3D reconstruction (ux, uy, uz)
 pivtools-cli statistics --source-endpoint stereo
 pivtools-cli video --data-source stereo -v uz`}</CodeBlock>
