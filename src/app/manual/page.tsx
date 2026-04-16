@@ -22,7 +22,8 @@ import {
   ArrowRight,
   CheckCircle,
   FileText,
-  Crosshair
+  Crosshair,
+  Box
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -168,6 +169,13 @@ export default function ManualOverviewPage() {
       icon: <Eye size={20} />,
       description: "3D velocity reconstruction from camera pairs.",
       capabilities: ["3D reconstruction (ux, uy, uz)", "Self-calibration (Wieneke 2005)", "Stereo ensemble PIV"],
+    },
+    {
+      title: "Stepped Calibration",
+      href: "/manual/stepped-calibration",
+      icon: <Box size={20} />,
+      description: "Calibrate with a stepped board for robust 3D models.",
+      capabilities: ["Two-level dot target", "Click-to-label workflow", "Stereo & single-camera modes"],
     },
     {
       title: "Global Coordinates",
@@ -357,7 +365,7 @@ export default function ManualOverviewPage() {
               {[
                 { label: "New user", links: [{ text: "Quick Start", href: "/manual/quick-start" }] },
                 { label: "Run PIV", links: [{ text: "PIV Processing", href: "/manual/piv-processing" }] },
-                { label: "Calibrate", links: [{ text: "Planar", href: "/manual/planar-calibration" }, { text: "Stereo", href: "/manual/stereo-calibration" }, { text: "Self-Cal", href: "/manual/stereo-calibration#self-calibration" }] },
+                { label: "Calibrate", links: [{ text: "Planar", href: "/manual/planar-calibration" }, { text: "Stereo", href: "/manual/stereo-calibration" }, { text: "Stepped", href: "/manual/stepped-calibration" }, { text: "Self-Cal", href: "/manual/stereo-calibration#self-calibration" }] },
                 { label: "Statistics", links: [{ text: "Statistics", href: "/manual/statistics" }] },
                 { label: "Create videos", links: [{ text: "Video Maker", href: "/manual/video-maker" }] },
                 { label: "Automate", links: [{ text: "CLI Reference", href: "/manual/cli-reference" }] },

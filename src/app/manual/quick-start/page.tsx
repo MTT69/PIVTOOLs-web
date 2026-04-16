@@ -93,6 +93,25 @@ export default function QuickStartPage() {
             </p>
           </motion.div>
 
+          {/* Quick Recipe */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
+          >
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <CheckCircle className="text-soton-gold" size={22} />
+              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+            </div>
+            <ol className="space-y-2 text-gray-700">
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Create a virtual environment with Python 3.12&ndash;3.14 and run <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pip install pivtools</code>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Launch the GUI with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-gui</code>, or initialise a CLI workspace with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli init</code>. Either way you get a default <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">config.yaml</code> in your current directory.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Point the config at your data (Image Configuration), run PIV, calibrate. The GUI and CLI share the same config file, so switch between them freely.</span></li>
+            </ol>
+          </motion.div>
+
           {/* Installation Section */}
           <Section title="Installation" icon={<Download size={32} />} id="installation">
             <div className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white mb-8">
@@ -174,7 +193,7 @@ pip install pivtools`} />
                 <h3 className="text-2xl font-bold mb-4 text-gray-900">Supported Platforms</h3>
                 <FeatureList items={[
                   "Python 3.12, 3.13, or 3.14",
-                  "macOS 15+ (Apple Silicon M1-M4)",
+                  "macOS 15+ (Apple Silicon, arm64)",
                   "Windows 10/11 (x86_64)",
                   "Linux (x86_64)"
                 ]} />
@@ -184,7 +203,9 @@ pip install pivtools`} />
                 <div className="space-y-3">
                   {[
                     { title: "libbulkxcorr2d", desc: "FFT cross-correlation (FFTW3 + OpenMP)" },
-                    { title: "libmarquadt", desc: "Gaussian peak fitting (GSL + OpenMP)" }
+                    { title: "libmarquadt", desc: "Gaussian peak fitting (GSL + OpenMP)" },
+                    { title: "libfusedwarp", desc: "Fused image warping (OpenMP)" },
+                    { title: "libkspace", desc: "K-space transfer function fitting (FFTW3 + GSL + OpenMP)" }
                   ].map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <CheckCircle className="text-soton-gold mt-1 flex-shrink-0" size={18} />
@@ -198,15 +219,16 @@ pip install pivtools`} />
               </div>
             </div>
 
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mt-6">
+            <div className="bg-green-50 border-l-4 border-green-400 p-6 mt-6">
               <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="text-yellow-600" size={20} />
-                <h4 className="text-lg font-semibold text-yellow-800">macOS Limitation</h4>
+                <CheckCircle className="text-green-600" size={20} />
+                <h4 className="text-lg font-semibold text-green-800">LaVision Format Support</h4>
               </div>
-              <p className="text-yellow-700">
-                LaVision formats (<code className="bg-yellow-100 px-2 py-1 rounded text-sm">.im7</code>,
-                <code className="bg-yellow-100 px-2 py-1 rounded text-sm">.set</code>) require the <code className="bg-yellow-100 px-2 py-1 rounded text-sm">lvpyio</code> library,
-                available on Windows and Linux only. macOS users should export calibration images to TIFF.
+              <p className="text-green-700">
+                LaVision formats (<code className="bg-green-100 px-2 py-1 rounded text-sm">.im7</code>,
+                <code className="bg-green-100 px-2 py-1 rounded text-sm">.set</code>) are read by
+                PIVTools&apos; built-in pure-Python readers. No external dependencies required &mdash;
+                works on macOS, Windows, and Linux.
               </p>
             </div>
           </Section>

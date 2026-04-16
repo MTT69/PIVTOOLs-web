@@ -130,8 +130,9 @@ export default function PreprocessingPage() {
                 </p>
                 <ul className="text-gray-600 text-sm space-y-1">
                   <li>Smoothing: gaussian, median</li>
-                  <li>Contrast: clip, norm, maxnorm, lmax</li>
-                  <li>Correction: invert, sbg, levelize</li>
+                  <li>Normalization: norm, norm2, maxnorm</li>
+                  <li>Background: ssmin, invert</li>
+                  <li>Enhancement: lmax, clahe</li>
                 </ul>
               </div>
             </div>
@@ -199,15 +200,15 @@ batches:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { type: "gaussian", params: "sigma: 1.0 (float)", desc: "Gaussian blur. Reduces high-frequency noise." },
-                    { type: "median", params: "size: [5, 5] ([h, w])", desc: "Median filter. Removes salt-and-pepper noise, preserves edges." },
-                    { type: "clip", params: "n: 2.0 (float) or threshold: [lo, hi]", desc: "Clip intensities. Auto mode: median +/- n*std." },
-                    { type: "norm", params: "size: [7, 7], max_gain: 1.0", desc: "Local contrast normalisation (subtract sliding min, divide by range)." },
-                    { type: "maxnorm", params: "size: [7, 7], max_gain: 1.0", desc: "Similar to norm with smoothed contrast field." },
-                    { type: "lmax", params: "size: [7, 7]", desc: "Morphological dilation (local maximum). Enhances bright features." },
-                    { type: "invert", params: "offset: 255 (int)", desc: "Invert intensities: output = offset - input." },
-                    { type: "sbg", params: "bg: /path/to/bg.tif", desc: "Subtract reference background image." },
-                    { type: "levelize", params: "white: /path/to/white.tif", desc: "Divide by white reference to correct uneven illumination." },
+                    { type: "gaussian", params: "size: [7, 7], sigma: 1.0", desc: "Gaussian low-pass smoothing. Reduces high-frequency noise while preserving large-scale intensity. Uses a finite (FIR) kernel." },
+                    { type: "median", params: "size: [5, 5]", desc: "Replaces each pixel with its neighbourhood median. Removes salt-and-pepper noise and hot pixels without blurring edges." },
+                    { type: "norm", params: "size: [7, 7], max_gain: 1.0", desc: "Range normalize: subtracts the local minimum then divides by the local range (max \u2212 min). Maps each pixel to [0, 1] relative to its neighbourhood. Good general-purpose contrast equalization." },
+                    { type: "norm2", params: "size: [7, 7], max_gain: 1.0", desc: "Smoothed range normalize: like norm, but box-smooths both the min and max envelopes before normalizing. More robust to single-pixel noise spikes." },
+                    { type: "maxnorm", params: "size: [7, 7], max_gain: 1.0", desc: "Background normalize: divides by the smoothed local minimum (background level). Equalizes illumination gradients \u2014 particles come out as values > 1, background \u2192 1. Max gain limits amplification in dark regions." },
+                    { type: "ssmin", params: "size: [7, 7]", desc: "SSMin (sliding minimum background subtraction). Median-smooths, extracts the local minimum (background envelope), box-smooths it, and subtracts. Removes slowly-varying background (laser sheet profile, reflections). Output clipped to \u2265 0." },
+                    { type: "lmax", params: "size: [7, 7]", desc: "Morphological dilation (local maximum). Replaces each pixel with the maximum in its neighbourhood. Useful for expanding bright features and peak detection." },
+                    { type: "invert", params: "(none)", desc: "Inverts intensity: output = max(image) \u2212 pixel. For background-oriented schlieren (BOS) or shadowgraph where particles are dark on a bright background." },
+                    { type: "clahe", params: "clip_limit: 2.0, tile_grid_size: [8, 8]", desc: "Contrast Limited Adaptive Histogram Equalization. Enhances local contrast in tiles, useful for images with uneven illumination or very low contrast." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-blue-600">{row.type}</td>
@@ -267,26 +268,27 @@ batches:
 
   # Spatial (per-frame, order matters)
   - type: gaussian
+    size: [7, 7]            # [int, int]: kernel [h, w] (odd only)
     sigma: 1.0              # float: std dev in pixels
   - type: median
-    size: [5, 5]            # [int, int]: kernel [h, w]
-  - type: clip
-    n: 2.0                  # float: std devs for auto threshold
-    # threshold: [10, 250]  # Alternative: explicit [min, max]
-  - type: norm
+    size: [5, 5]            # [int, int]: kernel [h, w] (odd only)
+  - type: norm              # Range normalize
     size: [7, 7]
-    max_gain: 1.0           # float: max normalisation gain
-  - type: maxnorm
+    max_gain: 1.0           # float: max amplification in low-contrast regions
+  - type: norm2             # Smoothed range normalize
     size: [7, 7]
     max_gain: 1.0
-  - type: lmax
+  - type: maxnorm           # Background normalize
     size: [7, 7]
-  - type: invert
-    offset: 255
-  - type: sbg
-    bg: /path/to/background.tif
-  - type: levelize
-    white: /path/to/white_ref.tif
+    max_gain: 1.0
+  - type: ssmin             # Subtract background
+    size: [7, 7]
+  - type: lmax              # Local maximum (dilation)
+    size: [7, 7]
+  - type: invert            # Invert (max - pixel)
+  - type: clahe             # Adaptive histogram equalization
+    clip_limit: 2.0
+    tile_grid_size: [8, 8]
 
 batches:
   size: 30                  # Frames per batch (for temporal filters)`}
@@ -307,15 +309,15 @@ batches:
                   {[
                     { filter: "time", type: "Temporal", param: "(none)", default: "-" },
                     { filter: "pod", type: "Temporal", param: "(none)", default: "-" },
-                    { filter: "gaussian", type: "Spatial", param: "sigma", default: "1.0" },
+                    { filter: "gaussian", type: "Spatial", param: "size, sigma", default: "[7,7], 1.0" },
                     { filter: "median", type: "Spatial", param: "size", default: "[5, 5]" },
-                    { filter: "clip", type: "Spatial", param: "n / threshold", default: "2.0 / null" },
                     { filter: "norm", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
+                    { filter: "norm2", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
                     { filter: "maxnorm", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
+                    { filter: "ssmin", type: "Spatial", param: "size", default: "[7, 7]" },
                     { filter: "lmax", type: "Spatial", param: "size", default: "[7, 7]" },
-                    { filter: "invert", type: "Spatial", param: "offset", default: "255" },
-                    { filter: "sbg", type: "Spatial", param: "bg", default: "null" },
-                    { filter: "levelize", type: "Spatial", param: "white", default: "null" },
+                    { filter: "invert", type: "Spatial", param: "(none)", default: "-" },
+                    { filter: "clahe", type: "Spatial", param: "clip_limit, tile_grid_size", default: "2.0, [8,8]" },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm font-mono text-purple-600">{row.filter}</td>

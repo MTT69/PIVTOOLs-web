@@ -19,6 +19,7 @@ import {
   Crosshair,
   Cpu,
 } from 'lucide-react';
+import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ManualNavigation from '@/components/ManualNavigation';
@@ -133,6 +134,28 @@ export default function StereoCalibrationPage() {
             </p>
           </motion.div>
 
+          {/* Quick Recipe */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
+          >
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <CheckCircle className="text-soton-gold" size={22} />
+              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+            </div>
+            <ol className="space-y-2 text-gray-700">
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Note your configuration: <strong>same-side</strong> (both cameras on one side of the light sheet) or <strong>transmission</strong> (on opposite sides). If your setup is high-magnification or fragile at single-plane calibration, consider the <Link href="/manual/stepped-calibration" className="text-soton-blue font-semibold hover:underline">stepped board</Link> instead.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Pick detection: <strong>Stereo Dotboard</strong> (circular dot grids) or <strong>Stereo ChArUco</strong> (occlusion-tolerant). Configure images for both cameras in the calibration tab.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Click <strong>Generate Model</strong>. Targets: stereo RMS &lt; 0.5 px, relative angle 30&ndash;60&deg;. Verify the baseline matches your physical setup.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Run PIV on <em>both cameras</em> first (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli instantaneous</code> or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">ensemble</code>).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Reconstruct 3D</strong> (GUI) or run <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli apply-stereo</code> to produce <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">ux</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">uy</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">uz</code>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Recommended: run <strong>Self-Calibration</strong> afterwards to correct for laser-sheet Z-offset and tilt. Adds a few minutes, meaningfully improves accuracy.</span></li>
+            </ol>
+          </motion.div>
+
           {/* Overview */}
           <Section title="Overview" icon={<Eye size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
@@ -161,8 +184,25 @@ export default function StereoCalibrationPage() {
                     <td className="px-6 py-4 text-sm text-gray-600">Partial target visibility, oblique angles</td>
                     <td className="px-6 py-4 text-sm text-gray-600">ChArUco board, multiple positions</td>
                   </tr>
+                  <tr className="bg-white">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">Stepped Board</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">Transmission setups, high-magnification PIV</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">Stepped dot board (two Z-levels), multi-pose sequence</td>
+                  </tr>
                 </tbody>
               </table>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <p className="text-blue-700 text-sm">
+                <strong>Stepped Board:</strong> For setups where cameras view opposite sides of the
+                target (transmission) or at high magnification where single-plane calibration is
+                fragile, see the dedicated{' '}
+                <a href="/manual/stepped-calibration" className="text-blue-800 font-semibold hover:underline">
+                  Stepped Calibration
+                </a>{' '}
+                page. Stepped boards use two Z-levels for robust 3D camera models.
+              </p>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Quality Metrics</h3>
@@ -290,8 +330,11 @@ export default function StereoCalibrationPage() {
           <Section title="Stereo Dotboard" icon={<Grid3X3 size={32} />} id="dotboard">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Both cameras are calibrated simultaneously using shared views of a circular dot grid
-              at multiple target positions. Uses the same optimised detection algorithm as planar
-              dotboard (histogram-based blob detection, cKDTree neighbour search, RANSAC filtering).
+              at multiple target positions. Detection uses the same pipeline as planar dotboard &mdash;
+              auto-polarity selection by assembled grid size, reciprocal BFS grid walk, template-matching
+              rescue for missing interior dots, and a two-pass outlier refinement. See the{' '}
+              <Link href="/manual/planar-calibration#dotboard" className="text-soton-blue font-semibold hover:underline">Planar Dotboard</Link> section
+              for troubleshooting detection failures.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Parameters</h3>
@@ -462,6 +505,24 @@ export default function StereoCalibrationPage() {
               After computing the stereo model, use reconstruction to convert the 2D PIV velocity
               fields from each camera into 3D velocity vectors (u, v, w) in world coordinates.
             </p>
+
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-700 text-sm mb-2">
+                <strong>How reconstruction works:</strong> Camera 1&apos;s PIV grid defines the world
+                coordinates. Camera 2&apos;s displacement field is interpolated at the <em>same</em> physical
+                locations (projected through the stereo model), so both cameras measure the same world points.
+                A least-squares system combines the two 2D measurements into one 3D velocity per grid point.
+                This avoids the pitfall of pairing cameras by array index &mdash; which looks right on a uniform
+                grid but silently gives wrong answers for any real stereo setup.
+              </p>
+              <p className="text-blue-700 text-sm">
+                <strong>Sign convention:</strong> <code className="bg-blue-100 px-1 rounded">uz</code> is
+                negated on output, so positive <code className="bg-blue-100 px-1 rounded">uz</code> points
+                <em>away</em> from the cameras in world coordinates (matching physical intuition for
+                out-of-plane flow). <code className="bg-blue-100 px-1 rounded">ux</code> and{' '}
+                <code className="bg-blue-100 px-1 rounded">uy</code> are not negated.
+              </p>
+            </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Process</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -808,7 +869,7 @@ pivtools-cli statistics --source-endpoint stereo`}
               defaultOpen={true}
               code={`calibration:
   # Active method
-  active: stereo_dotboard  # stereo_dotboard or stereo_charuco
+  active: stereo_dotboard  # stereo_dotboard, stereo_charuco, or stepped_board
   piv_type: instantaneous
 
   # Calibration image settings (shared)

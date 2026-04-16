@@ -242,10 +242,46 @@ export default function CLIReferencePage() {
       link: '/manual/stereo-calibration#cli',
     },
     {
+      command: 'pivtools-cli detect-stepped-stereo',
+      description: 'Detect a stepped board on a multi-pose sequence and generate a stereo camera model',
+      options: [
+        { flag: '--fiducials', short: '-f', description: 'Path to fiducials JSON file (required)' },
+        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
+        { flag: '--calibration-source', short: '-cs', description: 'Direct path to calibration images (overrides config)' },
+        { flag: '--num-frames', short: '-n', description: 'Number of poses (default: from config or 11)' },
+        { flag: '--start-frame', short: '-s', description: 'First frame index (default: 1)' },
+        { flag: '--datum-frame', short: '-d', description: 'Datum frame index (default: same as start-frame)' },
+        { flag: '--stereo-config', description: 'auto | same_side | transmission (default: auto)' },
+      ],
+      examples: [
+        'pivtools-cli detect-stepped-stereo -f fiducials.json',
+        'pivtools-cli detect-stepped-stereo -f fiducials.json --stereo-config transmission',
+      ],
+      link: '/manual/stepped-calibration#cli',
+    },
+    {
+      command: 'pivtools-cli detect-stepped-planar',
+      description: 'Detect a stepped board and fit a per-camera 3D pinhole model (uses both Z levels)',
+      options: [
+        { flag: '--camera', short: '-c', description: 'Single camera to process (default: all cameras in fiducials)' },
+        { flag: '--fiducials', short: '-f', description: 'Path to fiducials JSON file (required)' },
+        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
+        { flag: '--calibration-source', short: '-cs', description: 'Direct path to calibration images (overrides config)' },
+        { flag: '--num-frames', short: '-n', description: 'Number of poses (default: from config or 11)' },
+        { flag: '--start-frame', short: '-s', description: 'First frame index (default: 1)' },
+        { flag: '--datum-frame', short: '-d', description: 'Datum frame index (default: same as start-frame)' },
+      ],
+      examples: [
+        'pivtools-cli detect-stepped-planar -f fiducials.json',
+        'pivtools-cli detect-stepped-planar -f fiducials.json -c 1',
+      ],
+      link: '/manual/stepped-calibration#cli',
+    },
+    {
       command: 'pivtools-cli apply-calibration',
       description: 'Apply calibration to vectors (pixels to m/s)',
       options: [
-        { flag: '--method', short: '-m', description: 'dotboard | charuco | scale_factor (default: from config)' },
+        { flag: '--method', short: '-m', description: 'dotboard | charuco | scale_factor | polynomial | stepped_board (default: from config)' },
         { flag: '--camera', short: '-c', description: 'Camera number (default: all)' },
         { flag: '--type-name', short: '-t', description: 'instantaneous | ensemble' },
         { flag: '--runs', short: '-r', description: 'Comma-separated run numbers' },
@@ -264,7 +300,7 @@ export default function CLIReferencePage() {
       command: 'pivtools-cli apply-stereo',
       description: 'Stereo 3D reconstruction (ux, uy, uz)',
       options: [
-        { flag: '--method', short: '-m', description: 'dotboard | charuco' },
+        { flag: '--method', short: '-m', description: 'dotboard | charuco | stepped_board' },
         { flag: '--camera-pair', short: '-c', description: 'Camera pair as "1,2" (default: from config)' },
         { flag: '--type-name', short: '-t', description: 'instantaneous | ensemble' },
         { flag: '--runs', short: '-r', description: 'Comma-separated run numbers' },
@@ -427,6 +463,8 @@ export default function CLIReferencePage() {
                   <div className="text-green-400">pivtools-cli detect-charuco</div>
                   <div className="text-green-400">pivtools-cli detect-stereo-planar</div>
                   <div className="text-green-400">pivtools-cli detect-stereo-charuco</div>
+                  <div className="text-green-400">pivtools-cli detect-stepped-stereo</div>
+                  <div className="text-green-400">pivtools-cli detect-stepped-planar</div>
                 </div>
                 <div>
                   <div className="text-gray-500 mb-2"># Post-Processing</div>
@@ -470,6 +508,15 @@ pivtools-cli self-calibrate --camera-pair 1,2 # Correct laser-sheet misalignment
 pivtools-cli apply-stereo --camera-pair 1,2  # 3D reconstruction (ux, uy, uz)
 pivtools-cli statistics --source-endpoint stereo
 pivtools-cli video --data-source stereo -v uz`}</CodeBlock>
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">Stepped Board Stereo PIV</h3>
+                <CodeBlock>{`# Configure board params and fiducials in GUI, export fiducials.json
+pivtools-cli detect-stepped-stereo -f fiducials.json  # Stereo model
+pivtools-cli instantaneous                             # PIV for both cameras
+pivtools-cli apply-stereo --method stepped_board       # 3D reconstruction
+pivtools-cli statistics --source-endpoint stereo`}</CodeBlock>
               </div>
 
               <div className="bg-white rounded-xl border border-gray-200 p-4">

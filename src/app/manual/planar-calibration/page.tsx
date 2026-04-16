@@ -150,6 +150,28 @@ export default function PlanarCalibrationPage() {
             </p>
           </motion.div>
 
+          {/* Quick Recipe */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
+          >
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <CheckCircle className="text-soton-gold" size={22} />
+              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+            </div>
+            <ol className="space-y-2 text-gray-700">
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Put calibration images in <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">source_path/CamN/calibration/</code> (default layout). Configure image format and count in the calibration tab.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Pick a method by target type: <strong>Scale Factor</strong> if you have a known px/mm, <strong>Dotboard</strong> for circular dot grids, <strong>ChArUco</strong> for occlusion-tolerant targets, <strong>Polynomial</strong> to import an existing LaVision <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">Calibration.xml</code>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Enter board parameters: <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_cols</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_rows</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dot_spacing_mm</code> (dotboard) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">squares_h/v</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">square_size</code> (ChArUco). Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dt</code> to the time between laser pulses in seconds.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Click <strong>Detect One</strong> to verify detection on a single frame before running the full sequence. Detected dots/corners are overlaid in the viewer.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Generate Model</strong>. Aim for RMS reprojection error below <strong>0.5 px</strong>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Multi-camera setups with shared features also need Global Coordinates &mdash; see the bottom of this page.</span></li>
+            </ol>
+          </motion.div>
+
           {/* Overview */}
           <Section title="Overview" icon={<Target size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
@@ -173,6 +195,7 @@ export default function PlanarCalibrationPage() {
                     { method: "Dotboard", type: "Spatially-varying", best: "Standard PIV with lens distortion", target: "Circular dot grid, 10-20 images" },
                     { method: "ChArUco", type: "Spatially-varying", best: "Partial occlusion, oblique angles", target: "ChArUco board, multiple images" },
                     { method: "Polynomial (XML)", type: "Spatially-varying", best: "LaVision DaVis users", target: "Calibration.xml from DaVis" },
+                    { method: "Stepped Planar", type: "Spatially-varying (3D)", best: "High-magnification single-camera with depth", target: "Stepped dot board, multi-pose sequence" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.method}</td>
@@ -191,6 +214,18 @@ export default function PlanarCalibrationPage() {
               {' '}<strong>Spatially-varying methods</strong> (Dotboard, ChArUco, Polynomial) compute different
               conversion factors across the image to correct for lens distortion.
             </p>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <p className="text-blue-700 text-sm">
+                <strong>Stepped Planar:</strong> Uses a two-level stepped board to provide genuine
+                non-coplanar 3D points per pose, breaking the focal-length/translation ambiguity
+                that affects single-plane calibration at high magnification. See the{' '}
+                <a href="/manual/stepped-calibration#planar-workflow" className="text-blue-800 font-semibold hover:underline">
+                  Stepped Calibration
+                </a>{' '}
+                page for the full workflow.
+              </p>
+            </div>
           </Section>
 
           {/* Calibration Image Setup */}
@@ -247,7 +282,7 @@ export default function PlanarCalibrationPage() {
                     { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib_%02d.tif)" },
                     { setting: "Number of Images", yaml: "num_images", desc: "Total calibration images to process" },
                     { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7" },
-                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0" },
+                    { setting: "Start Index", yaml: "start_index", desc: "First image number (0 or 1). Use 0 if files start at calib_00.tif." },
                     { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Enable per-camera subdirectories" },
                     { setting: "Path Order", yaml: "path_order", desc: "camera_first or calibration_first" },
                     { setting: "Subfolder Name", yaml: "subfolder", desc: "Calibration subfolder name" },
@@ -287,14 +322,14 @@ export default function PlanarCalibrationPage() {
               </p>
             </div>
 
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div className="bg-green-50 border-l-4 border-green-400 p-4">
               <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="text-yellow-600" size={18} />
-                <strong className="text-yellow-800">Platform Note</strong>
+                <CheckCircle className="text-green-600" size={18} />
+                <strong className="text-green-800">LaVision Format Support</strong>
               </div>
-              <p className="text-yellow-700 text-sm">
-                LaVision formats (.im7, .set) require lvpyio, available on Windows and Linux only.
-                macOS users should export calibration images to TIFF.
+              <p className="text-green-700 text-sm">
+                LaVision formats (.im7, .set) are read by PIVTools&apos; built-in pure-Python readers.
+                No external dependencies required &mdash; works on macOS, Windows, and Linux.
               </p>
             </div>
 
@@ -304,7 +339,7 @@ export default function PlanarCalibrationPage() {
   image_format: calib_%02d.tif
   num_images: 19
   image_type: standard
-  zero_based_indexing: false
+  start_index: 1
   use_camera_subfolders: true
   subfolder: calibration
   camera_subfolders: ["Cam1", "Cam2"]
@@ -414,14 +449,19 @@ export default function PlanarCalibrationPage() {
               </table>
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Algorithm</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Behaviour</h3>
             <p className="text-gray-700 mb-4">
-              Histogram-based blob detection determines image polarity automatically (dark dots on
-              light or vice versa). Detected dots are linked into a grid using{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">cKDTree</code> nearest-neighbour
-              search. A RANSAC homography filters outliers before OpenCV{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">calibrateCamera</code> computes
-              the camera model.
+              Detection auto-handles both polarities &mdash; dark dots on light backgrounds and light dots on
+              dark &mdash; by trying each and keeping whichever assembles the largest grid. Missing interior
+              dots are filled in automatically via local template matching, and a two-pass refinement
+              removes droplet-biased detections from the clean grid model.
+            </p>
+            <p className="text-gray-700 mb-4">
+              If detection fails on some frames, the usual causes (in order) are: wrong{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">dot_spacing_mm</code>, mismatched{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">pattern_rows</code> /{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">pattern_cols</code>, or uneven illumination
+              across the board. Extreme viewing angles (&gt; 18&deg; rotation) can lose dots near the edges.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
@@ -751,14 +791,14 @@ pivtools-cli apply-calibration`}
               defaultOpen={true}
               code={`calibration:
   # Active method
-  active: dotboard  # scale_factor, dotboard, charuco, polynomial
+  active: dotboard  # scale_factor, dotboard, charuco, polynomial, stepped_planar
   piv_type: instantaneous
 
   # Calibration image settings
   image_format: calib_%02d.tif
   num_images: 19
   image_type: standard
-  zero_based_indexing: false
+  start_index: 1
   use_camera_subfolders: true
   subfolder: calibration
   camera_subfolders: ["Cam1", "Cam2"]
