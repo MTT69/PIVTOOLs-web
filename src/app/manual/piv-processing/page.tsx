@@ -650,7 +650,7 @@ ensemble_piv:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { method: "local_median", params: "ksize: 3", desc: "Median of neighbours. Fast, small gaps." },
+                    { method: "nearest", params: "(none)", desc: "Nearest valid vector via distance transform. Fastest, robust for clustered gaps." },
                     { method: "biharmonic", params: "(none)", desc: "PDE-based smooth interpolation. High quality." },
                     { method: "knn", params: "n_neighbors: 32, weights: 'distance'", desc: "Distance-weighted regression. Sparse data." },
                   ].map((row, idx) => (
@@ -666,7 +666,7 @@ ensemble_piv:
 
             <CodeBlock code={`infilling:                  # or ensemble_infilling:
   mid_pass:
-    method: biharmonic        # no parameters needed
+    method: nearest           # no parameters needed
   final_pass:
     enabled: true
     method: biharmonic        # no parameters needed`} title="config.yaml" />
