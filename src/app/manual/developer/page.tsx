@@ -133,14 +133,17 @@ cd PIVTOOLs-GUI`} />
           <Section title="Building C Extensions" icon={<Cpu size={32} />} id="c-extensions">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               PIVTools includes two C libraries compiled via <code className="bg-gray-100 px-2 py-1 rounded">setup.py</code>.
-              Pre-compiled static libraries for FFTW3 and GSL are bundled for all platforms
-              in <code className="bg-gray-100 px-2 py-1 rounded">static_fftw/</code> and <code className="bg-gray-100 px-2 py-1 rounded">static_gsl/</code>.
+              There are <strong>no external C dependencies</strong> -- the FFT engine is a
+              code-generated SIMD codelet kernel and the peak fitter is a hand-rolled
+              Levenberg-Marquardt, so FFTW and GSL are not needed (the whole package is
+              BSD-3, with no copyleft libraries linked). The only requirement is an
+              OpenMP-capable <strong>clang</strong> toolchain.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
               {[
-                { name: "libbulkxcorr2d", desc: "FFT-based cross-correlation (FFTW3 + OpenMP)" },
-                { name: "libmarquadt", desc: "Gaussian peak fitting (GSL + OpenMP)" }
+                { name: "libbulkxcorr2d", desc: "SIMD codelet FFT cross-correlation + LM peak fitting (OpenMP)" },
+                { name: "libfusedwarp", desc: "Fused symmetric image warping for multipass deformation (OpenMP)" }
               ].map((lib, index) => (
                 <div key={index} className="bg-white rounded-lg p-4 border border-gray-200">
                   <code className="text-soton-blue font-mono text-sm">{lib.name}</code>
@@ -151,12 +154,13 @@ cd PIVTOOLs-GUI`} />
 
             <h3 className="text-2xl font-semibold text-gray-900 mb-4">Build Steps</h3>
             <p className="text-gray-700 text-lg leading-relaxed mb-4">
-              Install the package in editable mode, then compile the C extensions separately:
+              Install the package in editable mode (this compiles the C extensions), with
+              the optional dev/cine extras for tests and Phantom .cine support:
             </p>
-            <CodeBlock code={`# Install dependencies in editable mode
-pip install -e .
+            <CodeBlock code={`# Editable install -- compiles both C libraries into pivtools_cli/lib/
+pip install -e ".[dev,cine]"
 
-# Compile C extensions
+# Recompile the C extensions after editing C sources
 python setup.py build`} />
 
             {/* Platform Requirements */}
@@ -173,19 +177,19 @@ python setup.py build`} />
                 </thead>
                 <tbody className="text-gray-700">
                   <tr className="border-b border-gray-100">
-                    <td className="py-3 pr-4 font-medium">macOS</td>
-                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded text-sm">gcc-15</code> (Homebrew)</td>
-                    <td className="py-3"><code className="bg-gray-100 px-2 py-0.5 rounded text-sm">brew install gcc</code></td>
+                    <td className="py-3 pr-4 font-medium">macOS (Apple Silicon)</td>
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded text-sm">clang</code> (Homebrew LLVM)</td>
+                    <td className="py-3"><code className="bg-gray-100 px-2 py-0.5 rounded text-sm">brew install llvm libomp</code> -- auto-detected, no CC needed</td>
                   </tr>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 pr-4 font-medium">Windows</td>
-                    <td className="py-3 pr-4">MSVC (<code className="bg-gray-100 px-2 py-0.5 rounded text-sm">cl</code>)</td>
-                    <td className="py-3">Visual Studio with &quot;Desktop development with C++&quot; workload</td>
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded text-sm">clang-cl</code></td>
+                    <td className="py-3">Visual Studio &quot;Desktop development with C++&quot; workload <strong>plus the &quot;C++ Clang tools for Windows&quot; component</strong></td>
                   </tr>
                   <tr>
                     <td className="py-3 pr-4 font-medium">Linux</td>
-                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded text-sm">gcc</code></td>
-                    <td className="py-3"><code className="bg-gray-100 px-2 py-0.5 rounded text-sm">sudo apt install build-essential</code></td>
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded text-sm">clang</code></td>
+                    <td className="py-3"><code className="bg-gray-100 px-2 py-0.5 rounded text-sm">sudo apt install clang libomp-dev</code></td>
                   </tr>
                 </tbody>
               </table>
@@ -265,7 +269,7 @@ npm run build`} />
                   "Processing pipeline architecture (Dask, sliding window I/O)",
                   "C extension function signatures and array conventions",
                   "Data formats (.mat structure, directory layout)",
-                  "Build system details (setup.py, static libraries, CI/CD)",
+                  "Build system details (setup.py, SIMD build knobs, CI/CD)",
                   "Code conventions and architectural patterns"
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-2">
@@ -323,7 +327,7 @@ python pivtools_gui/app.py`} />
                 <h4 className="text-xl font-semibold text-gray-900 mb-4">CLI</h4>
                 <CodeBlock code={`pivtools-cli <command>
 # e.g. instantaneous, ensemble,
-# detect-planar, statistics, etc.`} />
+# detect-charuco, statistics, etc.`} />
                 <p className="text-gray-500 text-sm">
                   See <a href="/manual/cli-reference" className="text-soton-blue hover:underline">CLI Reference</a> for all commands
                 </p>
