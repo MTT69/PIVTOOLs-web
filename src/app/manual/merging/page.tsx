@@ -140,8 +140,8 @@ export default function MergingPage() {
               Vector <span className="text-soton-gold">Merging</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Combine vector fields from multiple cameras into a single seamless field
-              using Tukey window blending for smooth overlap transitions.
+              Combine vector fields from multiple cameras into a single seamless field,
+              with smooth transitions across the overlap regions.
             </p>
           </motion.div>
 
@@ -149,15 +149,15 @@ export default function MergingPage() {
           <Section title="Overview" icon={<Layers size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Merging creates a unified coordinate grid spanning all cameras and interpolates
-              velocity data onto it. In overlap regions, a distance-based Tukey edge-taper window
-              provides smooth, seam-free transitions.
+              velocity data onto it. In overlap regions, each camera&apos;s contribution is weighted by how far
+              inside its own valid area a point sits, giving smooth, seam-free transitions.
             </p>
 
             <FeatureList items={[
               "Supports both instantaneous and ensemble data",
               "Automatic overlap detection and stacking direction",
               "Unified coordinate grid matching original data resolution",
-              "Tukey edge-taper blending: weight = 0.5 * (1 - cos(2 * pi * d / alpha)), alpha = 0.5",
+              "Distance-weighted edge tapering across overlaps, with weights summing to 1.0",
               "Output in standard piv_result .mat format",
             ]} />
           </Section>
@@ -215,7 +215,7 @@ export default function MergingPage() {
                     { step: "1. Detect direction", desc: "Determines horizontal or vertical camera arrangement from center coordinates." },
                     { step: "2. Create grid", desc: "Generates a unified coordinate grid spanning all cameras at original resolution." },
                     { step: "3. Interpolate", desc: "Each camera's velocity is interpolated onto the unified grid. Points outside a camera's domain are NaN." },
-                    { step: "4. Tukey weights", desc: "A Tukey edge-taper window gives each camera a distance-based weight: w = 0.5 * (1 - cos(2 * pi * d / alpha)) with alpha = 0.5. The weight is flat at 1.0 in the centre of each field and tapers to 0 only near the edges." },
+                    { step: "4. Weight", desc: "Each camera gets a weight from how far inside its own valid region a point lies. The weight is flat at 1.0 through the centre of each field and tapers to 0 only near the edges, so a vector well inside one camera keeps that camera's value rather than being averaged with its neighbour." },
                     { step: "5. Combine", desc: "Weighted contributions are summed and normalised. Weights always sum to 1.0 in overlaps." },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -282,8 +282,9 @@ pivtools-cli merge -p 0,1`}
           {/* Output */}
           <Section title="Output" icon={<FileText size={32} />} id="output">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Merged data is saved in a <code className="bg-gray-100 px-2 py-1 rounded text-sm">merged/</code> subdirectory
-              under calibrated_piv, alongside the per-camera directories.
+              Merged data is saved in a <code className="bg-gray-100 px-2 py-1 rounded text-sm">Merged/</code> subdirectory
+              under calibrated_piv, alongside the per-camera directories. There is no camera level beneath it -- the
+              merged field replaces the per-camera ones rather than becoming another camera.
             </p>
 
             <CodeBlock
@@ -292,12 +293,11 @@ pivtools-cli merge -p 0,1`}
   calibrated_piv/{num_frame_pairs}/
     Cam1/instantaneous/       # Original camera 1
     Cam2/instantaneous/       # Original camera 2
-    merged/
-      Cam1/instantaneous/     # Single "virtual" camera
-        00001.mat             # Merged frame 1
-        00002.mat             # Merged frame 2
-        ...
-        coordinates.mat       # Unified grid`}
+    Merged/instantaneous/
+      00001.mat               # Merged frame 1
+      00002.mat               # Merged frame 2
+      ...
+      coordinates.mat         # Unified grid`}
             />
 
             <YamlDropdown

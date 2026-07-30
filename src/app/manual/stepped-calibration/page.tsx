@@ -5,7 +5,6 @@ import { useInView } from 'react-intersection-observer';
 import { useState } from 'react';
 import {
   Box,
-  Camera,
   FileText,
   Grid3X3,
   Terminal,
@@ -17,7 +16,6 @@ import {
   Crosshair,
   MousePointer,
   Eye,
-  Layers,
   Wrench,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
@@ -129,7 +127,7 @@ export default function SteppedCalibrationPage() {
               Stepped Board <span className="text-soton-gold">Calibration</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Calibrate stereo or single-camera setups using a stepped board &mdash; a physical
+              Calibrate stereo or single-camera setups using a stepped board -- a physical
               target with two Z-levels that provides genuine depth information for robust 3D camera models.
             </p>
           </motion.div>
@@ -140,7 +138,7 @@ export default function SteppedCalibrationPage() {
               A stepped calibration board is a physical target with dots printed on two faces at
               different Z heights. The &ldquo;peak&rdquo; face and &ldquo;trough&rdquo; face are separated by a known step
               height (typically 1&ndash;5 mm). When a camera images this board, it sees dots at two
-              distinct depths in a single frame &mdash; giving genuine 3D point correspondences that
+              distinct depths in a single frame -- giving genuine 3D point correspondences that
               break the focal-length / translation ambiguity that plagues single-plane calibration
               at PIV magnification.
             </p>
@@ -161,16 +159,10 @@ export default function SteppedCalibrationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   <tr className="bg-white">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">Stepped Stereo</td>
-                    <td className="px-6 py-4 text-sm font-mono text-soton-blue">stepped_board</td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">Stereo Stepped</td>
+                    <td className="px-6 py-4 text-sm font-mono text-soton-blue">stereo_stepped</td>
                     <td className="px-6 py-4 text-sm text-gray-600">Two-camera 3D velocity (transmission or same-side)</td>
                     <td className="px-6 py-4 text-sm text-gray-600">Stereo model + per-camera pinhole</td>
-                  </tr>
-                  <tr className="bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">Stepped Planar</td>
-                    <td className="px-6 py-4 text-sm font-mono text-soton-blue">stepped_planar</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">Single-camera 3D calibration with real depth</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">Per-camera pinhole model</td>
                   </tr>
                 </tbody>
               </table>
@@ -188,10 +180,8 @@ export default function SteppedCalibrationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { metric: "Per-camera RMS", desc: "Reprojection error per camera (pixels)", target: "< 0.5 px" },
-                    { metric: "Stereo RMS", desc: "Overall stereo reprojection error", target: "< 0.5 px" },
-                    { metric: "Cross-level consensus", desc: "Agreement between peak/trough grid stitching", target: "> 90%" },
-                    { metric: "Cross-level RMS", desc: "Pixel RMS of stitched level overlay", target: "< 2.0 px" },
+                    { metric: "Per-camera RMS", desc: "Reprojection error per camera (pixels). The two cameras are fitted separately and the stereo pose is composed from them, so these are the only reprojection numbers this method produces.", target: "< 0.5 px" },
+                    { metric: "Detected points per level", desc: "How many dots the walk-first separation recovered on each of the two levels, per camera", target: "Both levels well populated" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.metric}</td>
@@ -210,7 +200,7 @@ export default function SteppedCalibrationPage() {
               </div>
               <p className="text-purple-700 text-sm">
                 At PIV magnification, a standard single-plane calibration board provides very weak
-                depth information &mdash; the camera sees an almost perfectly flat field. This creates a
+                depth information -- the camera sees an almost perfectly flat field. This creates a
                 mathematical ambiguity between focal length (fx) and Z-translation (tz) that can cause
                 calibration errors of 3% or more. The stepped board solves this by presenting dots at
                 two known Z-levels in every frame, providing real depth variation that constrains
@@ -269,27 +259,33 @@ export default function SteppedCalibrationPage() {
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">How Z-Levels Are Computed</h3>
             <p className="text-gray-700 mb-4">
-              The backend computes world Z coordinates from the board geometry. For a{' '}
-              <strong>same-side</strong> configuration (both cameras on the same side of the board):
-              the peak face is at Z = 0 and the trough face is at Z = -step_height_mm.
-              For <strong>transmission</strong> (cameras on opposite sides): Z assignments are
-              reversed for one camera. PIVTools auto-detects the correct configuration by trying
-              both assignments and picking whichever gives lower RMS.
+              The backend computes world Z coordinates from the board geometry, anchored on camera 1.
+              Z = 0 is whichever level you clicked on camera 1, not the peak by definition. In a{' '}
+              <strong>same-side</strong> setup the other level sits one step away, so clicking the trough
+              gives peak = +step_height_mm. In a <strong>transmission</strong> setup camera 2 views the
+              opposite face, so its levels are offset through the board thickness rather than simply swapped.
+              PIVTools reads the configuration from the chirality of your fiducial clicks on the two cameras,
+              a single deterministic geometric test.
             </p>
 
             <YamlDropdown
-              title="config.yaml - Board Geometry"
-              code={`calibration:
-  stepped_board:
-    dot_spacing_mm: 15
-    step_height_mm: 3
+              title="<source>/calibration/settings.yaml - board geometry"
+              code={`rig:
+  dt: 5.0e-06                   # REQUIRED before generating a model
+  camera_pair: [1, 2]
+  datum_frame: 1                # 1-based
+
+image:
+  n_views: 11
+
+methods:
+  stepped:
+    dot_spacing_mm: 5.0
+    step_height_mm: 3.0
     board_thickness_mm: 14.8
-    dt: 5.0e-06
-    camera_pair: [1, 2]
-    stereo_config: transmission    # auto | same_side | transmission
-    datum_frame: 1
-    datum_camera: 1
-    num_calibration_frames: 11`}
+    level_offset_mm: null       # null derives dot_spacing_mm / 2
+  stepped_stereo:
+    stereo_config: transmission # auto | same_side | transmission`}
             />
           </Section>
 
@@ -320,7 +316,7 @@ export default function SteppedCalibrationPage() {
 
             <p className="text-gray-700 mb-4">
               Each click snaps to the nearest detected blob, so you don&apos;t need pixel-perfect accuracy.
-              The origin click also determines which face (peak or trough) you clicked on &mdash; this is
+              The origin click also determines which face (peak or trough) you clicked on -- this is
               stored as the <code className="bg-gray-100 px-1 rounded text-sm">clicked_level</code> and
               establishes the reference convention for all subsequent pose labelling.
             </p>
@@ -334,7 +330,7 @@ export default function SteppedCalibrationPage() {
                 Fiducials define the world coordinate system. Origin = (0,0), X-axis point = positive
                 X direction, Y-axis point = positive Y direction. If these are wrong, grid indices
                 will be mirrored or rotated, causing grid stitching to fail. The detection overlay
-                shows indexed dots after fiducials are set &mdash; verify the indices increase in the
+                shows indexed dots after fiducials are set -- verify the indices increase in the
                 expected directions.
               </p>
             </div>
@@ -370,21 +366,14 @@ export default function SteppedCalibrationPage() {
 }`}
             />
 
-            <YamlDropdown
-              title="config.yaml - Fiducials (auto-populated by GUI)"
-              code={`calibration:
-  stepped_board:
-    cam1_fiducials:
-      origin: [3311.5, 751.3]
-      x_axis: [3904.2, 751.1]
-      y_axis: [3307.1, 542.4]
-    cam1_clicked_level: peak
-    cam2_fiducials:
-      origin: [1985.9, 638.5]
-      x_axis: [1684.9, 638.5]
-      y_axis: [1990.9, 435.2]
-    cam2_clicked_level: trough`}
-            />
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mt-4">
+              <p className="text-blue-700 text-sm">
+                <strong>Where the clicks go.</strong> Fiducial positions and the clicked level are stored in the
+                model&apos;s <code className="bg-blue-100 px-1 rounded">inputs.mat</code> sidecar, not in{' '}
+                <code className="bg-blue-100 px-1 rounded">config.yaml</code>. Clicks snap to the nearest detected dot,
+                and the origin click also records which level you picked, which is what anchors Z = 0.
+              </p>
+            </div>
           </Section>
 
           {/* Click-to-Label */}
@@ -392,16 +381,16 @@ export default function SteppedCalibrationPage() {
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               After setting fiducials on the datum frame, each <strong>non-datum pose</strong> must
               be labelled to tell the backend whether dots on that pose are on the peak or trough face.
-              This is the most user-intensive step &mdash; but you only need to click one dot per pose
+              This is the most user-intensive step -- but you only need to click one dot per pose
               per camera.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">How It Works</h3>
             <ol className="space-y-3 mb-6">
               {[
-                "The datum frame is already labelled from the fiducial setup — no action needed",
+                "The datum frame is already labelled from the fiducial setup -- no action needed",
                 "Navigate to a non-datum pose in the calibration image viewer",
-                "Click any dot you can identify as being on the peak face (or trough — whichever you recognise)",
+                "Click any dot you can identify as being on the peak face (or trough -- whichever you recognise)",
                 "The backend snaps to the nearest detected blob and reports which level (A or B) it belongs to",
                 "The frontend maps A/B to peak/trough using the datum convention, and stores the label",
                 "Repeat for every non-datum pose, for every camera",
@@ -422,7 +411,7 @@ export default function SteppedCalibrationPage() {
                 <strong className="text-green-800">Tip: Approximate Clicks Are Fine</strong>
               </div>
               <p className="text-green-700 text-sm">
-                You don&apos;t need to be precise &mdash; click anywhere on a dot you recognise. The system
+                You don&apos;t need to be precise -- click anywhere on a dot you recognise. The system
                 snaps to the nearest detected blob automatically. The detection overlay helps:
                 blue dots = peak, red dots = trough. Colours swap in real time when you set a label.
               </p>
@@ -438,26 +427,19 @@ export default function SteppedCalibrationPage() {
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">What Gets Stored</h3>
             <p className="text-gray-700 mb-4">
-              Labels persist to <code className="bg-gray-100 px-1 rounded text-sm">config.yaml</code> as{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">cam1_pose_levels</code> /{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">cam2_pose_levels</code> entries.
-              A pose with no entry is considered unverified. The &ldquo;Generate Model&rdquo; button remains
-              disabled until every pose has an entry for every camera.
+              Labels persist to the model&apos;s <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code> sidecar,
+              alongside your fiducial clicks. A pose with no entry is considered unverified, and the
+              &ldquo;Generate Model&rdquo; button stays disabled until every pose has an entry for every camera.
             </p>
 
-            <YamlDropdown
-              title="config.yaml - Pose Labels"
-              code={`calibration:
-  stepped_board:
-    cam1_pose_levels:
-      '1': peak      # Frame 1 verified as peak for camera 1
-      '2': peak      # Frame 2 verified as peak for camera 1
-      '3': trough    # Frame 3 verified as trough for camera 1
-    cam2_pose_levels:
-      '1': trough    # Frame 1 verified as trough for camera 2
-      '2': trough
-      '3': peak`}
-            />
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mt-4">
+              <p className="text-blue-700 text-sm">
+                <strong>Where the labels go.</strong> Pose labels are not config values. They are written to an{' '}
+                <code className="bg-blue-100 px-1 rounded">inputs.mat</code> sidecar beside the saved model, together
+                with your fiducial clicks, so reopening the tab restores them. Generating a model is blocked until
+                every non-datum pose on both cameras is labelled.
+              </p>
+            </div>
 
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mt-4">
               <p className="text-blue-700 text-sm">
@@ -488,7 +470,7 @@ export default function SteppedCalibrationPage() {
                 "Once all poses show verified labels, click \"Generate Model\"",
                 "Review per-camera RMS error, stereo RMS, relative angle, and baseline distance",
                 "Click \"Calibrate Vectors\" to apply stereo calibration to PIV data",
-                "Click \"Set as Active\" to make stepped_board the active calibration method",
+                "Click \"Set as Active\" to make stereo_stepped the active calibration method",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
@@ -501,11 +483,12 @@ export default function SteppedCalibrationPage() {
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Stereo Configuration Auto-Detect</h3>
             <p className="text-gray-700 mb-4">
-              PIVTools auto-detects whether your cameras are in same-side or transmission configuration.
-              It fits camera 2 twice (once per configuration) and picks whichever gives lower RMS.
-              The result is surfaced as <code className="bg-gray-100 px-1 rounded text-sm">stereo_config_resolved</code> in
-              the calibration output. You can also force a specific configuration
-              via <code className="bg-gray-100 px-1 rounded text-sm">stereo_config: same_side</code> or{' '}
+              PIVTools works out whether your cameras are same-side or transmission from the handedness of
+              the three fiducial clicks on each camera. Because the two cameras view opposite faces in a
+              transmission rig, that handedness flips, and reading it is one deterministic comparison rather
+              than a fit-and-compare search. If either camera&apos;s three clicks are too close to collinear to
+              give a reliable sign, calibration stops and tells you rather than guessing. You can also force a
+              configuration with <code className="bg-gray-100 px-1 rounded text-sm">stereo_config: same_side</code> or{' '}
               <code className="bg-gray-100 px-1 rounded text-sm">stereo_config: transmission</code>.
             </p>
 
@@ -516,7 +499,7 @@ export default function SteppedCalibrationPage() {
               </div>
               <p className="text-purple-700 text-sm">
                 In a transmission setup, each camera sees a different face of the board at a different
-                Z-plane &mdash; there are no common 3D points visible to both cameras. OpenCV&apos;s{' '}
+                Z-plane -- there are no common 3D points visible to both cameras. OpenCV&apos;s{' '}
                 <code className="bg-purple-100 px-1 rounded">stereoCalibrate</code> requires common
                 points. Instead, PIVTools derives the stereo pose from individual{' '}
                 <code className="bg-purple-100 px-1 rounded">cv2.solvePnP</code> results per camera
@@ -526,362 +509,117 @@ export default function SteppedCalibrationPage() {
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-              base_path/calibration/stereo_cam1_cam2/<br />
-              ├── model/stereo_model.mat<br />
-              ├── Cam1/model/camera_model.mat<br />
-              ├── Cam2/model/camera_model.mat<br />
-              ├── indices/<br />
-              ├── figures/<br />
-              └── camera_placement.html&nbsp;&nbsp;&nbsp;&nbsp;# Interactive Plotly visualisation
+&lt;calibration_source&gt;/calibration/stereo_cam1_cam2/<br />
+              ├── model/stereo_model_pinhole.mat<br />
+              ├── model/inputs.mat&nbsp;&nbsp;&nbsp;&nbsp;# your fiducial clicks and pose labels<br />
+              └── figures/<br />
+              <br />
+              &lt;calibration_source&gt;/calibration/Cam1/stepped_planar/<br />
+              └── model/model_pinhole.mat&nbsp;&nbsp;&nbsp;&nbsp;# the per-camera fit feeding the stereo pose
             </div>
           </Section>
 
-          {/* Planar Workflow */}
-          <Section title="Stepped Planar Workflow" icon={<Layers size={32} />} id="planar-workflow">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Stepped planar calibration fits a per-camera 3D pinhole model using both Z-levels of
-              the stepped board. Unlike standard planar calibration (which sees a flat field), each
-              pose provides genuine non-coplanar 3D points &mdash; dots at two Z-planes give real
-              depth information that breaks the fx/tz ridge without needing a stereo pair.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                <h4 className="font-semibold text-blue-800 mb-2">Standard Planar (1 Z-level)</h4>
-                <ul className="text-blue-700 space-y-1 text-sm">
-                  <li>All dots at one Z plane per pose</li>
-                  <li>Depth constrained only by multiple poses</li>
-                  <li>Fragile at PIV magnification (fx error 1&ndash;3%)</li>
-                </ul>
-              </div>
-              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-800 mb-2">Stepped Planar (2 Z-levels)</h4>
-                <ul className="text-green-700 space-y-1 text-sm">
-                  <li>Dots at two Z planes in every single pose</li>
-                  <li>Real depth variation constrains all parameters</li>
-                  <li>Robust at PIV magnification (fx error &lt; 0.25%)</li>
-                </ul>
-              </div>
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-4">GUI Workflow</h3>
-            <ol className="space-y-2 mb-6">
-              {[
-                "Set board parameters: dot spacing, step height, board thickness, dt",
-                "Configure calibration images: format, count, source path",
-                "Select target level (peak or trough — which face to use as reference)",
-                "Click three fiducial points on the datum frame (origin, X-axis, Y-axis)",
-                "Navigate to each non-datum pose and click-to-label one dot",
-                "Click \"Generate Model\" once all poses are verified",
-                "Review per-camera RMS reprojection error (target: < 0.5 px)",
-                "Click \"Calibrate Vectors\" to apply",
-              ].map((step, idx) => (
-                <li key={idx} className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
-                    {idx + 1}
-                  </span>
-                  <span className="text-gray-700">{step}</span>
-                </li>
-              ))}
-            </ol>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
-            <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-              base_path/calibration/Cam1/stepped_planar/<br />
-              ├── model/camera_model.mat<br />
-              ├── indices/<br />
-              └── figures/
-            </div>
-
-            <YamlDropdown
-              title="config.yaml - Stepped Planar"
-              code={`calibration:
-  active: stepped_planar
-  stepped_planar:
-    dot_spacing_mm: 15
-    step_height_mm: 3
-    board_thickness_mm: 14.8
-    dt: 5.0e-06
-    datum_frame: 1
-    model_type: pinhole
-    target_level: peak
-    num_calibration_frames: 11
-    fiducials:
-      1:                           # Camera 1
-        origin: [3311.5, 751.3]
-        x_axis: [3904.2, 751.1]
-        y_axis: [3307.1, 542.4]
-    clicked_level:
-      1: peak                      # Which face the origin click landed on
-    pose_levels:
-      1:                           # Camera 1 pose labels
-        '1': peak
-        '2': peak
-        '3': trough`}
-            />
-          </Section>
 
           {/* CLI */}
           <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Both stepped commands require a <code className="bg-gray-100 px-1 rounded text-sm">--fiducials</code> JSON
-              file containing the origin, axis, and clicked_level for each camera. The easiest
-              workflow: set up fiducials and pose labels in the GUI, then run detection headlessly via CLI.
-            </p>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">detect-stepped-stereo</h3>
-            <CodeBlock
-              title="Stereo Detection"
-              code={`# Basic usage (reads board params from config.yaml)
-pivtools-cli detect-stepped-stereo --fiducials fiducials.json
-
-# Explicit stereo config and pose count
-pivtools-cli detect-stepped-stereo -f fiducials.json --stereo-config transmission -n 11
-
-# Custom calibration source directory
-pivtools-cli detect-stepped-stereo -f fiducials.json -cs /path/to/calibration/images`}
-            />
-
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Flag</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Short</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { flag: "--fiducials", short: "-f", desc: "Path to fiducials JSON file (required)", def: "--" },
-                    { flag: "--active-paths", short: "-p", desc: "Comma-separated path indices", def: "From config" },
-                    { flag: "--calibration-source", short: "-cs", desc: "Direct path to calibration images", def: "From config" },
-                    { flag: "--num-frames", short: "-n", desc: "Number of poses in the sequence", def: "From config or 11" },
-                    { flag: "--start-frame", short: "-s", desc: "First frame index", def: "1" },
-                    { flag: "--datum-frame", short: "-d", desc: "Datum frame index", def: "Same as start-frame" },
-                    { flag: "--stereo-config", short: "--", desc: "auto, same_side, or transmission", def: "auto" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
-                      <td className="px-6 py-4 text-sm font-mono text-gray-500">{row.short}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.def}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">detect-stepped-planar</h3>
-            <CodeBlock
-              title="Planar Detection"
-              code={`# All cameras in fiducials file
-pivtools-cli detect-stepped-planar --fiducials fiducials.json
-
-# Single camera only
-pivtools-cli detect-stepped-planar -f fiducials.json --camera 1
-
-# Custom pose count
-pivtools-cli detect-stepped-planar -f fiducials.json -n 6`}
-            />
-
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Flag</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Short</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { flag: "--camera", short: "-c", desc: "Single camera number to process", def: "All in fiducials" },
-                    { flag: "--fiducials", short: "-f", desc: "Path to fiducials JSON file (required)", def: "--" },
-                    { flag: "--active-paths", short: "-p", desc: "Comma-separated path indices", def: "From config" },
-                    { flag: "--calibration-source", short: "-cs", desc: "Direct path to calibration images", def: "From config" },
-                    { flag: "--num-frames", short: "-n", desc: "Number of poses", def: "From config or 11" },
-                    { flag: "--start-frame", short: "-s", desc: "First frame index", def: "1" },
-                    { flag: "--datum-frame", short: "-d", desc: "Datum frame index", def: "Same as start-frame" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
-                      <td className="px-6 py-4 text-sm font-mono text-gray-500">{row.short}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.def}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
-              <p className="text-blue-700 text-sm">
-                <strong>Pose labels from config:</strong> The CLI reads{' '}
-                <code className="bg-blue-100 px-1 rounded">stepped_board.cam1_pose_levels</code> and{' '}
-                <code className="bg-blue-100 px-1 rounded">cam2_pose_levels</code> (stereo) or{' '}
-                <code className="bg-blue-100 px-1 rounded">stepped_planar.pose_levels</code> (planar)
-                directly from config.yaml. If any frame in the sequence is missing its label, the
-                CLI exits with a clear error message listing the missing frames.
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-800 text-sm">
+                <strong>Stepped-board detection has no command-line equivalent.</strong> Building the model needs you
+                to click fiducials and label which level each pose sits on, and there is no way to supply that
+                headlessly. Calibrate on the Stereo Stepped tab in the GUI. Once a model is saved, the CLI can apply
+                it like any other.
               </p>
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Complete Stereo Workflow</h3>
+            <p className="text-gray-700 text-lg leading-relaxed mb-4">
+              After the model exists, the rest of the pipeline is ordinary CLI work:
+            </p>
+
             <CodeBlock
               title="End-to-End Stepped Stereo"
-              code={`# 1. Set up board params in config.yaml (or use GUI)
-# 2. Set fiducials + pose labels in GUI, or create fiducials.json manually
-
-# 3. Generate stereo model from stepped board
-pivtools-cli detect-stepped-stereo -f fiducials.json
-
-# 4. Run PIV processing for both cameras
-pivtools-cli instantaneous
-
-# 5. Apply stereo calibration (3D reconstruction)
-pivtools-cli apply-stereo --method stepped_board
-
-# 6. Compute statistics on stereo data
-pivtools-cli statistics --source-endpoint stereo
-
-# 7. Create visualisation video
-pivtools-cli video --data-source stereo -v uz`}
+              code={`# 1. Calibrate on the Stereo Stepped tab in the GUI, then:
+pivtools-cli instantaneous                              # PIV for both cameras
+pivtools-cli apply-stereo --board stepped --all-paths   # 3D reconstruction
+pivtools-cli statistics --source-endpoint stereo`}
             />
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Complete Planar Workflow</h3>
-            <CodeBlock
-              title="End-to-End Stepped Planar"
-              code={`# 1. Generate per-camera model from stepped board
-pivtools-cli detect-stepped-planar -f fiducials.json
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-800 text-sm">
+                The flag is <code className="bg-blue-100 px-1 rounded">--board</code>, and the stepped value is
+                <code className="bg-blue-100 px-1 rounded">stepped</code>. Note also that
+                <code className="bg-blue-100 px-1 rounded">apply-stereo</code> exits with an error unless you give it
+                <code className="bg-blue-100 px-1 rounded">--all-paths</code> or an explicit directory set.
+              </p>
+            </div>
 
-# 2. Run PIV processing
-pivtools-cli instantaneous
-
-# 3. Apply calibration
-pivtools-cli apply-calibration --method stepped_board
-
-# 4. Compute statistics
-pivtools-cli statistics`}
-            />
+            <p className="text-gray-700 leading-relaxed">
+              Self-calibration is available for stepped models on the GUI tab, but{' '}
+              <code className="bg-gray-100 px-1 rounded">pivtools-cli self-calibrate</code> accepts only{' '}
+              <code className="bg-gray-100 px-1 rounded">charuco</code> and{' '}
+              <code className="bg-gray-100 px-1 rounded">dotboard</code>, so there is no headless route to it here either.
+            </p>
           </Section>
+
 
           {/* YAML Reference */}
-          <Section title="Complete YAML Reference" icon={<FileText size={32} />} id="yaml">
+          <Section title="Configuration Reference" icon={<FileText size={32} />} id="yaml">
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-800 text-sm">
+                <strong>Almost nothing lives in config.yaml.</strong> The <code className="bg-yellow-100 px-1 rounded">calibration:</code> block
+                is a four-key pointer, and anything else written under it is stripped out the next time the config is
+                saved. Board geometry, the rig <code className="bg-yellow-100 px-1 rounded">dt</code>, and the image
+                settings all live in a per-source sidecar at <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>.
+                Create one with <code className="bg-yellow-100 px-1 rounded">pivtools-cli init-settings --source &lt;dir&gt;</code> or
+                by filling in the calibration tab in the GUI.
+              </p>
+            </div>
+
             <YamlDropdown
-              title="Stepped Board (Stereo) Configuration"
+              title="config.yaml - the pointer block"
               defaultOpen={true}
               code={`calibration:
-  active: stepped_board
-  piv_type: instantaneous
-
-  # Board geometry
-  stepped_board:
-    dot_spacing_mm: 15           # Centre-to-centre dot distance (mm)
-    step_height_mm: 3            # Peak-to-trough face height (mm)
-    board_thickness_mm: 14.8     # Total board thickness (mm)
-    dt: 5.0e-06                  # Time between laser pulses (seconds)
-
-    # Camera setup
-    camera_pair: [1, 2]
-    stereo_config: transmission  # auto | same_side | transmission
-    datum_frame: 1               # Reference pose frame number
-    datum_camera: 1              # Reference camera
-    num_calibration_frames: 11   # Total poses in the sequence
-
-    # Fiducials (auto-populated by GUI click tool)
-    cam1_fiducials:
-      origin: [3311.5, 751.3]
-      x_axis: [3904.2, 751.1]
-      y_axis: [3307.1, 542.4]
-    cam1_clicked_level: peak     # Which face the origin click landed on
-
-    cam2_fiducials:
-      origin: [1985.9, 638.5]
-      x_axis: [1684.9, 638.5]
-      y_axis: [1990.9, 435.2]
-    cam2_clicked_level: trough
-
-    # Pose labels (set via click-to-label in GUI)
-    cam1_pose_levels:
-      '1': peak                  # Frame 1 verified as peak
-      '2': peak
-    cam2_pose_levels:
-      '1': trough                # Frame 1 verified as trough
-      '2': trough`}
+  calibration_sources:
+    - /data/experiment/calibration
+  source: ''            # '' means use calibration_sources[source_idx]
+  source_idx: 0
+  active: stereo_stepped`}
             />
 
             <YamlDropdown
-              title="Stepped Planar (Per-Camera) Configuration"
-              code={`calibration:
-  active: stepped_planar
+              title="<source>/calibration/settings.yaml - stepped stereo"
+              defaultOpen={true}
+              code={`image:
+  image_format: calib%05d.tif   # REQUIRED, no default
+  image_type: standard          # REQUIRED
+  n_views: 19
+  start_index: 1
 
-  stepped_planar:
-    dot_spacing_mm: 15
-    step_height_mm: 3
+rig:
+  camera_pair: [1, 2]
+  dt: 0.0006                    # REQUIRED before generating a model
+  datum_frame: 1                # 1-based
+  interpolator: lanczos
+
+methods:
+  stepped:
+    dot_spacing_mm: 5.0
+    step_height_mm: 3.0
     board_thickness_mm: 14.8
-    dt: 5.0e-06
-    datum_frame: 1
-    model_type: pinhole
-    target_level: peak           # Which face to use as reference
-    num_calibration_frames: 11
-
-    # Per-camera fiducials
-    fiducials:
-      1:
-        origin: [3311.5, 751.3]
-        x_axis: [3904.2, 751.1]
-        y_axis: [3307.1, 542.4]
-
-    # Per-camera clicked levels
-    clicked_level:
-      1: peak
-
-    # Per-camera pose labels
-    pose_levels:
-      1:                         # Camera 1
-        '1': peak
-        '2': peak
-        '3': trough`}
+    level_offset_mm: null       # null derives dot_spacing_mm / 2
+  stepped_stereo:
+    stereo_config: auto         # auto reads it from your clicks
+    model_type: pinhole`}
             />
 
-            <div className="mt-8">
-              <h4 className="text-xl font-semibold text-gray-900 mb-4">GUI to YAML Field Mapping</h4>
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">GUI Control</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">YAML Field</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Values</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {[
-                      { gui: "Active Method", yaml: "calibration.active", values: "stepped_board or stepped_planar" },
-                      { gui: "Dot Spacing (mm)", yaml: "stepped_board.dot_spacing_mm", values: "Float (mm)" },
-                      { gui: "Step Height (mm)", yaml: "stepped_board.step_height_mm", values: "Float (mm)" },
-                      { gui: "Board Thickness (mm)", yaml: "stepped_board.board_thickness_mm", values: "Float (mm)" },
-                      { gui: "dt (seconds)", yaml: "stepped_board.dt", values: "Float (seconds)" },
-                      { gui: "Camera Pair", yaml: "stepped_board.camera_pair", values: "[int, int]" },
-                      { gui: "Stereo Config", yaml: "stepped_board.stereo_config", values: "auto | same_side | transmission" },
-                      { gui: "Datum Frame", yaml: "stepped_board.datum_frame", values: "Integer (1-based)" },
-                      { gui: "Fiducial Origin Click", yaml: "stepped_board.cam*_fiducials.origin", values: "[x, y] pixels" },
-                      { gui: "Clicked Level", yaml: "stepped_board.cam*_clicked_level", values: "peak | trough" },
-                      { gui: "Pose Label Click", yaml: "stepped_board.cam*_pose_levels", values: "{ frame: peak|trough }" },
-                    ].map((row, index) => (
-                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 text-sm text-gray-900">{row.gui}</td>
-                        <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.yaml}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{row.values}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mt-6">
+              <p className="text-blue-800 text-sm">
+                <strong>Your clicks are not stored in YAML.</strong> Fiducial positions, the clicked level, and the
+                per-frame pose labels are written to an <code className="bg-blue-100 px-1 rounded">inputs.mat</code> sidecar
+                next to the saved model, so reopening the tab restores exactly what you picked.
+              </p>
             </div>
           </Section>
+
 
           {/* Troubleshooting */}
           <Section title="Troubleshooting" icon={<Wrench size={32} />} id="troubleshooting">
@@ -892,28 +630,28 @@ pivtools-cli statistics`}
                   solution: "Check dot spacing parameter matches the actual board. Verify illumination is even across both faces. Try cleaning the board surface. Poses with strong foreshortening (> 18 degrees rotation) may lose dots at the edges."
                 },
                 {
-                  problem: "Cross-level consensus below 50%",
+                  problem: "One level recovers far fewer dots than the other",
                   solution: "This usually means the fiducial axis clicks are inconsistent between the two faces. Verify that the detection overlay shows grid indices increasing in the expected directions. Re-click fiducials if needed."
                 },
                 {
                   problem: "\"Generate Model\" button stays disabled",
-                  solution: "Not all poses have been click-to-labelled. Check the pose list panel — any pose without a label prevents model generation. You need one label per pose per camera."
+                  solution: "Not all poses have been click-to-labelled. Check the pose list panel -- any pose without a label prevents model generation. You need one label per pose per camera."
                 },
                 {
                   problem: "Stereo RMS error > 1.0 px",
-                  solution: "Step height measurement may be wrong — verify with a micrometer. Also check that both cameras can resolve individual dots clearly. Blurred or underexposed images increase RMS."
+                  solution: "Step height measurement may be wrong -- verify with a micrometer. Also check that both cameras can resolve individual dots clearly. Blurred or underexposed images increase RMS."
                 },
                 {
                   problem: "Focal length (fx) error is large",
                   solution: "Too few poses. Use at least 5-6 different target positions with varied angles. The multi-image Zhang initialization needs multiple homographies to robustly estimate intrinsics."
                 },
                 {
-                  problem: "CLI fails with \"missing pose labels\" error",
-                  solution: "The CLI reads pose labels from config.yaml. Run the GUI click-to-label workflow first, or manually add entries to cam1_pose_levels / cam2_pose_levels in config.yaml."
+                  problem: "Generate Model stays disabled",
+                  solution: "Some pose is still unlabelled. Every non-datum pose needs a level label on both cameras before a model can be built. Work through the click-to-label step until no pose is left unverified."
                 },
                 {
                   problem: "Transmission auto-detect picks wrong config",
-                  solution: "Force the correct configuration with stereo_config: transmission (or same_side) in config.yaml, or --stereo-config on the CLI."
+                  solution: "First check your fiducial clicks: the configuration is read from their handedness, so a mis-ordered origin/x/y pick on either camera flips the answer. If the clicks are right, force it with methods.stepped_stereo.stereo_config: transmission (or same_side) in the settings sidecar."
                 },
               ].map((item, idx) => (
                 <div key={idx} className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">

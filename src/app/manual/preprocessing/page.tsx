@@ -126,7 +126,9 @@ export default function PreprocessingPage() {
               <div className="bg-blue-50 rounded-lg p-6 border border-blue-100">
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">Spatial Filters</h4>
                 <p className="text-gray-600 text-sm mb-2">
-                  Operate per-frame via <code className="text-blue-600">scipy.ndimage</code>.
+                  Operate per-frame via <code className="text-blue-600">cv2</code>. Median kernels that cv2 cannot
+                  express -- larger than 5, or anisotropic -- fall back to
+                  <code className="text-blue-600"> scipy.ndimage</code>.
                 </p>
                 <ul className="text-gray-600 text-sm space-y-1">
                   <li>Smoothing: gaussian, median</li>
@@ -135,6 +137,54 @@ export default function PreprocessingPage() {
                 </ul>
               </div>
             </div>
+          </Section>
+
+          {/* Gain Normalisation */}
+          <Section title="Gain Normalisation" icon={<Sparkles size={32} />} id="gain-normalisation">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Laser pulse energy drifts between frames, and the A and B pulses of a pair are rarely perfectly matched.
+              Gain normalisation removes both at source, before anything else touches the images.
+            </p>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-800 text-sm">
+                This is <strong>not</strong> a <code className="bg-yellow-100 px-1 rounded">filters:</code> entry. It is
+                a separate switch under <code className="bg-yellow-100 px-1 rounded">preprocessing:</code> and runs at
+                the head of the pipeline, ahead of pixel masking and every filter you configure.
+              </p>
+            </div>
+
+            <p className="text-gray-700 leading-relaxed mb-6">
+              PIVTools compares each frame against the per-camera ensemble mean image over unmasked pixels, fits a
+              single gain by least squares, and divides it out:
+            </p>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 font-mono text-sm text-gray-800">
+              g_i = Σ(I_i · ref) / Σ(ref²)
+            </div>
+
+            <p className="text-gray-700 leading-relaxed mb-6">
+              Because the reference is the ensemble mean, the pipeline has to run twice: once to build the mean, once
+              to apply the correction. That costs two extra full reads of the dataset per camera per run, which is the
+              main reason it is off by default.
+            </p>
+
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-800 text-sm">
+                <strong>Gain normalisation or meannorm?</strong> Both address brightness variation, but at different
+                levels. <code className="bg-blue-100 px-1 rounded">meannorm</code> divides each frame by its own
+                spatial mean, so it cannot tell a genuinely brighter flow field from a stronger laser pulse. Gain
+                normalisation regresses against a common reference, which separates the two. Use gain normalisation
+                when pulse energy is the problem, and <code className="bg-blue-100 px-1 rounded">meannorm</code> when
+                you want a cheap per-frame levelling without paying for the extra passes.
+              </p>
+            </div>
+
+            <YamlDropdown
+              title="config.yaml"
+              code={`preprocessing:
+  gain_normalisation: false   # default off`}
+            />
           </Section>
 
           {/* Temporal Filters */}
@@ -163,7 +213,7 @@ export default function PreprocessingPage() {
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="px-4 py-3 text-sm font-mono text-purple-600">pod</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">None (auto mode detection)</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">eps_auto_psi, eps_auto_sigma (both 0.01)</td>
                     <td className="px-4 py-3 text-sm text-gray-600">SVD decomposition; auto-detect noise threshold; subtract signal modes</td>
                     <td className="px-4 py-3 text-sm text-gray-600">Coherent structures, time-varying backgrounds</td>
                   </tr>
@@ -185,7 +235,9 @@ batches:
           {/* Spatial Filters */}
           <Section title="Spatial Filters" icon={<Sparkles size={32} />} id="spatial">
             <p className="text-gray-700 text-lg mb-6">
-              Applied per-frame after temporal filters. Kernel sizes are auto-adjusted to be odd.
+              Applied per-frame. Filters run in the order you list them, so spatial and temporal filters can be
+              interleaved -- running temporal filters first is a recommendation, not something the pipeline enforces.
+              Kernel sizes are auto-adjusted to be odd.
             </p>
 
             <div className="overflow-x-auto mb-6">
@@ -309,19 +361,15 @@ batches:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { filter: "time", type: "Temporal", param: "(none)", default: "-" },
-                    { filter: "pod", type: "Temporal", param: "(none)", default: "-" },
-                    { filter: "gaussian", type: "Spatial", param: "size, sigma", default: "[7,7], 1.0" },
+                    { filter: "pod", type: "Temporal", param: "eps_auto_psi, eps_auto_sigma", default: "0.01, 0.01" },
                     { filter: "gaussian", type: "Spatial", param: "size, sigma", default: "[7,7], 1.0" },
                     { filter: "median", type: "Spatial", param: "size", default: "[5, 5]" },
                     { filter: "norm", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
-                    { filter: "norm2", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
                     { filter: "norm2", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
                     { filter: "maxnorm", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
                     { filter: "meannorm", type: "Spatial", param: "(none)", default: "-" },
                     { filter: "ssmin", type: "Spatial", param: "size", default: "[7, 7]" },
                     { filter: "lmax", type: "Spatial", param: "size", default: "[7, 7]" },
-                    { filter: "invert", type: "Spatial", param: "(none)", default: "-" },
-                    { filter: "clahe", type: "Spatial", param: "clip_limit, tile_grid_size", default: "2.0, [8,8]" },
                     { filter: "invert", type: "Spatial", param: "(none)", default: "-" },
                     { filter: "clahe", type: "Spatial", param: "clip_limit, tile_grid_size", default: "2.0, [8,8]" },
                   ].map((row, index) => (

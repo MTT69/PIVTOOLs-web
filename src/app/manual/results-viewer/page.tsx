@@ -165,11 +165,11 @@ export default function ResultsViewerPage() {
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { source: "Calibrated Instantaneous", view: true, transform: true, merge: true, stats: true },
-                    { source: "Calibrated Ensemble", view: true, transform: false, merge: true, stats: false },
-                    { source: "Uncalibrated Instantaneous", view: true, transform: false, merge: false, stats: false },
+                    { source: "Calibrated Ensemble", view: true, transform: true, merge: true, stats: false },
+                    { source: "Uncalibrated Instantaneous", view: true, transform: false, merge: false, stats: true },
                     { source: "Uncalibrated Ensemble", view: true, transform: false, merge: false, stats: false },
                     { source: "Merged Instantaneous", view: true, transform: true, merge: false, stats: true },
-                    { source: "Merged Ensemble", view: true, transform: true, merge: false, stats: true },
+                    { source: "Merged Ensemble", view: true, transform: true, merge: false, stats: false },
                     { source: "Stereo Instantaneous", view: true, transform: false, merge: false, stats: true },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -198,7 +198,10 @@ export default function ResultsViewerPage() {
                   <h4 className="text-lg font-semibold text-yellow-800">Uncalibrated Data</h4>
                 </div>
                 <p className="text-yellow-700 text-sm">
-                  View-only. Transforms, merging, and statistics require calibrated data with physical coordinates.
+                  Transforms and merging require calibrated data with physical coordinates. Statistics are not
+                  view-only here though: uncalibrated instantaneous data is the <em>only</em> source that can run the
+                  correlation-quality diagnostics, because the quality channels are dropped when calibration is
+                  applied. On an uncalibrated source the Statistics button reads <strong>Calculate Diagnostics</strong>.
                 </p>
               </div>
 
@@ -267,10 +270,13 @@ export default function ResultsViewerPage() {
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { tool: "Magnifier", desc: "Circular 2.5x zoom lens that follows the cursor. Toggle on/off with the magnifier button. Useful for inspecting individual vectors and fine details." },
-                    { tool: "Hover Info", desc: "Displays coordinates (x, y in mm) and velocity components (ux, uy, uz if stereo) at the cursor position. Updates in real time as you move the mouse." },
+                    { tool: "Box Zoom", desc: "Drag a rectangle over the field to zoom to it. Toggle off to return to normal cursor behaviour." },
+                    { tool: "Hover Info", desc: "Displays coordinates (x, y in mm) and velocity components (ux, uy, uz if stereo) at the cursor position. Over a NaN vector it also decodes why that vector was rejected. Updates in real time as you move the mouse." },
+                    { tool: "NaN Reason Legend", desc: "Colours each rejected vector by the reason it failed and lists those reasons beside the field. The instantaneous and ensemble pipelines use different code tables, so the legend switches to match the data you are viewing. An unrecognised code is rendered loudly rather than silently ignored." },
+                    { tool: "Wall Units", desc: "Enter a friction velocity and kinematic viscosity to redraw the axes in wall units (y+ and u+). This affects the display only and never modifies the stored data. Calibrated sources only." },
                     { tool: "Download Image", desc: "Saves the current vector field view as a PNG image file." },
                     { tool: "Copy to Clipboard", desc: "Copies the current view directly to the clipboard for pasting into documents or presentations." },
-                    { tool: "Datum Setting", desc: "Click \"Set New Datum\" to interactively choose a new coordinate origin. The cursor changes to a crosshair — click any point to set (0, 0) there. Available in the Coordinates panel." },
+                    { tool: "Datum Setting", desc: "Click \"Set New Datum\" to interactively choose a new coordinate origin. The cursor changes to a crosshair -- click any point to set (0, 0) there. Available in the Coordinates panel." },
                     { tool: "Corner Coordinates", desc: "Displays the physical coordinates of the four corners of the current field. Useful for verifying alignment after global coordinate adjustment." },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -309,8 +315,8 @@ export default function ResultsViewerPage() {
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { prefix: "inst:", source: "Instantaneous frame data", vars: "ux, uy, uz, velocity_magnitude, b_mask, peak_mag" },
-                    { prefix: "inst_stat:", source: "Per-frame calculated statistics", vars: "vorticity, divergence, u_prime, v_prime, gamma1, gamma2" },
-                    { prefix: "mean:", source: "Time-averaged statistics", vars: "ux, uy, uu, vv, uv, tke, vorticity, divergence, mean_peak_height" },
+                    { prefix: "inst_stat:", source: "Per-frame calculated statistics", vars: "vorticity, divergence, uu_inst, vv_inst, uv_inst, gamma1, gamma2" },
+                    { prefix: "mean:", source: "Time-averaged statistics", vars: "ux, uy, uu, vv, uv, tke, vorticity, divergence" },
                     { prefix: "ens:", source: "Ensemble-averaged results", vars: "ux, uy, UU_stress, VV_stress, UV_stress" },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>

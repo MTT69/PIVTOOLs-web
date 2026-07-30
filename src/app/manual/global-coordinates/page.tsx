@@ -155,14 +155,14 @@ export default function GlobalCoordinatesPage() {
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <CheckCircle className="text-soton-gold" size={22} />
               <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
-              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults -- full reference below</span>
             </div>
             <ol className="space-y-2 text-gray-700">
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Open any calibration method tab to reveal the Calibration Image Viewer, then toggle <strong>Global Coords</strong> on in the settings bar.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Open the <strong>Scale Factor</strong> calibration tab to reveal the Calibration Image Viewer, then toggle <strong>Global Coords</strong> on in the settings bar. This panel lives on that tab only.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>On <strong>Camera 1</strong>: click <strong>Set Origin</strong> and click your physical (0,0) reference point. Enter the physical X/Y in mm if it&apos;s not literally at (0,0).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Still on Camera 1: click <strong>Pick F1</strong> and click a feature visible in both Camera 1 and Camera 2. Navigate to Camera 2 and click the same physical point with Pick F1.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>For more cameras, each middle camera picks F1 (shared with the previous camera) and F2 (shared with the next). The last camera only needs F1.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Flip X auto-detects from the origin/feature geometry &mdash; override manually if it chooses wrong. Click <strong>Calibrate Vectors</strong>; alignment is applied automatically.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Compute + Save Global Frame</strong> to bake the shared offset into every camera model. Only then does <strong>Calibrate Vectors</strong> emit coordinates in the shared frame. There is no mirror or flip control here: the axis directions come from each camera&apos;s own calibration.</span></li>
             </ol>
           </motion.div>
 
@@ -188,7 +188,7 @@ export default function GlobalCoordinatesPage() {
                     {
                       board: "Dotboard / ChArUco",
                       mech: "Joint multi-camera calibration",
-                      how: "One shared board solved jointly. The shared frame is intrinsic to the solve — nothing is baked separately.",
+                      how: "One shared board solved jointly. The shared frame is intrinsic to the solve -- nothing is baked separately.",
                     },
                     {
                       board: "Scale factor",
@@ -223,22 +223,22 @@ export default function GlobalCoordinatesPage() {
               together into one shared world frame. This is the system-aware model. A single solve
               recovers per-camera intrinsics, per-(camera, view) poses, and one released board that
               every camera agrees on. Because the world frame is part of the solve itself, the
-              cameras are in the same frame by construction — cross-camera agreement is zero, the
+              cameras are in the same frame by construction -- cross-camera agreement is zero, the
               DaVis-equivalent result.
             </p>
 
             <FeatureList items={[
-              "One shared board with a global dot index — every camera looks at the same physical target",
+              "One shared board with a global dot index -- every camera looks at the same physical target",
               "Per-camera intrinsics plus per-(camera, view) poses solved in a single joint optimisation",
               "The shared world frame is intrinsic to the solve, not baked on afterwards",
-              "No world_offset_mm and no separate alignment step — there is nothing to align",
+              "No world_offset_mm and no separate alignment step -- there is nothing to align",
               "Cross-camera agreement is 0 by construction (DaVis-matching)",
             ]} />
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">In the GUI</h3>
             <p className="text-gray-700 mb-4">
               This is automatic. Put two or more cameras into the Dotboard or ChArUco calibration tab
-              and the solve is always joint — there is no toggle to enable (a single camera is a mono
+              and the solve is always joint -- there is no toggle to enable (a single camera is a mono
               solve in the same tab). The result is a{' '}
               <code className="bg-gray-100 px-1 rounded text-sm">JointRecord</code>. Dotboard joint
               calibration is driven from the GUI because it needs the interactive datum and
@@ -249,7 +249,7 @@ export default function GlobalCoordinatesPage() {
             <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400 mb-6">
               <p className="text-green-700 text-sm">
                 <strong>Tolerant detection + caching.</strong> A view that fails detection is dropped
-                and reported, never fatal — a camera only fails if <em>no</em> image detects.
+                and reported, never fatal -- a camera only fails if <em>no</em> image detects.
                 Detections are cached in memory and persisted in the{' '}
                 <code className="bg-green-100 px-1 rounded">inputs.mat</code> sidecar, so previews
                 reuse them; the <strong>Re-detect</strong> button forces a refresh after the images
@@ -292,7 +292,7 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
                     { flag: "--cameras", desc: "Cameras to include in the joint solve", def: "—" },
                     { flag: "--source", desc: "Calibration source (ChArUco)", def: "—" },
                     { flag: "--model-type", desc: "pinhole | polynomial", def: "pinhole" },
-                    { flag: "--board-release", desc: "full3d | z_only | none — how much of the board geometry is freed", def: "full3d" },
+                    { flag: "--board-release", desc: "full3d | z_only | none -- how much of the board geometry is freed", def: "full3d" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-4 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
@@ -330,7 +330,7 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
               <p className="text-blue-700 text-sm">
                 <strong>No YAML to configure.</strong> The joint path does not use the{' '}
                 <code className="bg-blue-100 px-1 rounded">global_coordinates</code> datum +
-                overlap-pair block below — its datum and cross-camera ties come from the guided
+                overlap-pair block below -- its datum and cross-camera ties come from the guided
                 wizard and persist in <code className="bg-blue-100 px-1 rounded">inputs.mat</code>,
                 and the shared frame is part of the solve itself.
               </p>
@@ -338,20 +338,20 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
           </Section>
 
           {/* Guided wizard */}
-          <Section title="Guided wizard — Set Global Coordinates" icon={<Wand2 size={32} />} id="wizard">
+          <Section title="Guided wizard -- Set Global Coordinates" icon={<Wand2 size={32} />} id="wizard">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               On the dotboard joint path, all interactive picking runs through one auto-advancing
-              wizard. Press <strong>Set Global Coordinates</strong> and follow the banner — there
+              wizard. Press <strong>Set Global Coordinates</strong> and follow the banner -- there
               are no separate origin, link, or rescue buttons.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">The sequence</h3>
             <ol className="space-y-2 mb-6">
               {[
-                "Datum world frame first — click Origin, +X, +Y on the datum camera's datum view (each click snaps to the nearest detected dot); type the origin mm in the wizard panel",
+                "Datum world frame first -- click Origin, +X, +Y on the datum camera's datum view (each click snaps to the nearest detected dot); type the origin mm in the wizard panel",
                 "Then, per calibration frame: click the origin dot in camera 1",
                 "Click 2 shared dots in camera 1",
-                "Click the same 2 dots in camera 2 — the bridge auto-commits once enough pairs are picked",
+                "Click the same 2 dots in camera 2 -- the bridge auto-commits once enough pairs are picked",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
@@ -363,7 +363,7 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
             </ol>
 
             <FeatureList items={[
-              "The viewer auto-navigates to the awaited camera and frame; if you browse elsewhere mid-walk, picking pauses with a hint until you return — a click is never attributed to the wrong image",
+              "The viewer auto-navigates to the awaited camera and frame; if you browse elsewhere mid-walk, picking pauses with a hint until you return -- a click is never attributed to the wrong image",
               "Markers are persistent and colour-coded: the origin is green, shared dots are coloured by pick order with the same colour in both cameras (dot 1 in camera 1 matches dot 1 in camera 2)",
               "Bridges walk outward from the datum camera to each adjacent camera (2 from 1, 3 from 2, ...), matching a linear rig's real overlap chain",
               "Skip a step if a dot is not visible in a view; re-running the wizard skips views that are already anchored",
@@ -372,7 +372,7 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
               <p className="text-blue-700 text-sm">
                 <strong>ChArUco joint needs no wizard.</strong> Corner ids resolve the global grid
-                with zero clicks. The origin of the shared frame is the corner-id default — picking
+                with zero clicks. The origin of the shared frame is the corner-id default -- picking
                 a chosen corner as the origin is not yet available on the joint ChArUco path.
               </p>
             </div>
@@ -392,7 +392,7 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
               <p className="text-green-700 text-sm">
                 <strong>Coordinates only.</strong> The offset is applied at apply-calibration time as a
                 pure constant translation of the coordinate grid. Because it is constant, velocities
-                and Reynolds stresses are unaffected — only where each field sits in space changes.
+                and Reynolds stresses are unaffected -- only where each field sits in space changes.
               </p>
             </div>
 
@@ -436,10 +436,10 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">On the CLI</h3>
             <p className="text-gray-700 mb-6">
-              The <code className="bg-gray-100 px-1 rounded text-sm">global-frame</code> command requires
-              the datum/overlap configuration under{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">calibration.global_coordinates</code>{' '}
-              (normally set in the GUI). The example below shows the multi-camera scale-factor sequence end to end.
+              The <code className="bg-gray-100 px-1 rounded text-sm">global-frame</code> command reads the
+              datum and overlap pairs from the calibration settings sidecar at{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">&lt;source&gt;/calibration/settings.yaml</code>{' '}
+              (normally written by the GUI). The example below shows the multi-camera scale-factor sequence end to end.
             </p>
 
             <CodeBlock
@@ -447,11 +447,12 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
               code={`# 1. Calibrate each camera independently
 pivtools-cli scale-factor --px-per-mm <v> --origin <x> <y>
 
-# 2. Bake the shared frame into every model (needs global_coordinates config)
+# 2. Bake the shared frame into every model
+#    (needs global_coordinates in the settings sidecar)
 pivtools-cli global-frame --board scale_factor
 
 # 3. Emit coordinates in the shared frame
-pivtools-cli apply-calibration --board scale_factor`}
+pivtools-cli apply-calibration --board scale_factor --all-paths`}
             />
 
             <div className="overflow-x-auto mb-6">
@@ -483,10 +484,12 @@ pivtools-cli apply-calibration --board scale_factor`}
                 <strong className="text-yellow-800">Prerequisite</strong>
               </div>
               <p className="text-yellow-700 text-sm">
-                The datum and overlap pairs must exist under{' '}
-                <code className="bg-yellow-100 px-1 rounded">calibration.global_coordinates</code>{' '}
+                The datum and overlap pairs must exist in the settings sidecar at{' '}
+                <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>{' '}
                 before <code className="bg-yellow-100 px-1 rounded">global-frame</code> runs. Set them in
-                the GUI, or edit the YAML directly using the block below.
+                the GUI, or edit the sidecar directly using the block below. If{' '}
+                <code className="bg-yellow-100 px-1 rounded">datum_pixel</code> is missing the command stops
+                and names the file it expected to find.
               </p>
             </div>
           </Section>
@@ -494,31 +497,32 @@ pivtools-cli apply-calibration --board scale_factor`}
           {/* YAML */}
           <Section title="YAML Configuration" icon={<FileText size={32} />} id="yaml">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The datum/overlap configuration lives under{' '}
-              <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibration.global_coordinates</code>.
-              It applies to the global-frame (scale factor) path only — the joint path has no
-              such block.
+              The datum and overlap configuration is a top-level{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">global_coordinates</code> block in the
+              per-source settings sidecar, not in <code className="bg-gray-100 px-2 py-1 rounded text-sm">config.yaml</code>.
+              Anything written under <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibration:</code> in the
+              config is stripped on the next save. It applies to the global-frame path only: the joint solve shares a
+              frame intrinsically and needs no such block.
             </p>
 
             <YamlDropdown
-              title="Global Frame Configuration"
+              title="<source>/calibration/settings.yaml"
               defaultOpen={true}
-              code={`calibration:
-  global_coordinates:
-    enabled: true
-    datum_camera: 1                   # Camera holding the origin
-    datum_pixel: [512.0, 384.0]       # Pixel position of origin on datum camera
-    datum_physical: [0.0, 0.0]        # Physical coordinates (mm) at datum
-    datum_frame: 1                    # Calibration frame used for the datum
-    overlap_pairs:
-      - camera_a: 1
-        camera_b: 2
-        pixel_on_a: [950.0, 400.0]    # Shared feature pixel on camera_a
-        pixel_on_b: [120.0, 400.0]    # Same feature pixel on camera_b
-      - camera_a: 2
-        camera_b: 3
-        pixel_on_a: [930.0, 410.0]
-        pixel_on_b: [100.0, 405.0]`}
+              code={`global_coordinates:
+  enabled: true
+  datum_camera: 1                   # Camera holding the origin
+  datum_pixel: [512.0, 384.0]       # Pixel position of origin on datum camera
+  datum_physical: [0.0, 0.0]        # Physical coordinates (mm) at datum
+  datum_frame: 1
+  overlap_pairs:
+    - camera_a: 1
+      camera_b: 2
+      pixel_on_a: [950.0, 400.0]    # Shared feature pixel on camera_a
+      pixel_on_b: [120.0, 400.0]    # Same feature pixel on camera_b
+    - camera_a: 2
+      camera_b: 3
+      pixel_on_a: [930.0, 410.0]
+      pixel_on_b: [100.0, 405.0]`}
             />
 
             <div className="mt-8">
@@ -566,7 +570,7 @@ pivtools-cli apply-calibration --board scale_factor`}
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Dotboard / ChArUco (joint)</h3>
             <p className="text-gray-700 mb-4">
-              In the GUI, two or more cameras in the calibration tab is always a joint solve — no extra
+              In the GUI, two or more cameras in the calibration tab is always a joint solve -- no extra
               command. On the CLI, ChArUco joint calibration uses{' '}
               <code className="bg-gray-100 px-1 rounded text-sm">detect-joint</code> (see the joint
               section above). Dotboard joint has no headless path.
@@ -582,7 +586,7 @@ pivtools-cli scale-factor --px-per-mm <v> --origin <x> <y>
 pivtools-cli global-frame --board scale_factor
 
 # Emit coordinates in the shared frame
-pivtools-cli apply-calibration --board scale_factor`}
+pivtools-cli apply-calibration --board scale_factor --all-paths`}
             />
           </Section>
 

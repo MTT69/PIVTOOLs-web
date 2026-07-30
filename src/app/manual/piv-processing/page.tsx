@@ -146,13 +146,13 @@ export default function PIVProcessingPage() {
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <Zap className="text-soton-gold" size={22} />
               <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
-              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults -- full reference below</span>
             </div>
             <ol className="space-y-2 text-gray-700">
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Pick a mode: <strong>Instantaneous</strong> for per-pair velocity fields, <strong>Ensemble</strong> for time-averaged flow + Reynolds stresses from many pairs.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Window table <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">[128,128] &rarr; [64,64] &rarr; [32,32]</code> at <strong>50% overlap</strong> covers the vast majority of setups. Drop the final pass to <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">[16,16]</code> with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">single</code> mode for ensemble at max resolution.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Leave the peak finder at default (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">gauss3</code> instantaneous, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">gauss6</code> ensemble). Leave outlier detection and infilling <strong>on</strong>.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Ensemble users: keep <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">fit_method: kspace</code> (the default) &mdash; it is faster and gives more accurate Reynolds stresses than the Gaussian fitter.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Leave the peak finder at default (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">gauss6</code> for both). Leave outlier detection and infilling <strong>on</strong>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Ensemble users: leave <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">fit_method: kspace</code> alone. It is the only ensemble fitter, and it estimates the Reynolds stresses jointly with the noise floor so noise does not bias them.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Run PIV</strong> (GUI) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli instantaneous</code> / <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">ensemble</code>. Come back to this page if results look wrong.</span></li>
             </ol>
           </motion.div>
@@ -174,7 +174,7 @@ export default function PIVProcessingPage() {
                     { label: "Correlation", inst: "Per frame pair", ens: "Averaged across all pairs" },
                     { label: "Use case", inst: "Time-resolved data, turbulence statistics", ens: "Mean flow, low seeding, max resolution" },
                     { label: "Pass types", inst: "Standard only", ens: "Standard + Single mode" },
-                    { label: "Peak finder", inst: "Configurable (gauss3-6)", ens: "Configurable (default gauss6)" },
+                    { label: "Peak finder", inst: "Configurable (gauss3-6, default gauss6)", ens: "Not applicable: the k-space fitter returns displacement directly" },
                     { label: "Live preview", inst: "Yes (per-frame)", ens: "No (accumulated)" },
                     { label: "Resume", inst: "No", ens: "Yes (resume_from_pass)" },
                   ].map((row, idx) => (
@@ -206,9 +206,9 @@ export default function PIVProcessingPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "window_size", format: "[Height, Width]", desc: "Interrogation window in pixels per pass. Each axis must be a built FFT size (8, 12, 16, 24, 32, 48, 64, 96, 128). Rectangular windows supported." },
+                    { param: "window_size", format: "[Height, Width]", desc: "Interrogation window in pixels per pass. Each axis must be a built FFT size (8, 12, 16, 24, 32, 48, 64, 96, 128). On an ensemble single-mode pass this is instead the Frame-A mask support inside sum_window rather than an FFT length, so 4 and 6 are also legal there and the grid spacing follows it. Rectangular windows supported." },
                     { param: "overlap", format: "integer (%)", desc: "Overlap percentage per pass. 50% doubles grid density." },
-                    { param: "runs", format: "list of pass numbers", desc: "Which passes to save (1-based). Last pass always saved." },
+                    { param: "runs", format: "list of pass numbers", desc: "Which passes to save (1-based). The list is honoured exactly; the last pass is saved only as a fallback when the list is empty." },
                     { param: "type (ensemble)", format: "'std' | 'single'", desc: "Standard or single-pixel mode per pass." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -354,7 +354,7 @@ instantaneous_piv:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { setting: "predictor_smoothing", default: "true / false", mode: "Inst / Ens", desc: "Gaussian-smooth the predictor between passes. Recommended for instantaneous (reduces single-pair noise). For ensemble, smoothing can destroy real gradients — leave disabled unless data is very noisy." },
+                    { setting: "predictor_smoothing", default: "true / false", mode: "Inst / Ens", desc: "Gaussian-smooth the predictor between passes. Recommended for instantaneous (reduces single-pair noise). For ensemble, smoothing can destroy real gradients -- leave disabled unless data is very noisy." },
                     { setting: "image_warp_interpolation", default: "cubic", mode: "Both", desc: "Interpolation kernel for image warping during predictor deformation. cubic = bicubic (4\u00d74 stencil), lanczos = Lanczos-3 (6\u00d76 stencil, slightly sharper)." },
                     { setting: "secondary_peak", default: "false", mode: "Instantaneous", desc: "Extract the second-highest correlation peak per window. Useful for reverse flow or multiple particle populations." },
                     { setting: "num_peaks", default: "1", mode: "Instantaneous", desc: "Number of correlation peaks to detect per window. Usually 1; increase for multi-peak analysis." },
@@ -432,7 +432,7 @@ ensemble_piv:
   - y_position: 950
     ux: 0
     uy: 0
-    edge: top`} title="config.yaml — no-slip walls at top and bottom" />
+    edge: top`} title="config.yaml -- no-slip walls at top and bottom" />
           </Section>
 
           {/* Correlation & Fitting */}
@@ -489,7 +489,11 @@ ensemble_piv:
                 <strong>Why <code className="bg-blue-100 px-1 rounded">kspace</code> is the ensemble default:</strong>{' '}
                 The k-space fitter (ensemble only) jointly estimates displacement, Reynolds stresses, the
                 loss-of-correlation gain and the spectral noise floor in one fit, so noise does not bias the
-                stresses. There are no tuning knobs &mdash; the defaults are the validated recipe.
+                stresses. It is the only ensemble fitter. The defaults are the validated recipe and most users should
+                leave them alone, but three knobs exist for cases the default model does not describe well:
+                <code className="bg-blue-100 px-1 rounded">kspace_shape</code>,
+                <code className="bg-blue-100 px-1 rounded">kspace_floor</code> and
+                <code className="bg-blue-100 px-1 rounded">envelope_divide</code>, all documented below.
                 Instantaneous PIV always uses the LM Gaussian peak fitter; the k-space
                 option does not apply there.
               </p>
@@ -506,11 +510,15 @@ ensemble_piv:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { setting: "fit_method", default: "kspace", desc: "'kspace' (Fourier-space one-stage joint LM fit: displacement, stresses, gain, noise floor; default) or 'kspace_linear' (closed-form linear fitter \u2014 cannot fail to converge, robust on hostile experimental data)." },
-                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation': R = <AB> - <A><B> (single-pass, memory efficient). 'image': R = <(A-\u03BCA)(B-\u03BCB)> (two-pass, more stable for k-space). 'window_mean': per-pair per-window mean subtraction inside the correlator. 'correlation+window_mean' / 'image+window_mean': both \u2014 stationary-background removal plus per-pair window-mean removal (per_pair_normalization must be off)" },
+                    { setting: "fit_method", default: "kspace", desc: "'kspace' (Fourier-space one-stage joint LM fit: displacement, stresses, gain, noise floor). This is the only accepted value -- any other raises at config load." },
+                    { setting: "kspace_shape", default: "gaussian", desc: "Displacement-PDF shape assumed by the fit. 'gaussian', or add quartic kurtosis terms with 'kx4', 'ky4' or 'kx4+ky4'. Use a quartic term when the displacement distribution is measurably non-Gaussian along that axis; the Gaussian assumption otherwise biases the stresses." },
+                    { setting: "kspace_floor", default: "coloured", desc: "Noise-floor model. 'coloured' fits an analytic N0*P(k) shaped by the imaging and processing pipeline. 'flat' is the pre-2026-07 constant floor, kept for reproducing older runs." },
+                    { setting: "envelope_divide", default: "false", desc: "Divide AA/BB/AB by the pair-count envelope before fitting. Off leaves the tent attenuation in place, which the fit accounts for. Set true only to reproduce pre-2026-07-27 results." },
+                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation': R = <AB> - <A><B> (single-pass, memory efficient). 'image': R = <(A-\u03BCA)(B-\u03BCB)> (two-pass, more stable for k-space). 'window_mean': per-pair per-window mean subtraction inside the correlator. 'correlation+window_mean' / 'image+window_mean': stationary-background removal plus per-pair window-mean removal. 'correlation+dc_zero' / 'image+dc_zero': zero the DC bin after correlation in Fourier space, with no per-pair mean." },
+                    { setting: "per_pair_normalization", default: "false", desc: "Equalises fluctuation-energy weighting across pairs. Only legal when background_subtraction_method is exactly 'window_mean' -- any combined mode raises." },
                     { setting: "gradient_correction", default: "false", desc: "Reynolds stress gradient correction near walls" },
                     { setting: "store_planes", default: "false", desc: "Save AA, BB, AB correlation planes to disk (large files)" },
-                    { setting: "save_diagnostics", default: "false", desc: "Warped-image diagnostics under filters/. With the LM fitter also a per-window fit_diagnostics_pass_N.mat (snr, N0_abs, k_max_x/y, n_valid, stage-1/2 convergence and iterations, s2_cost_per_pt, status). The linear fitter writes no diagnostics." },
+                    { setting: "save_diagnostics", default: "false", desc: "Warped-image diagnostics under filters/, plus a per-window fit_diagnostics_pass_N.mat holding gain, N0, cost_per_pt, n_valid, iter, conv and status (with b4x/b4y when a quartic shape is active). Each file also records the settings that produced it: pass_idx, n_pairs, bg_method, per_pair_normalization, gain_normalised, kspace_shape and kspace_floor." },
                     { setting: "resume_from_pass", default: "0", desc: "Resume from pass N (1-based). 0 = fresh start. Requires existing ensemble_result.mat." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -525,26 +533,28 @@ ensemble_piv:
 
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
               <p className="text-blue-700 text-sm">
-                <strong>Backwards compatible.</strong> The 2026-07 additions (<code className="bg-blue-100 px-1 rounded">window_mean</code>, <code className="bg-blue-100 px-1 rounded">per_pair_normalization</code>, <code className="bg-blue-100 px-1 rounded">predictor_rounding</code>, <code className="bg-blue-100 px-1 rounded">kspace_linear</code>) all default to the legacy/off behaviour \u2014 existing configs run unchanged.
+                <strong>Two defaults changed.</strong> <code className="bg-blue-100 px-1 rounded">kspace_floor</code> is now <code className="bg-blue-100 px-1 rounded">coloured</code> rather than flat, and <code className="bg-blue-100 px-1 rounded">envelope_divide</code> is now off where the divide previously always happened. Both change your numbers, and both can be switched back to reproduce an older run. The other recent additions (<code className="bg-blue-100 px-1 rounded">window_mean</code>, <code className="bg-blue-100 px-1 rounded">per_pair_normalization</code>, <code className="bg-blue-100 px-1 rounded">predictor_rounding</code>, <code className="bg-blue-100 px-1 rounded">kspace_shape</code>) all default to the legacy or off behaviour, so existing configs otherwise run unchanged.
               </p>
             </div>
 
             <h4 className="text-lg font-semibold text-gray-900 mb-3">Brightness controls for difficult experimental data</h4>
             <p className="text-gray-700 text-lg mb-4">
-              Three controls address distinct brightness artefacts and compose. The <code className="bg-gray-100 px-1 rounded">meannorm</code> preprocessing filter (<code className="bg-gray-100 px-1 rounded">filters: [{'{'}type: meannorm{'}'}]</code> \u2014 an image filter, not an <code className="bg-gray-100 px-1 rounded">ensemble_piv</code> key) divides each frame by its spatial mean and fixes multiplicative gain. <code className="bg-gray-100 px-1 rounded">window_mean</code> removes the additive per-pair pedestal. <code className="bg-gray-100 px-1 rounded">per_pair_normalization</code> equalises fluctuation-energy weighting across pairs.
+              Three controls address distinct brightness artefacts and compose. The <code className="bg-gray-100 px-1 rounded">meannorm</code> preprocessing filter (<code className="bg-gray-100 px-1 rounded">filters: [{'{'}type: meannorm{'}'}]</code> -- an image filter, not an <code className="bg-gray-100 px-1 rounded">ensemble_piv</code> key) divides each frame by its spatial mean and fixes multiplicative gain. <code className="bg-gray-100 px-1 rounded">window_mean</code> removes the additive per-pair pedestal. <code className="bg-gray-100 px-1 rounded">per_pair_normalization</code> equalises fluctuation-energy weighting across pairs.
             </p>
             <p className="text-gray-700 text-lg mb-4">
-              Recommended escalation ladder when ensemble results degrade on experimental data: <code className="bg-gray-100 px-1 rounded">meannorm</code> \u2192 <code className="bg-gray-100 px-1 rounded">window_mean</code> \u2192 add <code className="bg-gray-100 px-1 rounded">per_pair_normalization</code> \u2192 add <code className="bg-gray-100 px-1 rounded">predictor_rounding</code> and/or switch to <code className="bg-gray-100 px-1 rounded">fit_method: kspace_linear</code>.
+              Recommended escalation ladder when ensemble results degrade on experimental data: <code className="bg-gray-100 px-1 rounded">gain_normalisation</code> &rarr; <code className="bg-gray-100 px-1 rounded">meannorm</code> &rarr; <code className="bg-gray-100 px-1 rounded">window_mean</code> &rarr; add <code className="bg-gray-100 px-1 rounded">per_pair_normalization</code> &rarr; add <code className="bg-gray-100 px-1 rounded">predictor_rounding</code>. If the stresses still look wrong and you have reason to think the displacement PDF is non-Gaussian, try a quartic <code className="bg-gray-100 px-1 rounded">kspace_shape</code>.
             </p>
 
-            <CodeBlock code={`filters:
+            <CodeBlock code={`preprocessing:
+  gain_normalisation: true        # divide out per-frame laser gain first
+
+filters:
 - type: meannorm          # image filter: fixes multiplicative gain
 
 ensemble_piv:
   background_subtraction_method: window_mean
-  per_pair_normalization: true    # requires window_mean
-  predictor_rounding: true
-  fit_method: kspace_linear       # cannot fail to converge`} title="config.yaml \u2014 difficult-data recipe" />
+  per_pair_normalization: true    # requires exactly window_mean
+  predictor_rounding: true`} title="config.yaml -- difficult-data recipe" />
           </Section>
 
           {/* Performance */}
@@ -566,12 +576,11 @@ ensemble_piv:
                   {[
                     { setting: "backend", default: "cpu", desc: "Processing backend" },
                     { setting: "omp_threads", default: "4", desc: "OpenMP threads per worker for C extensions" },
-                    { setting: "dask_workers_per_node", default: "2", desc: "Number of parallel Dask workers" },
-                    { setting: "dask_memory_limit", default: "8GB", desc: "RAM allocation per worker" },
+                    { setting: "dask_workers_per_node", default: "1", desc: "Number of parallel Dask workers" },
+                    { setting: "dask_memory_limit", default: "12GB", desc: "RAM allocation per worker" },
                     { setting: "dask_max_in_flight_per_worker", default: "3", desc: "Max concurrent tasks queued per worker. Higher values (4-6) improve I/O pipelining on HPC with fast storage." },
                     { setting: "open_dashboard", default: "false", desc: "Auto-open the Dask performance dashboard in your browser when processing starts" },
                     { setting: "cluster_type", default: "local", desc: "'local' or 'slurm'" },
-                    { setting: "filter_worker_count", default: "1", desc: "Workers for preprocessing. Set 1 for temporal filters, 2+ for spatial-only." },
                     { setting: "auto_compute_params", default: "false", desc: "Auto-compute omp_threads, dask_workers, and dask_memory from system resources" },
                     { setting: "n_nodes", default: "1", desc: "Number of compute nodes (SLURM cluster only)" },
                     { setting: "slurm_walltime", default: "01:00:00", desc: "Job walltime for SLURM submissions" },
@@ -591,12 +600,11 @@ ensemble_piv:
             <CodeBlock code={`processing:
   backend: cpu
   omp_threads: 4
-  dask_workers_per_node: 2
-  dask_memory_limit: 8GB
+  dask_workers_per_node: 1
+  dask_memory_limit: 12GB
   dask_max_in_flight_per_worker: 3
   open_dashboard: false
-  cluster_type: local
-  filter_worker_count: 1`} title="config.yaml" />
+  cluster_type: local`} title="config.yaml" />
           </Section>
 
           {/* Outlier Detection */}
@@ -617,13 +625,23 @@ ensemble_piv:
                 <tbody className="divide-y divide-gray-100">
                   <tr className="bg-white">
                     <td className="px-4 py-3 font-mono text-purple-600">peak_mag</td>
-                    <td className="px-4 py-3 text-gray-600">threshold: 0.4</td>
+                    <td className="px-4 py-3 text-gray-600">threshold: 0.2</td>
                     <td className="px-4 py-3 text-gray-600">Reject vectors with correlation peak below threshold</td>
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="px-4 py-3 font-mono text-purple-600">median_2d</td>
-                    <td className="px-4 py-3 text-gray-600">epsilon: 0.2, threshold: 2.0</td>
-                    <td className="px-4 py-3 text-gray-600">Normalised median test against 8 neighbours</td>
+                    <td className="px-4 py-3 text-gray-600">epsilon: 0.1, threshold: 2, size: 5</td>
+                    <td className="px-4 py-3 text-gray-600">PIVware-style normalised median test on the vector norm over a size x size neighbourhood (default 5, so 24 neighbours). The vector is judged as a whole rather than per component.</td>
+                  </tr>
+                  <tr className="bg-white">
+                    <td className="px-4 py-3 font-mono text-purple-600">sigma</td>
+                    <td className="px-4 py-3 text-gray-600">sigma_threshold</td>
+                    <td className="px-4 py-3 text-gray-600">Reject vectors further than N local standard deviations from the local mean.</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="px-4 py-3 font-mono text-purple-600">div_vort</td>
+                    <td className="px-4 py-3 text-gray-600">div_thresh, vort_thresh</td>
+                    <td className="px-4 py-3 text-gray-600">Reject on divergence and vorticity magnitude. Leave either unset for an automatic MAD-based threshold. CLI only, not exposed in the GUI.</td>
                   </tr>
                 </tbody>
               </table>
@@ -634,16 +652,18 @@ ensemble_piv:
   enabled: true
   methods:
   - type: peak_mag
-    threshold: 0.4
+    threshold: 0.2
   - type: median_2d
-    epsilon: 0.2
-    threshold: 2`} title="Instantaneous" />
+    epsilon: 0.1
+    threshold: 2
+    size: 5`} title="Instantaneous" />
               <CodeBlock code={`ensemble_outlier_detection:
   enabled: true
   methods:
   - type: median_2d
-    epsilon: 0.2
-    threshold: 2`} title="Ensemble" />
+    epsilon: 0.1
+    threshold: 2
+    size: 5`} title="Ensemble" />
             </div>
           </Section>
 
@@ -709,10 +729,9 @@ ensemble_piv:
                   {[
                     { code: '-1', stage: 'Pre-fitting', desc: 'Masked vector (outside ROI / polygon mask)' },
                     { code: '0', stage: 'Success', desc: 'Fit succeeded and passed all validation checks' },
-                    { code: '1', stage: 'Fitting', desc: 'Fit failed: LM did not converge (kspace) or the linear least-squares system is underdetermined / singular (kspace_linear)' },
+                    { code: '1', stage: 'Fitting', desc: 'Fit failed: the LM solve did not converge' },
                     { code: '2', stage: 'Post-fit validation', desc: 'SNR too low' },
                     { code: '3', stage: 'Post-fit validation', desc: 'Displacement exceeds 3/4 window rule (peak too far from centre)' },
-                    { code: '4', stage: 'Fitting', desc: 'Singular phase solve (kspace_linear only): sub-pixel phase fit failed, displacement is integer-peak only' },
                     { code: '5', stage: 'Post-fit validation', desc: 'Negative sigma / variance values (unphysical fit)' },
                     { code: '6', stage: 'Displacement check', desc: 'Displacement exceeds 3/4 window rule (checked in accumulator)' },
                     { code: '10', stage: 'Outlier detection', desc: 'Velocity outlier: fit succeeded but flagged by median-based displacement outlier detection' },
@@ -813,11 +832,13 @@ processing:
                     { path: 'instantaneous_piv.num_peaks', inst: 'Y', ens: '-', desc: 'Number of peaks to detect (default 1)' },
                     { path: 'ensemble_piv.type', inst: '-', ens: 'Y', desc: 'Per-pass: std or single' },
                     { path: 'ensemble_piv.sum_window', inst: '-', ens: 'Y', desc: '[H, W] for single mode' },
-                    { path: 'ensemble_piv.fit_method', inst: '-', ens: 'Y', desc: 'kspace (one-stage joint LM) or kspace_linear (closed-form)' },
+                    { path: 'ensemble_piv.fit_method', inst: '-', ens: 'Y', desc: 'kspace (one-stage joint LM). Only accepted value.' },
+                    { path: 'ensemble_piv.kspace_shape', inst: '-', ens: 'Y', desc: 'gaussian / kx4 / ky4 / kx4+ky4 (default gaussian)' },
+                    { path: 'ensemble_piv.kspace_floor', inst: '-', ens: 'Y', desc: 'coloured / flat (default coloured)' },
+                    { path: 'ensemble_piv.envelope_divide', inst: '-', ens: 'Y', desc: 'Divide by the pair-count envelope (default false)' },
+                    { path: 'preprocessing.gain_normalisation', inst: 'Y', ens: 'Y', desc: 'Per-frame laser-gain divide (default false)' },
                     { path: 'ensemble_piv.background_subtraction_method', inst: '-', ens: 'Y', desc: 'correlation, image, window_mean, correlation+window_mean or image+window_mean' },
                     { path: 'ensemble_piv.gradient_correction', inst: '-', ens: 'Y', desc: 'Reynolds stress gradient correction' },
-                    { path: 'ensemble_piv.fit_offset', inst: '-', ens: 'Y', desc: 'Include offset in Gaussian fit (default true)' },
-                    { path: 'ensemble_piv.mask_center_pixel', inst: '-', ens: 'Y', desc: 'Mask autocorrelation center pixel (default true)' },
                     { path: 'ensemble_piv.persist_images', inst: '-', ens: 'Y', desc: 'Keep filtered images in worker RAM (default false)' },
                     { path: 'ensemble_piv.image_warp_interpolation', inst: '-', ens: 'Y', desc: 'Image warp kernel: cubic or lanczos' },
                     { path: 'instantaneous_piv.image_warp_interpolation', inst: 'Y', ens: '-', desc: 'Image warp kernel: cubic or lanczos (default cubic)' },
@@ -834,8 +855,8 @@ processing:
                     { path: 'infilling.*', inst: 'Y', ens: '-', desc: 'mid_pass + final_pass config' },
                     { path: 'ensemble_infilling.*', inst: '-', ens: 'Y', desc: 'Same structure as infilling' },
                     { path: 'processing.omp_threads', inst: 'Y', ens: 'Y', desc: 'OpenMP threads (default 4)' },
-                    { path: 'processing.dask_workers_per_node', inst: 'Y', ens: 'Y', desc: 'Dask workers (default 2)' },
-                    { path: 'processing.dask_memory_limit', inst: 'Y', ens: 'Y', desc: 'Per-worker RAM (default 8GB)' },
+                    { path: 'processing.dask_workers_per_node', inst: 'Y', ens: 'Y', desc: 'Dask workers (default 1)' },
+                    { path: 'processing.dask_memory_limit', inst: 'Y', ens: 'Y', desc: 'Per-worker RAM (default 12GB)' },
                     { path: 'processing.dask_max_in_flight_per_worker', inst: 'Y', ens: 'Y', desc: 'Max tasks per worker (default 3)' },
                     { path: 'processing.open_dashboard', inst: 'Y', ens: 'Y', desc: 'Auto-open Dask dashboard (default false)' },
                     { path: 'processing.cluster_type', inst: 'Y', ens: 'Y', desc: 'local or slurm' },
@@ -861,14 +882,16 @@ processing:
   ensemble: false
   backend: cpu
   omp_threads: 4
-  dask_workers_per_node: 2
-  dask_memory_limit: 8GB
+  dask_workers_per_node: 1
+  dask_memory_limit: 12GB
   dask_max_in_flight_per_worker: 3
   open_dashboard: false
   cluster_type: local
-  filter_worker_count: 1
   auto_compute_params: false
   post_processing_workers: null
+
+preprocessing:
+  gain_normalisation: false
 
 instantaneous_piv:
   window_size:
@@ -909,13 +932,14 @@ ensemble_piv:
   - 64
   window_type: square
   fit_method: kspace
+  kspace_shape: gaussian
+  kspace_floor: coloured
+  envelope_divide: false
   background_subtraction_method: correlation
   skip_background_subtraction: false
   per_pair_normalization: false
   predictor_rounding: false
   gradient_correction: false
-  fit_offset: true
-  mask_center_pixel: true
   persist_images: false
   predictor_smoothing: false
   image_warp_interpolation: cubic
@@ -934,19 +958,21 @@ outlier_detection:
   - type: peak_mag
     threshold: 0.4
   - type: median_2d
-    epsilon: 0.2
+    epsilon: 0.1
     threshold: 2
+    size: 5
 
 ensemble_outlier_detection:
   enabled: true
   methods:
   - type: median_2d
-    epsilon: 0.2
+    epsilon: 0.1
     threshold: 2
+    size: 5
 
 infilling:
   mid_pass:
-    method: biharmonic
+    method: nearest
     parameters: {}
   final_pass:
     enabled: true
@@ -955,7 +981,7 @@ infilling:
 
 ensemble_infilling:
   mid_pass:
-    method: biharmonic
+    method: nearest
     parameters: {}
   final_pass:
     enabled: true

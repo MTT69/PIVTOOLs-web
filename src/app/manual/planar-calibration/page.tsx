@@ -159,20 +159,35 @@ export default function PlanarCalibrationPage() {
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <CheckCircle className="text-soton-gold" size={22} />
               <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
-              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults -- full reference below</span>
             </div>
             <ol className="space-y-2 text-gray-700">
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Put calibration images in <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">source_path/CamN/calibration/</code> (default layout). Configure image format and count in the calibration tab.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Pick a method by target type: <strong>Scale Factor</strong> if you have a known px/mm, <strong>Dotboard</strong> for circular dot grids, <strong>ChArUco</strong> for occlusion-tolerant targets, <strong>Polynomial</strong> to import an existing LaVision <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">Calibration.xml</code>.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Enter board parameters: <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_cols</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_rows</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dot_spacing_mm</code> (dotboard) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">squares_h/v</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">square_size</code> (ChArUco). Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dt</code> to the time between laser pulses in seconds.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Point <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">calibration_sources</code> at the folder holding your calibration images. Per-camera subfolders are opt-in, not the default. Seed the settings sidecar with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli init-settings</code> or fill in the calibration tab.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Pick a method by target type: <strong>Scale Factor</strong> if you have a known px/mm, <strong>Dotboard</strong> for circular dot grids, <strong>ChArUco</strong> for occlusion-tolerant targets, <strong>Polynomial</strong> as a camera model on top of a dotboard or ChArUco detection when a pinhole fit is not flexible enough.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Enter board parameters: <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_cols</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_rows</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dot_spacing_mm</code> (dotboard) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">squares_h/v</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">square_size</code> (ChArUco). Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">rig.dt</code> to the time between laser pulses in seconds. It is required before a model can be generated and is never defaulted.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Click <strong>Detect One</strong> to verify detection on a single frame before running the full sequence. Detected dots/corners are overlaid in the viewer.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Generate Model</strong>. Aim for RMS reprojection error below <strong>0.5 px</strong>.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Multi-camera setups with shared features also need Global Coordinates &mdash; see the bottom of this page.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Multi-camera setups with shared features also need Global Coordinates -- see the bottom of this page.</span></li>
             </ol>
           </motion.div>
 
           {/* Overview */}
           <Section title="Overview" icon={<Target size={32} />} id="overview">
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-800 text-sm">
+                <strong>Calibration settings live beside your images, not in config.yaml.</strong> The{' '}
+                <code className="bg-yellow-100 px-1 rounded">calibration:</code> block in{' '}
+                <code className="bg-yellow-100 px-1 rounded">config.yaml</code> is a four-key pointer saying which
+                source and which method are active. Image format, board geometry, and the rig{' '}
+                <code className="bg-yellow-100 px-1 rounded">dt</code> live in a per-source sidecar at{' '}
+                <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>. Create one
+                with <code className="bg-yellow-100 px-1 rounded">pivtools-cli init-settings --source &lt;dir&gt;</code>{' '}
+                or by filling in the calibration tab. The image format is required when the settings are read and{' '}
+                <code className="bg-yellow-100 px-1 rounded">rig.dt</code> when a model is generated, so a missing
+                value stops the run instead of quietly defaulting.
+              </p>
+            </div>
+
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Calibration converts raw PIV results from pixel displacements to physical units.
               Choose a method based on your target type and required accuracy.
@@ -327,7 +342,6 @@ export default function PlanarCalibrationPage() {
             </div>
 
             <div className="bg-green-50 border-l-4 border-green-400 p-4">
-            <div className="bg-green-50 border-l-4 border-green-400 p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Info className="text-green-600" size={18} />
                 <strong className="text-green-800">Platform Note</strong>
@@ -339,13 +353,19 @@ export default function PlanarCalibrationPage() {
             </div>
 
             <YamlDropdown
-              title="config.yaml - Calibration Image Settings"
-              code={`calibration:
+              title="Where the image settings live"
+              code={`# config.yaml -- the pointer only
+calibration:
   calibration_sources:
     - /data/experiment/calibration
-  image_format: calib%05d.tif
-  image_type: standard
+  source_idx: 0
+
+# <source>/calibration/settings.yaml -- everything else
+image:
+  image_format: calib%05d.tif   # REQUIRED, no default
+  image_type: standard          # REQUIRED
   n_views: 19
+  start_index: 1
   zero_based_indexing: false
   use_camera_subfolders: true
   camera_subfolders: ["Cam1", "Cam2"]`}
@@ -426,14 +446,19 @@ export default function PlanarCalibrationPage() {
             </div>
 
             <YamlDropdown
-              title="config.yaml - Scale Factor"
-              code={`calibration:
+              title="Scale Factor settings"
+              code={`# config.yaml
+calibration:
   active: scale_factor
+
+# <source>/calibration/settings.yaml
+rig:
+  dt: 0.56                # REQUIRED before generating a model
+methods:
   scale_factor:
     px_per_mm: 3.41
-    dt: 0.56
-  # The picked origin (px + mm) and axis directions are stored in the
-  # model .mat record in the calibration source folder, not in config.`}
+# The picked origin (px + mm) and axis directions are stored in the
+# model .mat record in the calibration source folder, not in either file.`}
             />
           </Section>
 
@@ -558,17 +583,21 @@ export default function PlanarCalibrationPage() {
             </div>
 
             <YamlDropdown
-              title="config.yaml - Dotboard"
-              code={`calibration:
+              title="Dotboard settings"
+              code={`# config.yaml
+calibration:
   active: dotboard
-  dt: 0.0057553          # seconds between frames (top-level, shared)
+
+# <source>/calibration/settings.yaml
+rig:
+  dt: 0.0057553          # REQUIRED; shared by every board on this source
+methods:
   dotboard:
-    dot_spacing_mm: 15.0
+    dot_spacing_mm: 15.0 # REQUIRED; no default
     k_neighbors: 9
     model_type: pinhole  # pinhole | polynomial
-    fix_k2: false
-  # World-frame clicks are NOT stored in config -- they live in the
-  # model's inputs.mat sidecar (see Persistence & Caching below).`}
+# World-frame clicks are NOT stored in either file -- they live in the
+# model's inputs.mat sidecar (see Persistence & Caching below).`}
             />
           </Section>
 
@@ -646,14 +675,19 @@ export default function PlanarCalibrationPage() {
             </div>
 
             <YamlDropdown
-              title="config.yaml - ChArUco"
-              code={`calibration:
+              title="ChArUco settings"
+              code={`# config.yaml
+calibration:
   active: charuco
-  dt: 0.0057553          # seconds between frames (top-level, shared)
+
+# <source>/calibration/settings.yaml
+rig:
+  dt: 0.0057553          # REQUIRED; shared by every board on this source
+methods:
   charuco:
-    squares_h: 10
-    squares_v: 7
-    square_size: 0.03    # metres
+    squares_h: 10        # REQUIRED; no default
+    squares_v: 7         # REQUIRED; no default
+    square_size: 0.03    # REQUIRED; metres (ChArUco native unit)
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6
@@ -733,13 +767,17 @@ export default function PlanarCalibrationPage() {
 
             <YamlDropdown
               title="config.yaml - Polynomial (a model type, not a separate block)"
-              code={`calibration:
-  active: dotboard        # or charuco
+              code={`# config.yaml
+calibration:
+  active: dotboard          # or charuco
+
+# <source>/calibration/settings.yaml
+methods:
   dotboard:
     dot_spacing_mm: 15.0
-    model_type: polynomial   # <- selects the polynomial camera model
-  # The fitted coefficients, normalisation, and per-axis RMS live in
-  # model_polynomial.mat in the calibration source folder, not in config.`}
+    model_type: polynomial  # <- selects the polynomial camera model
+# The fitted coefficients, normalisation, and per-axis RMS live in
+# model_polynomial.mat in the calibration source folder, not in either file.`}
             />
           </Section>
 
@@ -762,14 +800,20 @@ export default function PlanarCalibrationPage() {
               seeds its parameter panel from the loaded model.
             </p>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3">What Lives in config.yaml</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Where each thing lives</h3>
             <p className="text-gray-700 mb-6">
-              Only what you type or select before detecting: image/source settings, dt, the datum
-              selection, the per-board geometry seed, the{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">model_type</code> selections, the{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">scale_factor</code> block, and{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">global_coordinates</code>.
-              <strong> Clicks are never written to config</strong> -- the sidecar is authoritative.
+              There are three homes, and it is worth knowing which is which.{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">config.yaml</code> holds only a four-key pointer
+              saying which source and which method are active. The per-source{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">settings.yaml</code> sidecar holds everything you
+              type before detecting: image settings, the rig <code className="bg-gray-100 px-1 rounded text-sm">dt</code>,
+              board geometry, model-type selections, and the global-coordinates block. The model&apos;s{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code> sidecar holds everything you click.
+            </p>
+            <p className="text-gray-700 mb-6">
+              Writing board geometry under <code className="bg-gray-100 px-1 rounded text-sm">calibration:</code> in
+              config.yaml has no effect. Those keys are stripped the next time the config is saved, and the values you
+              expected to be used silently disappear.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Caching</h3>
@@ -831,16 +875,16 @@ pivtools-cli detect-joint --cameras 1,2,3
             <h3 className="text-xl font-bold text-gray-900 mb-3">Step 2: Apply Calibration</h3>
             <CodeBlock
               title="Apply Calibration"
-              code={`# Use active method from config.yaml
-pivtools-cli apply-calibration
+              code={`# Use the active method from config.yaml
+pivtools-cli apply-calibration --all-paths
 
 # Choose the board / method
-pivtools-cli apply-calibration --board dotboard
-pivtools-cli apply-calibration --board charuco
-pivtools-cli apply-calibration --board scale_factor
+pivtools-cli apply-calibration --board dotboard --all-paths
+pivtools-cli apply-calibration --board charuco --all-paths
+pivtools-cli apply-calibration --board scale_factor --all-paths
 
 # Specific camera + data type
-pivtools-cli apply-calibration --camera 1 --type-name ensemble
+pivtools-cli apply-calibration --camera 1 --type-name ensemble --all-paths
 
 # All source paths
 pivtools-cli apply-calibration --all-paths`}
@@ -886,7 +930,7 @@ pivtools-cli detect-charuco
 pivtools-cli instantaneous
 
 # 3. Apply calibration to vectors
-pivtools-cli apply-calibration`}
+pivtools-cli apply-calibration --board dotboard --all-paths`}
             />
           </Section>
 
@@ -895,53 +939,70 @@ pivtools-cli apply-calibration`}
             <YamlDropdown
               title="Full Planar Calibration Configuration"
               defaultOpen={true}
-              code={`calibration:
-  # --- Image sourcing ---
+              code={`# ============================================================
+# config.yaml -- a four-key pointer, nothing more.
+# Anything else written under calibration: is stripped on save.
+# ============================================================
+calibration:
   calibration_sources:
     - /data/experiment/calibration
-  image_format: calib%05d.tif
-  image_type: standard        # standard | cine | lavision_set | lavision_im7
-  n_views: 19
+  source: ''                  # '' means use calibration_sources[source_idx]
+  source_idx: 0
+  active: dotboard            # charuco | dotboard | stepped | scale_factor
+                              # | stereo_charuco | stereo_dotboard | stepped_stereo
+
+# ============================================================
+# <source>/calibration/settings.yaml -- everything else.
+# Seed it with: pivtools-cli init-settings --source <dir>
+# ============================================================
+image:
+  image_format: calib%05d.tif # REQUIRED at read; no default
+  image_type: standard        # REQUIRED. standard | cine | lavision_set | lavision_im7
+  n_views: 19                 # optional; frame-count auto-detect is the fallback
+  start_index: 1
   zero_based_indexing: false
   use_camera_subfolders: true
   camera_subfolders: ["Cam1", "Cam2"]
+
+rig:
+  camera: 1
+  dt: 0.0057553               # REQUIRED before generate; never defaulted
+  datum_frame: 1              # 1-based
+  interpolator: lanczos
   piv_type: instantaneous     # data type for Calibrate Vectors
 
-  # --- Calibration math ---
-  active: dotboard            # charuco | dotboard | scale_factor
-  source_idx: 0               # index into calibration_sources
-  datum_index: 0              # datum frame (world-frame clicks live here)
-  camera: 1
-  dt: 0.0057553               # seconds between frames -- rig-specific
+fit:
+  distortion_model: standard
+  fix_aspect_ratio: true      # forces fx == fy
 
-  # Per-board geometry seed + model selection
+# One block per physical board, shared by that board's mono and stereo
+# flows. The mono/stereo distinction lives in calibration.active.
+methods:
   dotboard:
-    dot_spacing_mm: 15.0
+    dot_spacing_mm: null      # REQUIRED at generate; no default
     k_neighbors: 9
     model_type: pinhole       # pinhole | polynomial
-    fix_k2: false
   charuco:
-    squares_h: 10
-    squares_v: 7
-    square_size: 0.03         # metres
+    squares_h: null           # REQUIRED at generate
+    squares_v: null           # REQUIRED at generate
+    square_size: null         # REQUIRED at generate; metres
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6
     model_type: pinhole
   scale_factor:
-    px_per_mm: 3.41
-    dt: 0.56
+    px_per_mm: null           # REQUIRED at generate
 
-  # Multi-camera global frame (scale-factor path -- see Global Coordinates)
-  global_coordinates:
-    enabled: false
-    datum_camera: 1
-    datum_pixel: null
-    datum_physical: [0.0, 0.0]
-    datum_frame: 1
-    overlap_pairs: []
+# Multi-camera global frame (scale-factor path -- see Global Coordinates)
+global_coordinates:
+  enabled: false
+  datum_camera: 1
+  datum_pixel: null
+  datum_physical: [0.0, 0.0]
+  datum_frame: 1
+  overlap_pairs: []
 
-# World-frame clicks and detections are NOT in config -- they persist in
+# World-frame clicks and detections are in neither file -- they persist in
 # the model's inputs.mat sidecar in the calibration source folder.`}
             />
           </Section>

@@ -155,13 +155,13 @@ export default function ImageConfigurationPage() {
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <CheckCircle className="text-soton-gold" size={22} />
               <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
-              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults -- full reference below</span>
             </div>
             <ol className="space-y-2 text-gray-700">
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Add one or more <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">source_paths</code> (raw images) with matching <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">base_paths</code> (outputs).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_type</code> (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">standard</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">cine</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_im7</code>, or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_set</code>) and <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_format</code> (e.g. <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">B%05d.tif</code>).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">num_images</code> to frame pairs <em>per acquisition loop</em> (not total files across loops).</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Pick a <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pairing_preset</code> from the table below &mdash; most users want <strong>A/B Format</strong> (separate <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_A</code>/<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_B</code> files) or <strong>Time Resolved</strong> (overlapping consecutive frames).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Pick a <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pairing_preset</code> from the table below -- most users want <strong>A/B Format</strong> (separate <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_A</code>/<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_B</code> files) or <strong>Time Resolved</strong> (overlapping consecutive frames).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Save. Validation runs automatically: green = ready to process, yellow/red = check the filename pattern, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">start_index</code>, and count.</span></li>
             </ol>
           </motion.div>
@@ -246,7 +246,7 @@ export default function ImageConfigurationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { type: "Standard", yaml: "standard", desc: "Individual image files (.tif, .png, .jpg, .raw, .cr2, .nef, .arw). One frame per file. Camera RAW needs the optional rawpy dependency." },
+                    { type: "Standard", yaml: "standard", desc: "Individual image files (.tif, .png, .jpg, .raw, .cr2, .nef, .arw). One frame per file. Camera RAW is handled by rawpy, which ships as a core dependency." },
                     { type: "Phantom CINE", yaml: "cine", desc: "High-speed camera container. One .cine file per camera, all frames inside." },
                     { type: "LaVision SET", yaml: "lavision_set", desc: "Single .set file with all cameras and timesteps." },
                     { type: "LaVision IM7", yaml: "lavision_im7", desc: "One .im7 file per timestep. May contain multiple cameras." },
@@ -299,6 +299,16 @@ export default function ImageConfigurationPage() {
   camera_numbers: [1]
   camera_subfolders: []`}
                 />
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mt-4">
+                  <p className="text-blue-800 text-sm">
+                    <strong>Single camera always reads from the source root.</strong> When
+                    <code className="bg-blue-100 px-1 rounded">camera_count</code> is 1, images resolve at the source
+                    path itself and any <code className="bg-blue-100 px-1 rounded">camera_subfolders</code> entry is
+                    ignored as leftover state from an earlier multi-camera session. This is a rule rather than a
+                    convention, and it is what stops a stale <code className="bg-blue-100 px-1 rounded">Cam1</code>
+                    entry from silently redirecting a one-camera dataset.
+                  </p>
+                </div>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-6">
@@ -487,6 +497,18 @@ export default function ImageConfigurationPage() {
               C-style format specifiers define how frame numbers appear in filenames.
             </p>
 
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-800 text-sm">
+                <strong><code className="bg-blue-100 px-1 rounded">image_format</code> is always a list.</strong> A bare
+                string is coerced into a one-entry list on load, so
+                <code className="bg-blue-100 px-1 rounded">image_format: [&quot;cine&quot;]</code> and
+                <code className="bg-blue-100 px-1 rounded">image_format: cine</code> behave identically. Write it as a
+                list if you are generating config files programmatically. An empty list falls back to the built-in
+                defaults, which use <code className="bg-blue-100 px-1 rounded">.tiff</code> rather than
+                <code className="bg-blue-100 px-1 rounded">.tif</code>.
+              </p>
+            </div>
+
             <div className="overflow-x-auto mb-8">
               <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
                 <thead className="bg-gray-100">
@@ -545,13 +567,16 @@ export default function ImageConfigurationPage() {
               <div className="bg-gray-50 rounded-lg p-6">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Vector Output Pattern</h4>
                 <p className="text-gray-600 mb-3">
-                  Naming pattern for output .mat files.
+                  Naming pattern for output .mat files. Note that
+                  <code className="bg-gray-100 px-1 rounded ml-1">dtype</code> is unrelated -- it sets the dtype the
+                  <em> input images</em> are loaded as, not the type of the vector output.
                 </p>
                 <YamlDropdown
                   code={`images:
   vector_format:
     - '%05d.mat'   # Output: 00001.mat, 00002.mat, ...
-  dtype: float32   # uint8 | uint16 | float32 | float64`}
+  dtype: float32   # dtype used when LOADING images
+                   # uint8 | uint16 | float32 | float64`}
                 />
               </div>
             </div>
@@ -638,7 +663,7 @@ paths:
           {/* Multi-Loop Acquisition Section */}
           <Section title="Multi-Loop Acquisition" icon={<Layers size={32} />} id="multi-loop">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Some experiments record data across multiple acquisition loops &mdash; separate source
+              Some experiments record data across multiple acquisition loops -- separate source
               folders that should be combined into a single dataset for processing. Set{' '}
               <code className="bg-gray-100 px-2 py-1 rounded text-sm">num_loops</code> to tell
               PIVTools how many loops to stitch together. All loops must have the same number of
@@ -707,7 +732,7 @@ paths:
 
 paths:
   source_paths:
-    - /data/experiment_0   # Loop 0 — loops 1-4 auto-discovered
+    - /data/experiment_0   # Loop 0 -- loops 1-4 auto-discovered
   base_paths:
     - /data/results`}
             />
@@ -757,7 +782,7 @@ paths:
                 <li>-- <strong>Files not found:</strong> Check source path and filename pattern (capitalisation, padding, underscores).</li>
                 <li>-- <strong>Wrong count:</strong> Verify num_images matches actual file count.</li>
                 <li>-- <strong>First file missing:</strong> Check start_index (0 vs 1).</li>
-                <li>-- <strong>RAW formats:</strong> .raw/.cr2/.nef/.arw require the optional rawpy dependency.</li>
+                <li>-- <strong>RAW formats:</strong> .raw/.cr2/.nef/.arw are read via rawpy, a core dependency -- no extra install needed.</li>
               </ul>
             </div>
           </Section>
@@ -770,8 +795,12 @@ paths:
 ├── calibrated_piv/{num_pairs}/Merged/instantaneous/   # Merged cameras
 ├── stereo_calibrated/{num_pairs}/Cam1_Cam2/           # Stereo 3D
 ├── statistics/{num_pairs}/...                         # Mean, TKE, etc.
+├── statistics/uncalibrated/{num_pairs}/...            # Correlation diagnostics
 ├── videos/{num_pairs}/...                             # Animations
-└── calibration/...                                    # Calibration models`} title="Output Directory Structure" />
+└── videos/uncalibrated/{num_pairs}/...                # Uncalibrated animations
+
+<calibration_source>/
+└── calibration/...                                    # Calibration models + settings.yaml`} title="Output Directory Structure" />
 
             <div className="bg-gray-50 rounded-lg p-4 mt-4">
               <p className="text-gray-600 text-sm">

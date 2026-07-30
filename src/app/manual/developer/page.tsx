@@ -131,7 +131,7 @@ cd PIVTOOLs-GUI`} />
           {/* Building C Extensions */}
           <Section title="Building C Extensions" icon={<Cpu size={32} />} id="c-extensions">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              PIVTools includes two C libraries compiled via <code className="bg-gray-100 px-2 py-1 rounded">setup.py</code>.
+              PIVTools includes three C libraries compiled via <code className="bg-gray-100 px-2 py-1 rounded">setup.py</code>.
               There are <strong>no external C dependencies</strong> -- the FFT engine is a
               code-generated SIMD codelet kernel and the peak fitter is a hand-rolled
               Levenberg-Marquardt, so FFTW and GSL are not needed (the whole package is
@@ -142,7 +142,8 @@ cd PIVTOOLs-GUI`} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
               {[
                 { name: "libbulkxcorr2d", desc: "SIMD codelet FFT cross-correlation + LM peak fitting (OpenMP)" },
-                { name: "libfusedwarp", desc: "Fused symmetric image warping for multipass deformation (OpenMP)" }
+                { name: "libfusedwarp", desc: "Fused symmetric image warping for multipass deformation (OpenMP)" },
+                { name: "libkspacefit", desc: "k-space transfer-function LM fitter for ensemble PIV, one fit per window (OpenMP). Built as its own library because it must compile with no architecture or SIMD flags." }
               ].map((lib, index) => (
                 <div key={index} className="bg-white rounded-lg p-4 border border-gray-200">
                   <code className="text-soton-blue font-mono text-sm">{lib.name}</code>
@@ -156,7 +157,7 @@ cd PIVTOOLs-GUI`} />
               Install the package in editable mode (this compiles the C extensions), with
               the optional dev/cine extras for tests and Phantom .cine support:
             </p>
-            <CodeBlock code={`# Editable install -- compiles both C libraries into pivtools_cli/lib/
+            <CodeBlock code={`# Editable install -- compiles all three C libraries into pivtools_cli/lib/
 pip install -e ".[dev,cine]"
 
 # Recompile the C extensions after editing C sources
@@ -174,10 +175,18 @@ python setup.py build`} />
             <p className="text-gray-700 text-lg leading-relaxed mb-4">
               The FFT engine is generated for a fixed set of interrogation window sizes --
               <strong> 8, 12, 16, 24, 32, 48, 64, 96, 128</strong>. Config validation rejects any
-              other window size at load time. Builds use accuracy-preserving flags
-              (<code className="bg-gray-100 px-1 rounded">-ffp-contract=fast</code>, never
-              <code className="bg-gray-100 px-1 rounded">-ffast-math</code>) and the SIMD output is
-              validated bit-identical to the old FFTW build.
+              other window size at load time, with one exception: on an ensemble
+              <code className="bg-gray-100 px-1 rounded">single</code>-mode pass the window size is a Frame-A mask
+              support rather than an FFT length, so 4 and 6 are also accepted there.
+            </p>
+            <p className="text-gray-700 text-lg leading-relaxed mb-4">
+              Builds never use <code className="bg-gray-100 px-1 rounded">-ffast-math</code>, and the SIMD output is
+              validated bit-identical to the old FFTW build. Floating-point contraction is set per translation unit
+              rather than globally: the FFT units build with
+              <code className="bg-gray-100 px-1 rounded">-ffp-contract=fast</code>, while the LM peak fitter and
+              <code className="bg-gray-100 px-1 rounded">libkspacefit</code> build with
+              <code className="bg-gray-100 px-1 rounded">-ffp-contract=off</code>, because FMA contraction perturbs
+              Levenberg-Marquardt convergence.
             </p>
 
             {/* Platform Requirements */}

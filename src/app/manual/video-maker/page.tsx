@@ -270,7 +270,7 @@ pivtools-cli video -p 0,1`}
                   {[
                     { source: 'calibrated', desc: 'Physical-unit velocity fields', path: 'calibrated_piv/{n}/Cam{c}/instantaneous/' },
                     { source: 'uncalibrated', desc: 'Raw pixel displacements', path: 'uncalibrated_piv/{n}/Cam{c}/instantaneous/' },
-                    { source: 'merged', desc: 'Multi-camera Tukey-blended fields', path: 'calibrated_piv/{n}/merged/Cam1/instantaneous/' },
+                    { source: 'merged', desc: 'Multi-camera blended fields', path: 'calibrated_piv/{n}/Merged/instantaneous/' },
                     { source: 'stereo', desc: '3D velocity (ux, uy, uz)', path: 'stereo_calibrated/{n}/Cam1_Cam2/instantaneous/' },
                     { source: 'inst_stats', desc: 'Per-frame computed statistics', path: 'statistics/{n}/Cam{c}/.../instantaneous_stats/' },
                   ].map((row, index) => (
@@ -307,8 +307,6 @@ pivtools-cli video -p 0,1`}
                     { var: 'uy', desc: 'Velocity in y', source: 'PIV' },
                     { var: 'uz', desc: 'Velocity in z (stereo only)', source: 'PIV' },
                     { var: 'mag', desc: 'Velocity magnitude sqrt(ux^2 + uy^2 [+ uz^2])', source: 'Computed' },
-                    { var: 'u_prime', desc: 'Fluctuating velocity in x', source: 'Statistics' },
-                    { var: 'v_prime', desc: 'Fluctuating velocity in y', source: 'Statistics' },
                     { var: 'uu_inst', desc: 'Reynolds normal stress (x)', source: 'Statistics' },
                     { var: 'vv_inst', desc: 'Reynolds normal stress (y)', source: 'Statistics' },
                     { var: 'uv_inst', desc: 'Reynolds shear stress', source: 'Statistics' },
@@ -393,7 +391,8 @@ pivtools-cli video -p 0,1`}
 
   fps: 30                      # Frame rate (1-120)
   crf: 15                      # Quality 0-51 (lower = better)
-  resolution: 1080p            # "1080p" or "4k"`}
+  resolution: 1080p            # "1080p", "4k", or "native"
+  source_endpoint: regular     # regular | merged | stereo`}
             />
           </Section>
 
@@ -423,8 +422,10 @@ pivtools-cli video -p 0,1`}
             <div className="bg-gray-50 rounded-lg p-4 mt-4">
               <h4 className="font-semibold text-gray-900 mb-2">Filename Pattern</h4>
               <p className="text-gray-600 text-sm">
-                <code className="bg-gray-200 px-1 rounded">run{'{pass}'}_Cam{'{camera}'}_{'{variable}'}[_{'{source}'}][_test].mp4</code>
-                &mdash; suffixes added for uncalibrated, merged, stereo, inst_stats, and test mode.
+                <code className="bg-gray-200 px-1 rounded">run{'{pass}'}_Cam{'{camera}'}_{'{variable}'}_{'{cmap}'}_{'{limits}'}[_{'{source}'}][_test].mp4</code>
+                -- the colormap and colour limits are baked into the name, so re-rendering the same field with a
+                different scale will not overwrite the earlier video. Suffixes are added for uncalibrated, merged,
+                stereo, inst_stats, and test mode.
               </p>
             </div>
           </Section>

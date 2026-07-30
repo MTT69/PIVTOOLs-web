@@ -150,16 +150,18 @@ export default function TransformsPage() {
           <Section title="Overview" icon={<RotateCw size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Transforms modify <code className="bg-gray-100 px-2 py-1 rounded text-sm">.mat</code> files directly.
-              Original data is backed up with an <code className="bg-gray-100 px-2 py-1 rounded text-sm">_original</code> suffix
-              for undo capability.
+              The original data is kept for undo as a sibling key inside the same file --
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">piv_result_original</code>,
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">ensemble_result_original</code>,
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">coordinates_original</code> -- not as a separate file.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h4>
                 <FeatureList items={[
-                  "Calibrated instantaneous or merged data",
-                  "Not applicable to ensemble or statistics output",
+                  "Calibrated instantaneous, ensemble, or merged data",
+                  "Not applicable to statistics output or stereo (3C) fields",
                 ]} />
               </div>
 
@@ -261,11 +263,11 @@ export default function TransformsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { step: "1", action: "Select calibrated instantaneous or merged data source." },
+                    { step: "1", action: "Select a calibrated instantaneous, ensemble, or merged data source." },
                     { step: "2", action: "Expand the Transforms panel and click operation buttons to build a queue." },
                     { step: "3", action: "The current frame preview updates immediately. Navigate frames to verify." },
                     { step: "4", action: "Click \"Apply to All Frames\" to write transforms to all .mat files." },
-                    { step: "5", action: "Use \"Undo Frame\" to restore original data from _original backup." },
+                    { step: "5", action: "Use \"Clear Transforms\" to restore the original data and empty the pending queue." },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm font-bold text-soton-blue">{row.step}</td>
@@ -376,7 +378,7 @@ pivtools-cli transform -p 0,1`}
             <h3 className="text-3xl font-bold mb-4">Next: Merge Multi-Camera Data</h3>
             <p className="text-gray-300 mb-6 text-lg">
               Combine vector fields from multiple cameras into a single seamless field
-              with Tukey window blending.
+              with blended overlaps.
             </p>
             <Link
               href="/manual/merging"

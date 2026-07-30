@@ -103,7 +103,7 @@ export default function QuickStartPage() {
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <CheckCircle className="text-soton-gold" size={22} />
               <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
-              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults -- full reference below</span>
             </div>
             <ol className="space-y-2 text-gray-700">
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Create a virtual environment with Python 3.12&ndash;3.14 and run <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pip install pivtools</code>.</span></li>
@@ -164,6 +164,18 @@ pip install "pivtools[cine]"`} />
               </div>
 
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Seed Calibration Settings</h4>
+                <CodeBlock code="pivtools-cli init-settings --source /data/experiment/calibration" />
+                <p className="text-gray-600">
+                  Writes <code className="bg-gray-100 px-2 py-1 rounded text-sm">&lt;source&gt;/calibration/settings.yaml</code>,
+                  which holds the calibration image format, board geometry, and rig <code className="bg-gray-100 px-2 py-1 rounded text-sm">dt</code>.
+                  Fill it in before calibrating. The image format is required when the settings are read and
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">rig.dt</code> is required when a model is generated,
+                  so a missing value fails loudly rather than defaulting.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Instantaneous PIV</h4>
                 <CodeBlock code="pivtools-cli instantaneous" />
                 <p className="text-gray-600">
@@ -212,7 +224,8 @@ pip install "pivtools[cine]"`} />
                 <div className="space-y-3">
                   {[
                     { title: "libbulkxcorr2d", desc: "SIMD codelet FFT cross-correlation + LM peak fitting (OpenMP)" },
-                    { title: "libfusedwarp", desc: "Fused symmetric image warping for multipass deformation (OpenMP)" }
+                    { title: "libfusedwarp", desc: "Fused symmetric image warping for multipass deformation (OpenMP)" },
+                    { title: "libkspacefit", desc: "k-space transfer-function LM fitter for ensemble PIV, one fit per window (OpenMP)" }
                   ].map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <CheckCircle className="text-soton-gold mt-1 flex-shrink-0" size={18} />

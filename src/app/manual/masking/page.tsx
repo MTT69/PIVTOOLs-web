@@ -146,6 +146,14 @@ export default function MaskingPage() {
               Interactive canvas for drawing mask regions on PIV images. Supports multiple polygons, edge snapping, and a magnifier for precise placement.
             </p>
 
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-800 text-sm">
+                <strong>Panning and zooming.</strong> Dragging the canvas pans the view, so you only place a point
+                when the click stays near-stationary. Use <strong>Box Zoom</strong> to drag out a rectangle and zoom
+                to it, and <strong>Fit</strong> to return to the whole image.
+              </p>
+            </div>
+
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
               <h4 className="text-xl font-semibold text-gray-900 mb-4">Drawing Workflow</h4>
               <ol className="list-decimal list-inside text-gray-600 space-y-2">
@@ -183,10 +191,11 @@ export default function MaskingPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {[
-                      { btn: "New Polygon", desc: "Start a fresh polygon (auto-finishes current)" },
-                      { btn: "Undo Point", desc: "Remove the last point from active polygon" },
+                      { btn: "Undo point", desc: "Remove the last point from the active polygon" },
                       { btn: "Delete", desc: "Delete the currently selected polygon" },
                       { btn: "Prev / Next", desc: "Navigate between polygons" },
+                      { btn: "Box Zoom", desc: "Drag a rectangle to zoom the canvas to it" },
+                      { btn: "Fit", desc: "Reset the view to fit the whole image" },
                       { btn: "Magnifier", desc: "Toggle 2.5x zoom tool" },
                       { btn: "Save PNG", desc: "Download mask as PNG image" },
                       { btn: "Clear Mask", desc: "Remove all polygons and reset" },

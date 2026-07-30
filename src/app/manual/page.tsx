@@ -127,7 +127,7 @@ export default function ManualOverviewPage() {
       href: "/manual/cli-reference",
       icon: <Terminal size={20} />,
       description: "All CLI commands with options and examples.",
-      capabilities: ["15 CLI commands", "Batch processing", "Workflow examples"],
+      capabilities: ["16 CLI commands", "Batch processing", "Workflow examples"],
     },
     {
       title: "Image Configuration",
@@ -172,6 +172,13 @@ export default function ManualOverviewPage() {
       capabilities: ["3D reconstruction (ux, uy, uz)", "Dotboard, ChArUco & stepped boards", "Self-calibration (Wieneke 2005)"],
     },
     {
+      title: "Stepped Calibration",
+      href: "/manual/stepped-calibration",
+      icon: <Layers size={20} />,
+      description: "Two-level boards for transmission rigs.",
+      capabilities: ["Cameras on opposite faces", "Composed stereo pose", "Fiducial and level picking"],
+    },
+    {
       title: "Global Coordinates",
       href: "/manual/global-coordinates",
       icon: <Crosshair size={20} />,
@@ -204,7 +211,7 @@ export default function ManualOverviewPage() {
       href: "/manual/merging",
       icon: <GitMerge size={20} />,
       description: "Combine multi-camera vector fields.",
-      capabilities: ["Tukey window blend", "Overlap detection", "Multi-camera fields"],
+      capabilities: ["Seamless overlap blending", "Overlap detection", "Multi-camera fields"],
     },
     {
       title: "Statistics",

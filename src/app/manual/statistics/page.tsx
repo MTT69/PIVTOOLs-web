@@ -186,7 +186,7 @@ export default function StatisticsPage() {
                     { stat: 'mean_divergence', fields: 'divergence', desc: 'Mean velocity divergence (du/dx + dv/dy)' },
                     { stat: 'mean_tke', fields: 'tke', desc: "Turbulent kinetic energy: 0.5*(u'u' + v'v')" },
                     { stat: 'mean_stresses', fields: 'uu, vv, uv', desc: 'Reynolds stress tensor (+ww, uw, vw for stereo)' },
-                    { stat: 'mean_peak_height', fields: 'peak_mag', desc: 'Mean correlation peak magnitude per grid cell' },
+                    { stat: 'correlation_quality', fields: 'nan_pct, peak_ratio_median, peak_mag_mean', desc: 'Correlation diagnostics. Uncalibrated data only -- see below' },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.stat}</td>
@@ -206,6 +206,56 @@ export default function StatisticsPage() {
                 TKE includes all available components (2D or 3D).
               </p>
             </div>
+          </Section>
+
+          {/* Correlation Diagnostics */}
+          <Section title="Correlation Diagnostics" icon={<Activity size={32} />} id="diagnostics">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              The <code className="bg-gray-100 px-2 py-1 rounded text-sm">correlation_quality</code> statistic reports how
+              well the correlation itself performed, rather than anything about the flow. Use it to decide whether a
+              dataset is worth trusting before you interpret the velocities.
+            </p>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-800 text-sm">
+                <strong>Uncalibrated data only.</strong> The quality channels are written by the PIV pass and dropped
+                when calibration is applied, which keeps only <code className="bg-yellow-100 px-1 rounded">ux</code>,
+                <code className="bg-yellow-100 px-1 rounded">uy</code> and <code className="bg-yellow-100 px-1 rounded">b_mask</code>.
+                Point the viewer at an uncalibrated source, or set
+                <code className="bg-yellow-100 px-1 rounded">statistics.process_uncalibrated: true</code> for a CLI run.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Field</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Meaning</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { f: 'nan_pct', d: 'Percentage of frames in which this grid cell was rejected. High values mark regions the correlation never resolved -- glare, low seeding, or out-of-plane loss.' },
+                    { f: 'peak_ratio_median', d: 'Median ratio of the first to second correlation peak. Values near 1 mean the true peak was not clearly distinguishable from its competitor.' },
+                    { f: 'peak_mag_mean', d: 'Mean correlation peak magnitude. Low values indicate weak correlation, usually from insufficient particle image density.' },
+                  ].map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-soton-blue text-sm">{row.f}</td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{row.d}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="text-gray-700 leading-relaxed">
+              Each field is written as a map plus a per-frame time series in
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm ml-1">corr_quality_timeseries.mat</code>, so you can
+              see both where the correlation struggled and when. In the Results Viewer on an uncalibrated source the
+              Statistics button reads <strong>Calculate Diagnostics</strong> and the panel header becomes
+              <strong> Correlation Diagnostics</strong>.
+            </p>
           </Section>
 
           {/* Instantaneous Statistics */}
@@ -299,7 +349,7 @@ export default function StatisticsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { step: "1", action: "Open the Results Viewer and select calibrated instantaneous or merged data." },
+                    { step: "1", action: "Open the Results Viewer and select instantaneous or merged data. Calibrated sources give the full statistic set; uncalibrated sources give the correlation diagnostics only." },
                     { step: "2", action: "Expand the Statistics panel and check the statistics to compute." },
                     { step: "3", action: "Adjust gamma_radius if computing gamma criteria (default: 5)." },
                     { step: "4", action: "Choose data source: per-camera, merged, or both." },
@@ -344,9 +394,6 @@ pivtools-cli statistics --source-endpoint merged
 # Compute for stereo data
 pivtools-cli statistics --source-endpoint stereo
 
-# Compute for ensemble data
-pivtools-cli statistics --type-name ensemble
-
 # Process specific paths
 pivtools-cli statistics -p 0,1`}
             />
@@ -355,34 +402,36 @@ pivtools-cli statistics -p 0,1`}
           {/* Output */}
           <Section title="Output" icon={<FileText size={32} />} id="output">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Results are saved in a <code className="bg-gray-100 px-2 py-1 rounded text-sm">statistics/</code> subdirectory
-              under each camera folder.
+              Results are saved under a top-level <code className="bg-gray-100 px-2 py-1 rounded text-sm">statistics/</code> tree,
+              beside <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibrated_piv/</code> rather than inside it.
+              Diagnostics computed from uncalibrated data get their own parallel tree so they never mix with calibrated results.
             </p>
 
             <CodeBlock
               title="Output Directory"
               code={`base_path/
-  calibrated_piv/{num_frame_pairs}/
-    Cam1/
-      instantaneous/              # Original frame data
-      statistics/
-        mean_stats/
-          mean_stats.mat          # All mean statistics in one file
-        instantaneous_stats/
-          00001.mat               # Frame 1 inst stats
-          00002.mat               # Frame 2 inst stats
-          ...
-        figures/                  # PNG visualisations (if enabled)
-          Run_1_Mean_Ux.png
-          Run_1_TKE.png
-          ...`}
+  statistics/{num_frame_pairs}/
+    Cam1/instantaneous/
+      mean_stats/
+        mean_stats.mat            # All mean statistics in one file
+      instantaneous_stats/
+        00001.mat                 # Frame 1 inst stats
+        00002.mat                 # Frame 2 inst stats
+        ...
+      figures/                    # PNG visualisations (if enabled)
+        Run_1_Mean_Ux.png
+        Run_1_TKE.png
+        ...
+    stereo/Cam1_Cam2/instantaneous/   # Stereo sources
+  statistics/uncalibrated/{num_frame_pairs}/
+    Cam1/instantaneous/           # Correlation diagnostics only`}
             />
 
             <YamlDropdown
               title="Statistics Configuration"
               defaultOpen={true}
               code={`statistics:
-  type_name: instantaneous      # "instantaneous" or "ensemble"
+  type_name: instantaneous      # "instantaneous" only -- see note above
   source_endpoint: regular      # "regular", "merged", or "stereo"
   gamma_radius: 5               # Neighbourhood size for gamma (default: 5)
   save_figures: true            # Generate PNG visualisations
@@ -394,7 +443,7 @@ pivtools-cli statistics -p 0,1`}
     mean_divergence: true       # Mean divergence
     mean_tke: true              # Turbulent kinetic energy
     mean_stresses: true         # Reynolds stresses (uu, vv, uv; +ww, uw, vw)
-    mean_peak_height: false     # Mean correlation peak magnitude
+    correlation_quality: false  # Correlation diagnostics (uncalibrated only)
 
     # Instantaneous (per-frame)
     inst_velocity: true         # Per-frame ux, uy in inst stats output
