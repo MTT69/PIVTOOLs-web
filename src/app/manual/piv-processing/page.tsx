@@ -355,7 +355,6 @@ instantaneous_piv:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { setting: "predictor_smoothing", default: "true / false", mode: "Inst / Ens", desc: "Gaussian-smooth the predictor between passes. Recommended for instantaneous (reduces single-pair noise). For ensemble, smoothing can destroy real gradients — leave disabled unless data is very noisy." },
-                    { setting: "predictor_interpolation", default: "cubic", mode: "Ensemble", desc: "Interpolation for upscaling the predictor field between passes. Options: linear or cubic." },
                     { setting: "image_warp_interpolation", default: "cubic", mode: "Both", desc: "Interpolation kernel for image warping during predictor deformation. cubic = bicubic (4\u00d74 stencil), lanczos = Lanczos-3 (6\u00d76 stencil, slightly sharper)." },
                     { setting: "secondary_peak", default: "false", mode: "Instantaneous", desc: "Extract the second-highest correlation peak per window. Useful for reverse flow or multiple particle populations." },
                     { setting: "num_peaks", default: "1", mode: "Instantaneous", desc: "Number of correlation peaks to detect per window. Usually 1; increase for multi-peak analysis." },
@@ -383,7 +382,6 @@ instantaneous_piv:
 
 ensemble_piv:
   predictor_smoothing: false
-  predictor_interpolation: cubic
   image_warp_interpolation: cubic`} title="config.yaml" />
           </Section>
 
@@ -493,11 +491,10 @@ ensemble_piv:
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
               <p className="text-blue-700 text-sm">
                 <strong>Why <code className="bg-blue-100 px-1 rounded">kspace</code> is the ensemble default:</strong>{' '}
-                The k-space fitter (ensemble only) auto-corrects for noise coloring introduced by image warping
-                between passes, which would otherwise bias Reynolds stress estimates by several percent. In
-                practice the defaults work without tuning &mdash; only adjust{' '}
-                <code className="bg-blue-100 px-1 rounded">kspace_k_max_cap</code> if stresses look unphysical
-                in low-SNR regions. Instantaneous PIV always uses the LM Gaussian peak fitter; the k-space
+                The k-space fitter (ensemble only) jointly estimates displacement, Reynolds stresses, the
+                loss-of-correlation gain and the spectral noise floor in one fit, so noise does not bias the
+                stresses. There are no tuning knobs &mdash; the defaults are the validated recipe.
+                Instantaneous PIV always uses the LM Gaussian peak fitter; the k-space
                 option does not apply there.
               </p>
             </div>
@@ -513,11 +510,9 @@ ensemble_piv:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { setting: "fit_method", default: "kspace", desc: "'kspace' (Fourier-space, 5-param, default, 50-100x faster) or 'gaussian' (Levenberg-Marquardt, 16-param). K-space recommended for all use cases." },
-                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation': R = <AB> - <A><B> (single-pass, memory efficient). 'image': R = <(A-\u03BCA)(B-\u03BCB)> (two-pass, more stable for k-space)" },
+                    { setting: "fit_method", default: "kspace", desc: "'kspace' (Fourier-space one-stage joint LM fit: displacement, stresses, gain, noise floor; default) or 'kspace_linear' (closed-form linear fitter \u2014 cannot fail to converge, robust on hostile experimental data)." },
+                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation': R = <AB> - <A><B> (single-pass, memory efficient). 'image': R = <(A-\u03BCA)(B-\u03BCB)> (two-pass, more stable for k-space). 'window_mean': per-pair per-window mean subtraction inside the correlator. 'correlation+window_mean' / 'image+window_mean': both \u2014 stationary-background removal plus per-pair window-mean removal (per_pair_normalization must be off)" },
                     { setting: "gradient_correction", default: "false", desc: "Reynolds stress gradient correction near walls" },
-                    { setting: "kspace_soft_weighting", default: "true", desc: "Anisotropic soft spectral weighting in k-space fitting. Improves Reynolds stress accuracy, especially at small window sizes." },
-                    { setting: "kspace_k_max_cap", default: "0.35", desc: "Maximum wavenumber cap for k-space fitting (0.0-0.5). Controls the spectral bandwidth used for displacement estimation." },
                     { setting: "store_planes", default: "false", desc: "Save AA, BB, AB correlation planes to disk (large files)" },
                     { setting: "save_diagnostics", default: "false", desc: "Save debug images and peak fitting data to filters/ directory" },
                     { setting: "resume_from_pass", default: "0", desc: "Resume from pass N (1-based). 0 = fresh start. Requires existing ensemble_result.mat." },
@@ -787,15 +782,12 @@ processing:
                     { path: 'instantaneous_piv.num_peaks', inst: 'Y', ens: '-', desc: 'Number of peaks to detect (default 1)' },
                     { path: 'ensemble_piv.type', inst: '-', ens: 'Y', desc: 'Per-pass: std or single' },
                     { path: 'ensemble_piv.sum_window', inst: '-', ens: 'Y', desc: '[H, W] for single mode' },
-                    { path: 'ensemble_piv.fit_method', inst: '-', ens: 'Y', desc: 'gaussian or kspace' },
-                    { path: 'ensemble_piv.kspace_soft_weighting', inst: '-', ens: 'Y', desc: 'Soft spectral weighting for k-space (default true)' },
-                    { path: 'ensemble_piv.kspace_k_max_cap', inst: '-', ens: 'Y', desc: 'Max wavenumber cap (default 0.35)' },
-                    { path: 'ensemble_piv.background_subtraction_method', inst: '-', ens: 'Y', desc: 'correlation or image' },
+                    { path: 'ensemble_piv.fit_method', inst: '-', ens: 'Y', desc: 'kspace (one-stage joint LM) or kspace_linear (closed-form)' },
+                    { path: 'ensemble_piv.background_subtraction_method', inst: '-', ens: 'Y', desc: 'correlation, image, window_mean, correlation+window_mean or image+window_mean' },
                     { path: 'ensemble_piv.gradient_correction', inst: '-', ens: 'Y', desc: 'Reynolds stress gradient correction' },
                     { path: 'ensemble_piv.fit_offset', inst: '-', ens: 'Y', desc: 'Include offset in Gaussian fit (default true)' },
                     { path: 'ensemble_piv.mask_center_pixel', inst: '-', ens: 'Y', desc: 'Mask autocorrelation center pixel (default true)' },
                     { path: 'ensemble_piv.persist_images', inst: '-', ens: 'Y', desc: 'Keep filtered images in worker RAM (default false)' },
-                    { path: 'ensemble_piv.predictor_interpolation', inst: '-', ens: 'Y', desc: 'Predictor upscaling: linear or cubic' },
                     { path: 'ensemble_piv.image_warp_interpolation', inst: '-', ens: 'Y', desc: 'Image warp kernel: cubic or lanczos' },
                     { path: 'instantaneous_piv.image_warp_interpolation', inst: 'Y', ens: '-', desc: 'Image warp kernel: cubic or lanczos (default cubic)' },
                     { path: 'instantaneous_piv.save_mode', inst: 'Y', ens: '-', desc: 'minimal (3 fields) or full (11 fields)' },
@@ -887,13 +879,10 @@ ensemble_piv:
   fit_method: kspace
   background_subtraction_method: correlation
   gradient_correction: false
-  kspace_soft_weighting: true
-  kspace_k_max_cap: 0.35
   fit_offset: true
   mask_center_pixel: true
   persist_images: false
   predictor_smoothing: false
-  predictor_interpolation: cubic
   image_warp_interpolation: cubic
   predictor_boundary_conditions: []
   sum_fitting_window_enabled: false
