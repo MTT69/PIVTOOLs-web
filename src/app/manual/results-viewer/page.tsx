@@ -135,7 +135,7 @@ export default function ResultsViewerPage() {
             </p>
 
             <FeatureList items={[
-              "Frame-by-frame navigation with slider, arrow buttons, and playback (0.5--10 FPS)",
+              "Frame-by-frame navigation with slider, arrow buttons, and Play/Pause animation",
               "Adjustable colormaps and colour limits (manual or auto-calculated)",
               "Hover data display: coordinates plus velocity at cursor position",
               "Axis limits, coordinate offsets, and custom plot titles",
@@ -171,8 +171,6 @@ export default function ResultsViewerPage() {
                     { source: "Merged Instantaneous", view: true, transform: true, merge: false, stats: true },
                     { source: "Merged Ensemble", view: true, transform: true, merge: false, stats: true },
                     { source: "Stereo Instantaneous", view: true, transform: false, merge: false, stats: true },
-                    { source: "Stereo Ensemble", view: true, transform: false, merge: false, stats: false },
-                    { source: "Statistics (mean/merged/stereo)", view: true, transform: false, merge: false, stats: false },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm text-gray-900 font-medium">{row.source}</td>
@@ -236,7 +234,7 @@ export default function ResultsViewerPage() {
                     { control: "Colormap", desc: "default, viridis, plasma, inferno, magma, cividis, jet, gray, and more" },
                     { control: "Lower / Upper Limit", desc: "Manual colour bounds. Leave blank for automatic scaling per frame." },
                     { control: "Auto-Calculate", desc: "Samples up to 50 frames and returns 5th/95th percentile limits." },
-                    { control: "Frame Slider", desc: "Drag to any frame. Arrow buttons step +/-1. Playback animates at 0.5--10 FPS." },
+                    { control: "Frame Slider", desc: "Drag to any frame. Arrow buttons step +/-1. Play/Pause animates through frames as fast as they load (capped at ~3 FPS)." },
                     { control: "Run / Pass", desc: "Select which multi-pass PIV run to display (highest = most refined)." },
                     { control: "Axis Limits", desc: "X min/max, Y min/max. Blank = auto from coordinate data." },
                     { control: "X / Y Offset", desc: "Shift displayed coordinates without modifying data." },
@@ -269,7 +267,6 @@ export default function ResultsViewerPage() {
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { tool: "Magnifier", desc: "Circular 2.5x zoom lens that follows the cursor. Toggle on/off with the magnifier button. Useful for inspecting individual vectors and fine details." },
-                    { tool: "Box Zoom", desc: "Click and drag to draw a rectangular selection, then automatically zoom into that region. Use the \"Fit\" button to reset to full view." },
                     { tool: "Hover Info", desc: "Displays coordinates (x, y in mm) and velocity components (ux, uy, uz if stereo) at the cursor position. Updates in real time as you move the mouse." },
                     { tool: "Download Image", desc: "Saves the current vector field view as a PNG image file." },
                     { tool: "Copy to Clipboard", desc: "Copies the current view directly to the clipboard for pasting into documents or presentations." },
@@ -287,8 +284,8 @@ export default function ResultsViewerPage() {
 
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
               <p className="text-blue-700 text-sm">
-                <strong>Keyboard shortcuts:</strong> Use arrow keys to step through frames. The playback
-                speed can be adjusted from 0.5 to 10 FPS using the speed selector.
+                <strong>Keyboard shortcuts:</strong> Use arrow keys to step through frames. Play/Pause
+                animates through frames as fast as they load; there is no separate speed selector.
               </p>
             </div>
           </Section>

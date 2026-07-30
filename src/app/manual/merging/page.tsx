@@ -141,7 +141,7 @@ export default function MergingPage() {
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Combine vector fields from multiple cameras into a single seamless field
-              using Hanning window blending for smooth overlap transitions.
+              using Tukey window blending for smooth overlap transitions.
             </p>
           </motion.div>
 
@@ -149,7 +149,7 @@ export default function MergingPage() {
           <Section title="Overview" icon={<Layers size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Merging creates a unified coordinate grid spanning all cameras and interpolates
-              velocity data onto it. In overlap regions, a distance-based Hanning cosine window
+              velocity data onto it. In overlap regions, a distance-based Tukey edge-taper window
               provides smooth, seam-free transitions.
             </p>
 
@@ -157,7 +157,7 @@ export default function MergingPage() {
               "Supports both instantaneous and ensemble data",
               "Automatic overlap detection and stacking direction",
               "Unified coordinate grid matching original data resolution",
-              "Hanning cosine blending: weight = 0.5 * (1 + cos(pi * d))",
+              "Tukey edge-taper blending: weight = 0.5 * (1 - cos(2 * pi * d / alpha)), alpha = 0.5",
               "Output in standard piv_result .mat format",
             ]} />
           </Section>
@@ -215,7 +215,7 @@ export default function MergingPage() {
                     { step: "1. Detect direction", desc: "Determines horizontal or vertical camera arrangement from center coordinates." },
                     { step: "2. Create grid", desc: "Generates a unified coordinate grid spanning all cameras at original resolution." },
                     { step: "3. Interpolate", desc: "Each camera's velocity is interpolated onto the unified grid. Points outside a camera's domain are NaN." },
-                    { step: "4. Hanning weights", desc: "In overlap regions, each camera receives a distance-based weight: w = 0.5 * (1 + cos(pi * d_normalised))." },
+                    { step: "4. Tukey weights", desc: "A Tukey edge-taper window gives each camera a distance-based weight: w = 0.5 * (1 - cos(2 * pi * d / alpha)) with alpha = 0.5. The weight is flat at 1.0 in the centre of each field and tapers to 0 only near the edges." },
                     { step: "5. Combine", desc: "Weighted contributions are summed and normalised. Weights always sum to 1.0 in overlaps." },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>

@@ -19,8 +19,6 @@ const C = {
 	arrow: '#94A3B4',
 	bar: '#F7F9FB',
 	barStroke: '#E2E8F0',
-	panelBg: '#F8F9FA',
-	panelStroke: '#CBD5E0',
 	footerBg: '#F1F5F9',
 };
 
@@ -29,8 +27,6 @@ const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
 // ── Layout constants ────────────────────────────────────────────
 const LX = 24;
 const LW = 346;
-const RX = 388;
-const RW = 184;
 const BOX_W = 98;
 const BOX_H = 56;
 const BX = [12, 124, 236]; // box x-offsets within section
@@ -46,13 +42,6 @@ const S = {
 	footer: { y: 554, h: 22 },
 };
 
-// ── Panel positions (right column) ──────────────────────────────
-const PANELS = [
-	{ y: 50, h: 120, label: '(a) GUI interface' },
-	{ y: 184, h: 120, label: '(b) Velocity field' },
-	{ y: 318, h: 120, label: '(c) Reynolds stress' },
-	{ y: 452, h: 120, label: '(d) Multi-camera' },
-];
 
 export default function Figure1Page() {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -249,51 +238,6 @@ export default function Figure1Page() {
 		/>
 	);
 
-	/** Right-column image panel placeholder */
-	const Panel = ({
-		y,
-		h,
-		label,
-	}: {
-		y: number;
-		h: number;
-		label: string;
-	}) => (
-		<g>
-			<rect
-				x={RX}
-				y={y}
-				width={RW}
-				height={h}
-				rx="4"
-				fill={C.panelBg}
-				stroke={C.panelStroke}
-				strokeWidth="0.75"
-			/>
-			{/* Dashed inner frame — image placeholder */}
-			<rect
-				x={RX + 8}
-				y={y + 24}
-				width={RW - 16}
-				height={h - 32}
-				rx="2"
-				fill="none"
-				stroke="#E2E8F0"
-				strokeWidth="0.5"
-				strokeDasharray="3,3"
-			/>
-			<text
-				x={RX + 10}
-				y={y + 15}
-				fontSize="8.5"
-				fontWeight="600"
-				fill={C.fg2}
-				fontFamily={FONT}
-			>
-				{label}
-			</text>
-		</g>
-	);
 
 	return (
 		<div className="min-h-screen bg-gray-100 p-8">
@@ -315,11 +259,11 @@ export default function Figure1Page() {
 
 				<div
 					className="bg-white shadow-lg overflow-hidden border border-gray-300"
-					style={{ aspectRatio: '210/297' }}
+					style={{ aspectRatio: '395/600' }}
 				>
 					<svg
 						ref={svgRef}
-						viewBox="0 0 595 842"
+						viewBox="0 0 395 600"
 						xmlns="http://www.w3.org/2000/svg"
 						style={{ fontFamily: FONT }}
 						textRendering="geometricPrecision"
@@ -338,7 +282,7 @@ export default function Figure1Page() {
 						</defs>
 
 						{/* White page background */}
-						<rect width="595" height="842" fill="white" />
+						<rect width="395" height="600" fill="white" />
 
 						{/* ═══════════════════════════════════════════════════
 						    LEFT COLUMN — Processing Pipeline
@@ -419,7 +363,7 @@ export default function Figure1Page() {
 							sx={LX}
 							sy={S.processing.y + 56}
 							bx={BX[0]}
-							title="Frame-pair"
+							title="Planar"
 							lines={[
 								'Time-resolved velocity',
 								'Multi-pass, deformation',
@@ -481,7 +425,7 @@ export default function Figure1Page() {
 							title="Target Detection"
 							lines={[
 								'ChArUco & dotboard',
-								'DaVis polynomial',
+								'Polynomial & pinhole',
 							]}
 						/>
 						<Box
@@ -501,7 +445,7 @@ export default function Figure1Page() {
 							title="Multi-camera"
 							lines={[
 								'Global coordinates',
-								'Vector field merging',
+								'Vector field stitching',
 							]}
 						/>
 
@@ -548,7 +492,7 @@ export default function Figure1Page() {
 							title="Export"
 							lines={[
 								'MATLAB (.mat) files',
-								'Publication figures',
+								'PNG exports',
 							]}
 						/>
 
@@ -574,25 +518,12 @@ export default function Figure1Page() {
 							of Southampton · DNS validated
 						</text>
 
-						{/* ═══════════════════════════════════════════════════
-						    RIGHT COLUMN — Image Panels
-						    ═══════════════════════════════════════════════════ */}
-
-						{PANELS.map((p, i) => (
-							<Panel
-								key={i}
-								y={p.y}
-								h={p.h}
-								label={p.label}
-							/>
-						))}
 					</svg>
 				</div>
 
 				<div className="mt-3 text-sm text-gray-500">
 					<p>
-						A4 format (595 x 842 pt) · Left: Processing pipeline ·
-						Right: Image panels
+						Processing pipeline (395 x 600 pt)
 					</p>
 				</div>
 			</div>

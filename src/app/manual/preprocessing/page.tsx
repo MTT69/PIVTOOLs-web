@@ -130,8 +130,8 @@ export default function PreprocessingPage() {
                 </p>
                 <ul className="text-gray-600 text-sm space-y-1">
                   <li>Smoothing: gaussian, median</li>
-                  <li>Contrast: clip, norm, maxnorm, lmax</li>
-                  <li>Correction: invert, sbg, levelize</li>
+                  <li>Normalisation: norm, norm2, maxnorm, meannorm, ssmin</li>
+                  <li>Contrast/correction: lmax, invert, clahe</li>
                 </ul>
               </div>
             </div>
@@ -199,15 +199,16 @@ batches:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { type: "gaussian", params: "sigma: 1.0 (float)", desc: "Gaussian blur. Reduces high-frequency noise." },
+                    { type: "gaussian", params: "size: [7, 7], sigma: 1.0", desc: "FIR Gaussian blur (matches MATLAB fspecial). Reduces high-frequency noise." },
                     { type: "median", params: "size: [5, 5] ([h, w])", desc: "Median filter. Removes salt-and-pepper noise, preserves edges." },
-                    { type: "clip", params: "n: 2.0 (float) or threshold: [lo, hi]", desc: "Clip intensities. Auto mode: median +/- n*std." },
-                    { type: "norm", params: "size: [7, 7], max_gain: 1.0", desc: "Local contrast normalisation (subtract sliding min, divide by range)." },
-                    { type: "maxnorm", params: "size: [7, 7], max_gain: 1.0", desc: "Similar to norm with smoothed contrast field." },
+                    { type: "norm", params: "size: [7, 7], max_gain: 1.0", desc: "Local contrast normalisation: subtract the sliding minimum, divide by the local range." },
+                    { type: "norm2", params: "size: [7, 7], max_gain: 1.0", desc: "Smoothed range normalisation: box-smooths the min and max envelopes before normalising (less sensitive to single-pixel noise than norm)." },
+                    { type: "maxnorm", params: "size: [7, 7], max_gain: 1.0", desc: "Background normalisation: divide by a smoothed local minimum to equalise illumination gradients." },
+                    { type: "meannorm", params: "(none)", desc: "Divide each frame by its own spatial mean intensity. Equalises pair-to-pair brightness (laser energy drift); recommended first step for ensemble processing. Global gain only -- within-frame illumination variation is the job of norm/norm2/maxnorm." },
+                    { type: "ssmin", params: "size: [7, 7]", desc: "Sliding-minimum background subtraction: median-smooth, take the local minimum, box-smooth, subtract, clip to >= 0." },
                     { type: "lmax", params: "size: [7, 7]", desc: "Morphological dilation (local maximum). Enhances bright features." },
-                    { type: "invert", params: "offset: 255 (int)", desc: "Invert intensities: output = offset - input." },
-                    { type: "sbg", params: "bg: /path/to/bg.tif", desc: "Subtract reference background image." },
-                    { type: "levelize", params: "white: /path/to/white.tif", desc: "Divide by white reference to correct uneven illumination." },
+                    { type: "invert", params: "(none)", desc: "Invert intensities per frame: output = frame max - input." },
+                    { type: "clahe", params: "clip_limit: 2.0, tile_grid_size: [8, 8]", desc: "Contrast-limited adaptive histogram equalisation (OpenCV)." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-blue-600">{row.type}</td>
@@ -267,26 +268,28 @@ batches:
 
   # Spatial (per-frame, order matters)
   - type: gaussian
+    size: [7, 7]            # [int, int]: kernel [h, w]
     sigma: 1.0              # float: std dev in pixels
   - type: median
     size: [5, 5]            # [int, int]: kernel [h, w]
-  - type: clip
-    n: 2.0                  # float: std devs for auto threshold
-    # threshold: [10, 250]  # Alternative: explicit [min, max]
   - type: norm
     size: [7, 7]
     max_gain: 1.0           # float: max normalisation gain
+  - type: norm2
+    size: [7, 7]
+    max_gain: 1.0
   - type: maxnorm
     size: [7, 7]
     max_gain: 1.0
+  - type: meannorm          # no parameters (divide frame by its spatial mean)
+  - type: ssmin
+    size: [7, 7]
   - type: lmax
     size: [7, 7]
-  - type: invert
-    offset: 255
-  - type: sbg
-    bg: /path/to/background.tif
-  - type: levelize
-    white: /path/to/white_ref.tif
+  - type: invert            # no parameters (output = frame max - input)
+  - type: clahe
+    clip_limit: 2.0
+    tile_grid_size: [8, 8]
 
 batches:
   size: 30                  # Frames per batch (for temporal filters)`}
@@ -307,15 +310,16 @@ batches:
                   {[
                     { filter: "time", type: "Temporal", param: "(none)", default: "-" },
                     { filter: "pod", type: "Temporal", param: "(none)", default: "-" },
-                    { filter: "gaussian", type: "Spatial", param: "sigma", default: "1.0" },
+                    { filter: "gaussian", type: "Spatial", param: "size, sigma", default: "[7,7], 1.0" },
                     { filter: "median", type: "Spatial", param: "size", default: "[5, 5]" },
-                    { filter: "clip", type: "Spatial", param: "n / threshold", default: "2.0 / null" },
                     { filter: "norm", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
+                    { filter: "norm2", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
                     { filter: "maxnorm", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
+                    { filter: "meannorm", type: "Spatial", param: "(none)", default: "-" },
+                    { filter: "ssmin", type: "Spatial", param: "size", default: "[7, 7]" },
                     { filter: "lmax", type: "Spatial", param: "size", default: "[7, 7]" },
-                    { filter: "invert", type: "Spatial", param: "offset", default: "255" },
-                    { filter: "sbg", type: "Spatial", param: "bg", default: "null" },
-                    { filter: "levelize", type: "Spatial", param: "white", default: "null" },
+                    { filter: "invert", type: "Spatial", param: "(none)", default: "-" },
+                    { filter: "clahe", type: "Spatial", param: "clip_limit, tile_grid_size", default: "2.0, [8,8]" },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm font-mono text-purple-600">{row.filter}</td>

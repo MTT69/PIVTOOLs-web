@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   Info,
   Terminal,
-  Monitor,
+  Layers,
+  Wand2,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -139,87 +140,315 @@ export default function GlobalCoordinatesPage() {
               Global <span className="text-soton-gold">Coordinates</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Align multi-camera coordinate systems into a unified physical reference frame
-              after calibration.
+              Express every camera in one shared physical reference frame. How this is done
+              depends on which calibration board you use.
             </p>
           </motion.div>
 
           {/* Overview */}
-          <Section title="Overview" icon={<Crosshair size={32} />} id="overview">
+          <Section title="Two paths, split by board type" icon={<Crosshair size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              After calibrating each camera independently, their coordinate systems may not share
-              a common origin or orientation. Global coordinate alignment shifts and optionally
-              flips each camera{"'"}s coordinates so all fields share the same physical reference frame.
+              When you process more than one camera, the fields only line up if every camera reports
+              its vectors in a single common frame. PIVTOOLs reaches that frame in two different ways,
+              and which one applies is decided entirely by the calibration board.
+            </p>
+
+            <div className="overflow-x-auto mb-8">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Board type</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Mechanism</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">How the shared frame arises</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    {
+                      board: "Dotboard / ChArUco",
+                      mech: "Joint multi-camera calibration",
+                      how: "One shared board solved jointly. The shared frame is intrinsic to the solve — nothing is baked separately.",
+                    },
+                    {
+                      board: "Scale factor",
+                      mech: "Multi-camera global frame",
+                      how: "Cameras calibrated independently, then a datum + overlap-pair chain bakes a world_offset_mm into each model.",
+                    },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.board}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-soton-blue">{row.mech}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{row.how}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+              <p className="text-blue-700 text-sm">
+                <strong>Which one do I get?</strong> You do not choose between them. If you calibrate
+                with a dotboard or ChArUco board, you get the joint solve. If you calibrate with a
+                scale factor, you get the global-frame chain. The rest of this
+                page documents each in turn.
+              </p>
+            </div>
+          </Section>
+
+          {/* Joint multi-camera model */}
+          <Section title="Joint multi-camera model (dotboard / ChArUco)" icon={<Layers size={32} />} id="joint">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              When every camera observes the same physical board, the calibration solves all cameras
+              together into one shared world frame. This is the system-aware model. A single solve
+              recovers per-camera intrinsics, per-(camera, view) poses, and one released board that
+              every camera agrees on. Because the world frame is part of the solve itself, the
+              cameras are in the same frame by construction — cross-camera agreement is zero, the
+              DaVis-equivalent result.
             </p>
 
             <FeatureList items={[
-              "Chain topology: cameras linked N to N+1 via shared feature points",
-              "Datum point defines the physical origin on Camera 1",
-              "Overlap features identify the same physical location across adjacent cameras",
-              "Automatic x-direction detection with manual override",
-              "Applied automatically after calibration in the GUI, or standalone via CLI",
+              "One shared board with a global dot index — every camera looks at the same physical target",
+              "Per-camera intrinsics plus per-(camera, view) poses solved in a single joint optimisation",
+              "The shared world frame is intrinsic to the solve, not baked on afterwards",
+              "No world_offset_mm and no separate alignment step — there is nothing to align",
+              "Cross-camera agreement is 0 by construction (DaVis-matching)",
             ]} />
-          </Section>
 
-          {/* Concepts */}
-          <Section title="Concepts" icon={<Info size={32} />} id="concepts">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Chain Topology</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">In the GUI</h3>
             <p className="text-gray-700 mb-4">
-              Cameras are linked in a chain: Camera 1 connects to Camera 2, Camera 2 connects
-              to Camera 3, and so on. For N cameras, you need N-1 overlap pairs. Each pair
-              identifies a single physical feature visible from both cameras.
+              This is automatic. Put two or more cameras into the Dotboard or ChArUco calibration tab
+              and the solve is always joint — there is no toggle to enable (a single camera is a mono
+              solve in the same tab). The result is a{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">JointRecord</code>. Dotboard joint
+              calibration is driven from the GUI because it needs the interactive datum and
+              cross-camera picks of the guided wizard (next section), which are saved to a sidecar{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code> beside the model.
             </p>
 
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <div className="text-sm text-gray-600 font-mono text-center">
-                Cam 1 -- feature -- Cam 2 -- feature -- Cam 3 -- feature -- Cam 4
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-              <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="text-yellow-600" size={18} />
-                <strong className="text-yellow-800">Continuous Chain Required</strong>
-              </div>
-              <p className="text-yellow-700 text-sm">
-                The camera chain must be continuous — every adjacent pair needs an overlap point.
-                For example, cameras 1, 2, 3, 4 require pairs 1→2, 2→3, 3→4.
-                Gaps (e.g., 1→3 without 2) are not supported.
+            <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400 mb-6">
+              <p className="text-green-700 text-sm">
+                <strong>Tolerant detection + caching.</strong> A view that fails detection is dropped
+                and reported, never fatal — a camera only fails if <em>no</em> image detects.
+                Detections are cached in memory and persisted in the{' '}
+                <code className="bg-green-100 px-1 rounded">inputs.mat</code> sidecar, so previews
+                reuse them; the <strong>Re-detect</strong> button forces a refresh after the images
+                change.
               </p>
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Datum Point</h3>
-            <p className="text-gray-700 mb-4">
-              The datum is a point on Camera 1{"'"}s calibration image that defines where the
-              physical origin (0, 0) is located. You click the image to select it. The datum
-              has physical coordinates (in mm) that default to (0, 0) but can be set to any
-              value if your origin is offset from the datum feature.
-            </p>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="text-yellow-600" size={18} />
+                <strong className="text-yellow-800">No headless dotboard-joint path</strong>
+              </div>
+              <p className="text-yellow-700 text-sm">
+                Dotboard joint calibration requires the interactive clicks above, so it runs from the
+                GUI only. The CLI <code className="bg-yellow-100 px-1 rounded">detect-joint</code>{' '}
+                command is ChArUco-only.
+              </p>
+            </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Overlap Pairs</h3>
-            <p className="text-gray-700 mb-4">
-              Each adjacent camera pair requires one shared feature. For each pair, you pick
-              the same physical point on both cameras{"'"} images. The alignment algorithm uses
-              these matched points to compute the coordinate shift between cameras.
-            </p>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">On the CLI (ChArUco only)</h3>
+            <CodeBlock
+              title="detect-joint"
+              code={`# Joint ChArUco solve across cameras into one shared world frame
+pivtools-cli detect-joint --cameras 1,2,3 \\
+    --model-type pinhole \\
+    --board-release full3d`}
+            />
 
             <div className="overflow-x-auto mb-6">
               <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Term</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Flag</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { flag: "--cameras", desc: "Cameras to include in the joint solve", def: "—" },
+                    { flag: "--source", desc: "Calibration source (ChArUco)", def: "—" },
+                    { flag: "--model-type", desc: "pinhole | polynomial", def: "pinhole" },
+                    { flag: "--board-release", desc: "full3d | z_only | none — how much of the board geometry is freed", def: "full3d" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-4 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{row.desc}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{row.def}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">--model-type</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Output</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { mt: "pinhole", out: "One JointRecord at <root>/joint_<board>/model/joint_model_pinhole.mat" },
+                    { mt: "polynomial", out: "Per-camera polynomial records" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 text-sm font-mono text-soton-blue">{row.mt}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600 font-mono">{row.out}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+              <p className="text-blue-700 text-sm">
+                <strong>No YAML to configure.</strong> The joint path does not use the{' '}
+                <code className="bg-blue-100 px-1 rounded">global_coordinates</code> datum +
+                overlap-pair block below — its datum and cross-camera ties come from the guided
+                wizard and persist in <code className="bg-blue-100 px-1 rounded">inputs.mat</code>,
+                and the shared frame is part of the solve itself.
+              </p>
+            </div>
+          </Section>
+
+          {/* Guided wizard */}
+          <Section title="Guided wizard — Set Global Coordinates" icon={<Wand2 size={32} />} id="wizard">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              On the dotboard joint path, all interactive picking runs through one auto-advancing
+              wizard. Press <strong>Set Global Coordinates</strong> and follow the banner — there
+              are no separate origin, link, or rescue buttons.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">The sequence</h3>
+            <ol className="space-y-2 mb-6">
+              {[
+                "Datum world frame first — click Origin, +X, +Y on the datum camera's datum view (each click snaps to the nearest detected dot); type the origin mm in the wizard panel",
+                "Then, per calibration frame: click the origin dot in camera 1",
+                "Click 2 shared dots in camera 1",
+                "Click the same 2 dots in camera 2 — the bridge auto-commits once enough pairs are picked",
+              ].map((step, idx) => (
+                <li key={idx} className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
+                    {idx + 1}
+                  </span>
+                  <span className="text-gray-700">{step}</span>
+                </li>
+              ))}
+            </ol>
+
+            <FeatureList items={[
+              "The viewer auto-navigates to the awaited camera and frame; if you browse elsewhere mid-walk, picking pauses with a hint until you return — a click is never attributed to the wrong image",
+              "Markers are persistent and colour-coded: the origin is green, shared dots are coloured by pick order with the same colour in both cameras (dot 1 in camera 1 matches dot 1 in camera 2)",
+              "Bridges walk outward from the datum camera to each adjacent camera (2 from 1, 3 from 2, ...), matching a linear rig's real overlap chain",
+              "Skip a step if a dot is not visible in a view; re-running the wizard skips views that are already anchored",
+            ]} />
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+              <p className="text-blue-700 text-sm">
+                <strong>ChArUco joint needs no wizard.</strong> Corner ids resolve the global grid
+                with zero clicks. The origin of the shared frame is the corner-id default — picking
+                a chosen corner as the origin is not yet available on the joint ChArUco path.
+              </p>
+            </div>
+          </Section>
+
+          {/* Global frame */}
+          <Section title="Global frame (scale factor)" icon={<Info size={32} />} id="global-frame">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Scale-factor calibration produces one model per camera, each in its own
+              local frame. The <code className="bg-gray-100 px-1 rounded text-sm">global-frame</code>{' '}
+              step ties them together. It takes a datum camera and a chain of overlap pairs, computes
+              the per-camera shift needed to put them all in one frame, and bakes a{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">world_offset_mm</code> into each model.
+            </p>
+
+            <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400 mb-6">
+              <p className="text-green-700 text-sm">
+                <strong>Coordinates only.</strong> The offset is applied at apply-calibration time as a
+                pure constant translation of the coordinate grid. Because it is constant, velocities
+                and Reynolds stresses are unaffected — only where each field sits in space changes.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="text-yellow-600" size={18} />
+                <strong className="text-yellow-800">Regenerating clears the offset</strong>
+              </div>
+              <p className="text-yellow-700 text-sm">
+                Regenerating any camera&apos;s model builds a fresh world frame, so its baked{' '}
+                <code className="bg-yellow-100 px-1 rounded">world_offset_mm</code> is cleared.
+                Re-save the global frame after recalibrating any camera.
+              </p>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Datum point</h3>
+            <p className="text-gray-700 mb-4">
+              The datum is a pixel on the datum camera that defines where the physical origin sits. It
+              carries physical coordinates (in mm), so you can place the origin on the datum feature or
+              offset it from there.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Overlap pairs</h3>
+            <p className="text-gray-700 mb-4">
+              Each overlap pair names the same physical feature as seen by two cameras:{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">pixel_on_a</code> on{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">camera_a</code> and{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">pixel_on_b</code> on{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">camera_b</code>. Chaining pairs from the
+              datum camera outward fixes every camera&apos;s shift relative to the shared origin.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">In the GUI</h3>
+            <p className="text-gray-700 mb-6">
+              This is a deliberate step on the Scale Factor tab (shown when more than one camera is
+              configured). After calibrating the cameras, pick the datum and overlap points on the
+              image and use <strong>Compute + Save Global Frame</strong> to write the datum/overlap
+              configuration and bake the offsets into the models. The saved per-camera offsets in mm
+              are listed on the tab.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">On the CLI</h3>
+            <p className="text-gray-700 mb-6">
+              The <code className="bg-gray-100 px-1 rounded text-sm">global-frame</code> command requires
+              the datum/overlap configuration under{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">calibration.global_coordinates</code>{' '}
+              (normally set in the GUI). The example below shows the multi-camera scale-factor sequence end to end.
+            </p>
+
+            <CodeBlock
+              title="Multi-camera scale-factor sequence"
+              code={`# 1. Calibrate each camera independently
+pivtools-cli scale-factor --px-per-mm <v> --origin <x> <y>
+
+# 2. Bake the shared frame into every model (needs global_coordinates config)
+pivtools-cli global-frame --board scale_factor
+
+# 3. Emit coordinates in the shared frame
+pivtools-cli apply-calibration --board scale_factor`}
+            />
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">global-frame flag</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { term: "Origin (O)", desc: "The datum pixel on Camera 1. Defines physical (0,0) or a specified offset." },
-                    { term: "Feature (F)", desc: "A matched point shared by two adjacent cameras. Each camera in a pair has one feature." },
-                    { term: "Overlap pair", desc: "Two cameras (A, B) linked by a shared feature. pixel_on_a and pixel_on_b identify the same physical location." },
-                    { term: "Invert Ux", desc: "Negate x-velocities and reflect x-coordinates when the physical x-direction runs opposite to the image x-direction." },
+                    { flag: "--source", desc: "Calibration source to operate on" },
+                    { flag: "--board", desc: "charuco | dotboard | scale_factor" },
+                    { flag: "--model-type", desc: "Camera model type" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.term}</td>
+                      <td className="px-4 py-3 text-sm font-mono text-soton-blue">{row.flag}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{row.desc}</td>
                     </tr>
                   ))}
@@ -227,254 +456,48 @@ export default function GlobalCoordinatesPage() {
               </table>
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Invert Ux</h3>
-            <p className="text-gray-700 mb-4">
-              When the first overlap feature is to the left of the datum on Camera 1, the
-              physical x-direction runs opposite to the image x-direction. The GUI auto-detects
-              this from the relative positions of the origin and first feature, toggling the
-              {' '}<strong>Flip X</strong> switch automatically. You can override this manually if needed.
-            </p>
-            <p className="text-gray-700 mb-4">
-              When Invert Ux is active, the alignment process negates{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">ux</code> and{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">UV_stress</code> in all
-              cameras{"'"} vector files, and reflects x-coordinates around the datum physical x-position
-              in the coordinates file.
-            </p>
-          </Section>
-
-          {/* GUI Workflow */}
-          <Section title="GUI Workflow" icon={<Monitor size={32} />} id="gui-workflow">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The Global Coordinates controls appear inline in the Calibration Image Viewer settings bar.
-              Enable the toggle and use the inline buttons to pick points on calibration images.
-            </p>
-
-            <div className="overflow-x-auto mb-8">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Step</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { step: "1", action: "Open any calibration method tab (Dotboard, ChArUco, etc.) to access the Calibration Image Viewer." },
-                    { step: "2", action: "Enable the \"Global Coords\" toggle in the settings bar." },
-                    { step: "3", action: "On Camera 1, click \"Set Origin\" then click the datum point on the image. A green crosshair marks the origin." },
-                    { step: "4", action: "Optionally adjust the physical X and Y coordinates (in mm) if your origin is offset from (0, 0)." },
-                    { step: "5", action: "Still on Camera 1, click \"Pick F1\" to select the feature shared with Camera 2. Click the overlap point on the image." },
-                    { step: "6", action: "Navigate to Camera 2 using the camera arrows. Click \"Pick F1\" to select the same physical feature as seen by Camera 2." },
-                    { step: "7", action: "For additional cameras, Camera 2 also needs \"Pick F2\" for the feature shared with Camera 3, and so on." },
-                    { step: "8", action: "The Flip X toggle auto-detects based on the origin and first feature positions. Override manually if needed." },
-                    { step: "9", action: "Run calibration (\"Calibrate Vectors\"). Global alignment is applied automatically." },
-                  ].map((row, index) => (
-                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 text-sm font-bold text-soton-blue">{row.step}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{row.action}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Camera Participation</h3>
-            <p className="text-gray-700 mb-4">
-              Each camera picks features for the pairs it participates in:
-            </p>
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Camera</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Features to Pick</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Role</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { cam: "Camera 1 (datum)", features: "Origin + F1", role: "Origin point, side A of pair 1-2" },
-                    { cam: "Middle cameras", features: "F1 + F2", role: "Side B of left pair, side A of right pair" },
-                    { cam: "Last camera", features: "F1", role: "Side B of final pair" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.cam}</td>
-                      <td className="px-4 py-3 text-sm font-mono text-soton-blue">{row.features}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{row.role}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
-              <p className="text-blue-700 text-sm">
-                <strong>Auto-applied:</strong> When global coordinates are enabled and configured,
-                alignment is applied automatically after calibration completes in the GUI.
-                No separate step is needed.
-              </p>
-            </div>
-
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="text-yellow-600" size={18} />
-                <strong className="text-yellow-800">Marker Labels</strong>
-              </div>
-              <p className="text-yellow-700 text-sm">
-                Feature markers are labelled <code className="bg-yellow-100 px-1 rounded">C&#123;cam&#125;F&#123;n&#125;</code> (e.g.,
-                C2F1 for Camera 2{"'"}s first feature). The origin on Camera 1 is marked with a green
-                {"\""}O{"\""}. Blue markers show overlap features.
-              </p>
-            </div>
-          </Section>
-
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-            <div className="flex items-center gap-2 mb-1">
-              <AlertTriangle className="text-red-600" size={18} />
-              <strong className="text-red-800">Unsupported Methods</strong>
-            </div>
-            <p className="text-red-700 text-sm">
-              Global coordinate alignment is <strong>not supported</strong> for polynomial (LaVision XML) calibration.
-              Use dotboard, ChArUco, or scale factor calibration methods instead.
-            </p>
-          </div>
-
-          {/* CLI */}
-          <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Two ways to apply global coordinate alignment via CLI:
-            </p>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Standalone Command</h3>
-            <CodeBlock
-              title="align-coordinates"
-              code={`# Apply alignment to instantaneous data
-pivtools-cli align-coordinates
-
-# Apply to ensemble data
-pivtools-cli align-coordinates -t ensemble
-
-# Process specific paths
-pivtools-cli align-coordinates -p 0,1
-
-# Force re-alignment (skip idempotency guard)
-pivtools-cli align-coordinates --force`}
-            />
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Combined with Calibration</h3>
-            <CodeBlock
-              title="apply-calibration --align-coordinates"
-              code={`# Calibrate and align in one step
-pivtools-cli apply-calibration --align-coordinates
-
-# With specific method
-pivtools-cli apply-calibration --method dotboard --align-coordinates`}
-            />
-
-            <h3 className="text-xl font-bold text-gray-900 mb-4">align-coordinates Options</h3>
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Flag</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { flag: "--type-name, -t", desc: "Data type: instantaneous or ensemble", def: "instantaneous" },
-                    { flag: "--active-paths, -p", desc: "Comma-separated path indices", def: "From config" },
-                    { flag: "--force, -f", desc: "Force alignment even if already applied (will double shifts)", def: "false" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.def}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-              <p className="text-blue-700 text-sm">
-                <strong>Idempotency guard:</strong> Running{' '}
-                <code className="bg-blue-100 px-1 rounded">align-coordinates</code> twice without
-                re-calibrating will be blocked to prevent doubling coordinate shifts. A sidecar
-                marker file (<code className="bg-blue-100 px-1 rounded">alignment_applied.json</code>)
-                tracks whether alignment has already been applied. Fresh calibration automatically
-                clears this marker. Use <code className="bg-blue-100 px-1 rounded">--force</code> to
-                override if needed.
-              </p>
-            </div>
-
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="text-yellow-600" size={18} />
                 <strong className="text-yellow-800">Prerequisite</strong>
               </div>
               <p className="text-yellow-700 text-sm">
-                Global coordinates must be configured in{' '}
-                <code className="bg-yellow-100 px-1 rounded">config.yaml</code> before running
-                the CLI command. Use the GUI to set up datum and overlap points, or edit the
-                YAML directly.
+                The datum and overlap pairs must exist under{' '}
+                <code className="bg-yellow-100 px-1 rounded">calibration.global_coordinates</code>{' '}
+                before <code className="bg-yellow-100 px-1 rounded">global-frame</code> runs. Set them in
+                the GUI, or edit the YAML directly using the block below.
               </p>
             </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Complete Workflow</h3>
-            <CodeBlock
-              title="Full Multi-Camera Workflow"
-              code={`# 1. Detect calibration targets
-pivtools-cli detect-planar
-
-# 2. Run PIV processing
-pivtools-cli instantaneous
-
-# 3. Calibrate vectors and align coordinates in one step
-pivtools-cli apply-calibration --align-coordinates
-
-# 4. Merge cameras
-pivtools-cli merge
-
-# 5. Compute statistics
-pivtools-cli statistics`}
-            />
           </Section>
 
           {/* YAML */}
           <Section title="YAML Configuration" icon={<FileText size={32} />} id="yaml">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Global coordinate settings are stored under{' '}
-              <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibration.global_coordinates</code> in
-              config.yaml.
+              The datum/overlap configuration lives under{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibration.global_coordinates</code>.
+              It applies to the global-frame (scale factor) path only — the joint path has no
+              such block.
             </p>
 
             <YamlDropdown
-              title="Global Coordinates Configuration"
+              title="Global Frame Configuration"
               defaultOpen={true}
               code={`calibration:
   global_coordinates:
     enabled: true
-    datum_camera: 1                     # Always 1 (not configurable)
-    datum_pixel: [512.0, 384.0]       # Pixel position of origin on Camera 1
+    datum_camera: 1                   # Camera holding the origin
+    datum_pixel: [512.0, 384.0]       # Pixel position of origin on datum camera
     datum_physical: [0.0, 0.0]        # Physical coordinates (mm) at datum
-    datum_frame: 1                    # Calibration frame for datum selection
-    invert_ux: false                  # Negate ux + reflect x-coords
+    datum_frame: 1                    # Calibration frame used for the datum
     overlap_pairs:
       - camera_a: 1
         camera_b: 2
-        pixel_on_a: [950.0, 400.0]    # Feature pixel on Camera 1
-        pixel_on_b: [120.0, 400.0]    # Same feature pixel on Camera 2
-        frame_a: 1
-        frame_b: 1
+        pixel_on_a: [950.0, 400.0]    # Shared feature pixel on camera_a
+        pixel_on_b: [120.0, 400.0]    # Same feature pixel on camera_b
       - camera_a: 2
         camera_b: 3
         pixel_on_a: [930.0, 410.0]
-        pixel_on_b: [100.0, 405.0]
-        frame_a: 1
-        frame_b: 1`}
+        pixel_on_b: [100.0, 405.0]`}
             />
 
             <div className="mt-8">
@@ -490,19 +513,16 @@ pivtools-cli statistics`}
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {[
-                      { field: "enabled", type: "bool", desc: "Enable global coordinate alignment" },
-                      { field: "datum_camera", type: "int", desc: "Camera that holds the origin (always Camera 1, not user-configurable)" },
-                      { field: "datum_pixel", type: "[x, y]", desc: "Pixel position of origin on datum camera image" },
-                      { field: "datum_physical", type: "[x, y]", desc: "Physical coordinates (mm) at datum point" },
-                      { field: "datum_frame", type: "int", desc: "Calibration frame used for datum point pixel-to-physical conversion" },
-                      { field: "invert_ux", type: "bool", desc: "Negate ux, UV_stress, and reflect x-coordinates" },
-                      { field: "overlap_pairs", type: "list", desc: "List of adjacent camera pair feature points" },
+                      { field: "enabled", type: "bool", desc: "Enable the global-frame chain" },
+                      { field: "datum_camera", type: "int", desc: "Camera that holds the origin" },
+                      { field: "datum_pixel", type: "[x, y]", desc: "Pixel position of the origin on the datum camera image" },
+                      { field: "datum_physical", type: "[x, y]", desc: "Physical coordinates (mm) at the datum point" },
+                      { field: "datum_frame", type: "int", desc: "Calibration frame used for the datum pixel-to-physical conversion" },
+                      { field: "overlap_pairs", type: "list", desc: "Chain of shared-feature pairs linking the cameras" },
                       { field: "overlap_pairs[].camera_a", type: "int", desc: "First camera in the pair" },
                       { field: "overlap_pairs[].camera_b", type: "int", desc: "Second camera in the pair" },
-                      { field: "overlap_pairs[].pixel_on_a", type: "[x, y]", desc: "Feature pixel on camera_a image" },
-                      { field: "overlap_pairs[].pixel_on_b", type: "[x, y]", desc: "Same feature pixel on camera_b image" },
-                      { field: "overlap_pairs[].frame_a", type: "int", desc: "Calibration frame for camera_a" },
-                      { field: "overlap_pairs[].frame_b", type: "int", desc: "Calibration frame for camera_b" },
+                      { field: "overlap_pairs[].pixel_on_a", type: "[x, y]", desc: "Shared feature pixel on camera_a" },
+                      { field: "overlap_pairs[].pixel_on_b", type: "[x, y]", desc: "Same feature pixel on camera_b" },
                     ].map((row, index) => (
                       <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-4 py-3 text-sm font-mono text-soton-blue">{row.field}</td>
@@ -514,6 +534,35 @@ pivtools-cli statistics`}
                 </table>
               </div>
             </div>
+          </Section>
+
+          {/* CLI quick reference */}
+          <Section title="CLI quick reference" icon={<Terminal size={32} />} id="cli">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Pick the path by board type. Dotboard and ChArUco get the joint solve; scale factor
+              gets the global-frame chain.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Dotboard / ChArUco (joint)</h3>
+            <p className="text-gray-700 mb-4">
+              In the GUI, two or more cameras in the calibration tab is always a joint solve — no extra
+              command. On the CLI, ChArUco joint calibration uses{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">detect-joint</code> (see the joint
+              section above). Dotboard joint has no headless path.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Scale factor (global frame)</h3>
+            <CodeBlock
+              title="Scale-factor multi-camera workflow"
+              code={`# Per camera
+pivtools-cli scale-factor --px-per-mm <v> --origin <x> <y>
+
+# Bake shared frame into models
+pivtools-cli global-frame --board scale_factor
+
+# Emit coordinates in the shared frame
+pivtools-cli apply-calibration --board scale_factor`}
+            />
           </Section>
 
           {/* Next Steps */}

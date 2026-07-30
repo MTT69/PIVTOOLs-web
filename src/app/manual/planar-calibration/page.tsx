@@ -15,12 +15,10 @@ import {
   ChevronDown,
   ChevronRight,
   CheckCircle,
-  AlertTriangle,
   Info,
   Crosshair,
-  Globe,
+  Database,
 } from 'lucide-react';
-import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ManualNavigation from '@/components/ManualNavigation';
@@ -146,7 +144,8 @@ export default function PlanarCalibrationPage() {
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Convert pixel displacements to physical velocity units (m/s).
-              Four methods available depending on your optical setup and accuracy requirements.
+              Three target types (scale factor, dotboard, ChArUco) and two camera models
+              (pinhole, polynomial) depending on your optical setup and accuracy requirements.
             </p>
           </motion.div>
 
@@ -169,10 +168,9 @@ export default function PlanarCalibrationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { method: "Scale Factor", type: "Uniform", best: "Telecentric lenses, quick analysis", target: "Known px/mm ratio" },
+                    { method: "Scale Factor", type: "Uniform", best: "Telecentric lenses, quick analysis", target: "Known px/mm ratio, no board" },
                     { method: "Dotboard", type: "Spatially-varying", best: "Standard PIV with lens distortion", target: "Circular dot grid, 10-20 images" },
                     { method: "ChArUco", type: "Spatially-varying", best: "Partial occlusion, oblique angles", target: "ChArUco board, multiple images" },
-                    { method: "Polynomial (XML)", type: "Spatially-varying", best: "LaVision DaVis users", target: "Calibration.xml from DaVis" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.method}</td>
@@ -185,12 +183,32 @@ export default function PlanarCalibrationPage() {
               </table>
             </div>
 
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed mb-6">
               <strong>Uniform calibration</strong> (Scale Factor) applies the same conversion everywhere:
               {' '}<code className="bg-gray-100 px-2 py-1 rounded text-sm">velocity = (pixels / px_per_mm) / (dt * 1000)</code>.
-              {' '}<strong>Spatially-varying methods</strong> (Dotboard, ChArUco, Polynomial) compute different
+              {' '}<strong>Spatially-varying methods</strong> (Dotboard, ChArUco) compute different
               conversion factors across the image to correct for lens distortion.
             </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Camera Model Choice</h3>
+            <p className="text-gray-700 leading-relaxed mb-6">
+              The Dotboard and ChArUco tabs share a <strong>Camera Model</strong> dropdown with two
+              choices. <strong>Pinhole</strong> (default) is the DaVis-matching PinholeOpenCV model
+              (single focal length fx = fy, free principal point cx/cy, distortion k1, k2, p1, p2
+              with k3 fixed at 0). <strong>Polynomial</strong> is a single-plane 3rd-order
+              pixel-to-mm map -- see the Polynomial section below. Scale Factor is its own tab and
+              involves no camera model fit.
+            </p>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+              <p className="text-blue-700 text-sm">
+                <strong>Multi-camera is automatic.</strong> With two or more cameras configured, the
+                Dotboard and ChArUco tabs run a joint multi-camera solve -- there is no toggle. A
+                single camera is a mono solve in the same tab. See the{' '}
+                <a href="/manual/global-coordinates" className="underline font-medium">Global
+                Coordinates</a> page for the joint solve and the guided wizard.
+              </p>
+            </div>
           </Section>
 
           {/* Calibration Image Setup */}
@@ -202,32 +220,31 @@ export default function PlanarCalibrationPage() {
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Directory Structure</h3>
             <p className="text-gray-700 mb-4">
-              The <code className="bg-gray-100 px-2 py-1 rounded text-sm">path_order</code> setting
-              controls how camera and calibration subfolders are nested.
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibration_sources</code> holds
+              direct paths to the calibration image locations (the &quot;Calibration Images
+              Location&quot; input on each tab). When{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">use_camera_subfolders</code> is
+              enabled, per-camera folders are appended to the source path.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-blue-50 rounded-lg p-4">
-                <h5 className="font-semibold text-blue-800 mb-2">camera_first (default)</h5>
+                <h5 className="font-semibold text-blue-800 mb-2">use_camera_subfolders: false</h5>
                 <div className="text-xs text-blue-600 font-mono bg-white rounded p-2">
-                  source_path/<br />
-                  ├── Cam1/<br />
-                  │   └── calibration/<br />
-                  │       └── calib_001.tif<br />
-                  └── Cam2/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;└── calibration/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── calib_001.tif
+                  calibration_source/<br />
+                  ├── calib00001.tif<br />
+                  ├── calib00002.tif<br />
+                  └── ...
                 </div>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
-                <h5 className="font-semibold text-green-800 mb-2">calibration_first</h5>
+                <h5 className="font-semibold text-green-800 mb-2">use_camera_subfolders: true</h5>
                 <div className="text-xs text-green-600 font-mono bg-white rounded p-2">
-                  source_path/<br />
-                  └── calibration/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;├── Cam1/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;│   └── calib_001.tif<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;└── Cam2/<br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── calib_001.tif
+                  calibration_source/<br />
+                  ├── Cam1/<br />
+                  │   └── calib00001.tif<br />
+                  └── Cam2/<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;└── calib00001.tif
                 </div>
               </div>
             </div>
@@ -244,13 +261,13 @@ export default function PlanarCalibrationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib_%02d.tif)" },
-                    { setting: "Number of Images", yaml: "num_images", desc: "Total calibration images to process" },
-                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7" },
+                    { setting: "Calibration Sources", yaml: "calibration_sources", desc: "Direct paths to calibration image locations" },
+                    { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib%05d.tif)" },
+                    { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process" },
+                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset)" },
                     { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0" },
-                    { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Enable per-camera subdirectories" },
-                    { setting: "Path Order", yaml: "path_order", desc: "camera_first or calibration_first" },
-                    { setting: "Subfolder Name", yaml: "subfolder", desc: "Calibration subfolder name" },
+                    { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Append per-camera folders to the source path" },
+                    { setting: "Subfolder Names", yaml: "camera_subfolders", desc: "Custom folder names (default Cam1, Cam2, ...)" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.setting}</td>
@@ -287,36 +304,38 @@ export default function PlanarCalibrationPage() {
               </p>
             </div>
 
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div className="bg-green-50 border-l-4 border-green-400 p-4">
               <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="text-yellow-600" size={18} />
-                <strong className="text-yellow-800">Platform Note</strong>
+                <Info className="text-green-600" size={18} />
+                <strong className="text-green-800">Platform Note</strong>
               </div>
-              <p className="text-yellow-700 text-sm">
-                LaVision formats (.im7, .set) require lvpyio, available on Windows and Linux only.
-                macOS users should export calibration images to TIFF.
+              <p className="text-green-700 text-sm">
+                LaVision formats (.im7, .set) are read by a pure-Python, cross-platform reader.
+                No lvpyio dependency -- they work on macOS, Linux, and Windows alike.
               </p>
             </div>
 
             <YamlDropdown
               title="config.yaml - Calibration Image Settings"
               code={`calibration:
-  image_format: calib_%02d.tif
-  num_images: 19
+  calibration_sources:
+    - /data/experiment/calibration
+  image_format: calib%05d.tif
   image_type: standard
+  n_views: 19
   zero_based_indexing: false
   use_camera_subfolders: true
-  subfolder: calibration
-  camera_subfolders: ["Cam1", "Cam2"]
-  path_order: camera_first`}
+  camera_subfolders: ["Cam1", "Cam2"]`}
             />
           </Section>
 
           {/* Scale Factor */}
           <Section title="Scale Factor" icon={<Ruler size={32} />} id="scale-factor">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Uniform px-to-mm conversion. No calibration images needed -- just enter the
-              known pixel-to-mm ratio and the time between laser pulses.
+              Uniform px-to-mm conversion. No board and no detection -- enter the known
+              pixel-to-mm ratio and the time between laser pulses, then pick the world origin
+              and axis directions on the image. World mm = (pixel - origin) / px_per_mm;
+              velocity = displacement / px_per_mm / dt / 1000.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Parameters</h3>
@@ -341,9 +360,14 @@ export default function PlanarCalibrationPage() {
                     <td className="px-6 py-4 text-sm text-gray-600">0.56</td>
                   </tr>
                   <tr>
-                    <td className="px-6 py-4 text-sm font-mono text-soton-blue">source_path_idx</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">Which source path to calibrate</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">0</td>
+                    <td className="px-6 py-4 text-sm font-mono text-soton-blue">Origin (px / mm)</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">World-origin pixel + its world position in mm (picked/typed in the GUI, stored in the model, not config)</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">click, (0, 0)</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-mono text-soton-blue">+X / +Y direction</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">Axis directions (and optional axis swap); a mirrored camera is handled here, not by a velocity flip</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">right, up</td>
                   </tr>
                 </tbody>
               </table>
@@ -352,10 +376,12 @@ export default function PlanarCalibrationPage() {
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <ol className="space-y-2 mb-6">
               {[
-                "Select source path from the dropdown",
-                "Enter dt (time between frames in seconds)",
-                "Enter px_per_mm (pixels per millimetre)",
-                "Click \"Calibrate Vectors\" to apply",
+                "Set the Calibration Images Location (one reference image is enough)",
+                "Enter dt (seconds) and px_per_mm -- the two-point measure helper can fill px_per_mm from a known distance",
+                "Click \"Pick Origin\" and click the world origin on the image (or type Origin X/Y in px); optionally type the origin's world position in mm",
+                "Set the +X and +Y directions (defaults +X right, +Y up)",
+                "Click \"Generate Model\" -- the model and a proof figure are saved into the calibration source folder",
+                "Click \"Calibrate Vectors\" to apply (instantaneous or ensemble)",
                 "Click \"Set as Active\" to make this the active method",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
@@ -367,14 +393,24 @@ export default function PlanarCalibrationPage() {
               ))}
             </ol>
 
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
+              <p className="text-blue-700 text-sm">
+                <strong>Multiple cameras?</strong> Each camera gets its own scale-factor model.
+                To place them all in one shared frame, use the datum + overlap-pair chain on the{' '}
+                <a href="/manual/global-coordinates" className="underline font-medium">Global
+                Coordinates</a> page (&quot;Compute + Save Global Frame&quot;).
+              </p>
+            </div>
+
             <YamlDropdown
               title="config.yaml - Scale Factor"
               code={`calibration:
   active: scale_factor
   scale_factor:
-    dt: 0.56
     px_per_mm: 3.41
-    source_path_idx: 0`}
+    dt: 0.56
+  # The picked origin (px + mm) and axis directions are stored in the
+  # model .mat record in the calibration source folder, not in config.`}
             />
           </Section>
 
@@ -398,11 +434,10 @@ export default function PlanarCalibrationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "pattern_cols", desc: "Horizontal dot count", def: "10" },
-                    { param: "pattern_rows", desc: "Vertical dot count", def: "10" },
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "28.89" },
-                    { param: "asymmetric", desc: "Asymmetric grid pattern", def: "false" },
-                    { param: "dt", desc: "Time between frames (seconds)", def: "1.0" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "15.0" },
+                    { param: "k_neighbors", desc: "Neighbours per dot in the grid walk", def: "9" },
+                    { param: "model_type", desc: "Camera model: pinhole or polynomial", def: "pinhole" },
+                    { param: "fix_k2", desc: "Pin the r^4 radial term (only for few-view fits)", def: "false" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
@@ -416,22 +451,39 @@ export default function PlanarCalibrationPage() {
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Algorithm</h3>
             <p className="text-gray-700 mb-4">
-              Histogram-based blob detection determines image polarity automatically (dark dots on
-              light or vice versa). Detected dots are linked into a grid using{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">cKDTree</code> nearest-neighbour
-              search. A RANSAC homography filters outliers before OpenCV{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">calibrateCamera</code> computes
-              the camera model.
+              Detection needs zero user configuration. Blob detection tries both polarities
+              (dark-on-light and light-on-dark) and keeps whichever finds more blobs, then an Otsu
+              filter on the blob-size histogram rejects small noise blobs (specular reflections).
+              Detected dots are assigned grid indices by a{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">BFS</code> neighbourhood walk --
+              purely local neighbour relationships, so it is robust to perspective, tilt, and
+              boards partially out of frame -- and a RANSAC homography models the perspective and
+              rejects outliers. Missing interior dots are rescued by predicting their position with
+              a local homography and confirming by template matching against a nearby healthy dot.
+              Grid dimensions are discovered automatically -- only the dot spacing is entered.
+              OpenCV <code className="bg-gray-100 px-1 rounded text-sm">calibrateCamera</code> /{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">calibrateCameraRO</code> then
+              computes the camera model.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">World Frame from Clicks</h3>
+            <p className="text-gray-700 mb-4">
+              The coordinate system is defined by three clicks on the datum frame -- origin, +X,
+              +Y. Each click snaps to the nearest detected dot, and the buttons auto-advance
+              (origin, then +X, then +Y). The axes are built from the board&apos;s orthogonal grid
+              axes, so the +X/+Y clicks only choose which grid axis and its sign -- never skew. A
+              typed origin X/Y in mm places the origin dot at an absolute world position.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <ol className="space-y-2 mb-6">
               {[
-                "Configure calibration images (format, count, subfolder)",
-                "Set grid parameters (cols, rows, dot spacing)",
-                "Use \"Detect One\" to preview detection on a single frame -- detected dots are overlaid on the image",
-                "Click \"Generate Model\" to run detection on all frames and compute the camera model",
-                "Review RMS reprojection error (target: < 0.5 px)",
+                "Configure calibration images (location, format, number of views)",
+                "Enter the dot spacing (mm) and choose the camera model (pinhole or polynomial)",
+                "On the datum frame, click Set Origin, then +X, then +Y -- clicks snap to the nearest detected dot and the detection overlay appears",
+                "Optionally type the origin X/Y in mm",
+                "Click \"Generate Model\" (disabled until the world frame is complete) to run detection on all frames and compute the camera model",
+                "Review the RMS reprojection error (target: < 0.5 px) and the proof figures",
                 "Click \"Calibrate Vectors\" to apply calibration to PIV data",
                 "Click \"Set as Active\" to make this the active method",
               ].map((step, idx) => (
@@ -449,18 +501,23 @@ export default function PlanarCalibrationPage() {
               <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
                 <h4 className="font-semibold text-gray-900 mb-2">Camera Model</h4>
                 <ul className="text-gray-600 space-y-1 text-sm">
-                  <li><strong>Camera Matrix:</strong> fx, fy, cx, cy</li>
-                  <li><strong>Distortion:</strong> 5 radial/tangential coefficients</li>
+                  <li><strong>Camera Matrix:</strong> focal length f (fx == fy, fixed aspect ratio), cx, cy</li>
+                  <li><strong>Distortion:</strong> 4 coefficients (k1, k2, p1, p2; k3 fixed at 0)</li>
                   <li><strong>Extrinsics:</strong> Rotation + translation per frame</li>
                   <li><strong>RMS Error:</strong> Reprojection quality metric</li>
                 </ul>
               </div>
               <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
                 <h4 className="font-semibold text-gray-900 mb-2">Output Directory</h4>
+                <p className="text-gray-600 text-xs mb-2">
+                  Written into the <strong>calibration source folder</strong> (with the images), not
+                  the PIV base path -- one project can hold many runs, each calibration living with
+                  its images.
+                </p>
                 <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-2">
-                  base_path/calibration/Cam1/dotboard_planar/<br />
-                  ├── model/dotboard_model.mat<br />
-                  ├── indices/indexing_*.mat<br />
+                  &lt;source&gt;/calibration/Cam1/dotboard_planar/<br />
+                  ├── model/model_pinhole.mat   (or model_polynomial.mat)<br />
+                  ├── model/inputs.mat   (detections + clicks sidecar)<br />
                   └── figures/
                 </div>
               </div>
@@ -468,8 +525,12 @@ export default function PlanarCalibrationPage() {
 
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
               <p className="text-blue-700 text-sm">
-                <strong>Multi-camera:</strong> When processing all cameras, each camera runs in a
-                separate thread with its own calibrator instance for maximum parallelism.
+                <strong>Two or more cameras = joint solve.</strong> The tab automatically runs the
+                joint multi-camera calibration -- one shared board, one shared world frame, no
+                toggle. The datum and cross-camera ties are picked through the guided
+                &quot;Set Global Coordinates&quot; wizard -- see the{' '}
+                <a href="/manual/global-coordinates" className="underline font-medium">Global
+                Coordinates</a> page. A single camera is a mono solve in the same tab.
               </p>
             </div>
 
@@ -477,22 +538,25 @@ export default function PlanarCalibrationPage() {
               title="config.yaml - Dotboard"
               code={`calibration:
   active: dotboard
+  dt: 0.0057553          # seconds between frames (top-level, shared)
   dotboard:
-    camera: 1
-    pattern_cols: 10
-    pattern_rows: 10
-    dot_spacing_mm: 12.22
-    asymmetric: false
-    dt: 0.0057553
-    source_path_idx: 0`}
+    dot_spacing_mm: 15.0
+    k_neighbors: 9
+    model_type: pinhole  # pinhole | polynomial
+    fix_k2: false
+  # World-frame clicks are NOT stored in config -- they live in the
+  # model's inputs.mat sidecar (see Persistence & Caching below).`}
             />
           </Section>
 
           {/* ChArUco */}
           <Section title="Planar ChArUco" icon={<QrCode size={32} />} id="charuco">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Combines a chessboard pattern with ArUco markers. The markers identify which corners
-              are visible, so detection works with partial occlusion and at oblique viewing angles.
+              Combines a chessboard pattern with ArUco markers. Detection uses OpenCV&apos;s{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">cv2.CharucoDetector</code>;
+              the markers identify which corners are visible, so detection works with partial
+              occlusion and at oblique viewing angles. Grid indices come directly from the global
+              corner ids -- the grid needs <strong>zero clicks</strong>.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Parameters</h3>
@@ -508,12 +572,12 @@ export default function PlanarCalibrationPage() {
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "squares_h", desc: "Horizontal square count", def: "10" },
-                    { param: "squares_v", desc: "Vertical square count", def: "9" },
+                    { param: "squares_v", desc: "Vertical square count", def: "7" },
                     { param: "square_size", desc: "Square size in metres", def: "0.03" },
                     { param: "marker_ratio", desc: "Marker size relative to square", def: "0.5" },
                     { param: "aruco_dict", desc: "ArUco dictionary type", def: "DICT_4X4_1000" },
                     { param: "min_corners", desc: "Minimum corners to accept a frame", def: "6" },
-                    { param: "dt", desc: "Time between frames (seconds)", def: "1.0" },
+                    { param: "model_type", desc: "Camera model: pinhole or polynomial", def: "pinhole" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
@@ -537,94 +601,84 @@ export default function PlanarCalibrationPage() {
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <p className="text-gray-700 mb-4">
               Same as Dotboard: configure images, set board parameters, generate model, review RMS,
-              apply to vectors, and set as active.
+              apply to vectors, and set as active. For a single camera the origin/+X/+Y clicks
+              define the world frame exactly as on the dotboard tab (clicks snap to detected
+              corners). Detection itself needs no clicks -- the corner ids fix the grid.
             </p>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-700 text-sm">
+                <strong>Joint (multi-camera) ChArUco origin:</strong> the joint solve currently uses
+                the default corner-id origin. Picking a chosen corner as the origin is not yet
+                available on the joint ChArUco path -- if you need a clicked origin with multiple
+                cameras, use a dotboard.
+              </p>
+            </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-              base_path/calibration/Cam1/charuco_planar/<br />
-              ├── model/camera_model.mat<br />
-              └── indices/indexing_*.mat
+              &lt;source&gt;/calibration/Cam1/charuco_planar/<br />
+              ├── model/model_pinhole.mat   (or model_polynomial.mat)<br />
+              └── model/inputs.mat
             </div>
 
             <YamlDropdown
               title="config.yaml - ChArUco"
               code={`calibration:
   active: charuco
+  dt: 0.0057553          # seconds between frames (top-level, shared)
   charuco:
-    camera: 1
     squares_h: 10
-    squares_v: 9
-    square_size: 0.03
+    squares_v: 7
+    square_size: 0.03    # metres
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6
-    dt: 0.0057553
-    source_path_idx: 0`}
+    model_type: pinhole  # pinhole | polynomial`}
             />
           </Section>
 
           {/* Polynomial */}
-          <Section title="Polynomial (LaVision XML)" icon={<FileCode size={32} />} id="polynomial">
+          <Section title="Polynomial" icon={<FileCode size={32} />} id="polynomial">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Imports 3rd-order polynomial calibration coefficients from a LaVision DaVis
-              {' '}<code className="bg-gray-100 px-1 rounded text-sm">Calibration.xml</code> file.
-              No target detection step required.
+              The alternative camera model on the Dotboard and ChArUco tabs (planar only -- the
+              stereo tabs are pinhole-only). It is a direct single-plane 3rd-order map from image
+              pixels to world mm, fitted from the datum view&apos;s detected features in the clicked
+              world frame -- 10 coefficients per axis, per camera. The polynomial absorbs strong
+              lens distortion and oblique perspective that a pinhole model cannot. It is fitted
+              output, not an imported file: there is no XML and no DaVis import.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                <h4 className="font-semibold text-purple-800 mb-2">XML Mode (default)</h4>
-                <p className="text-purple-700 text-sm">
-                  Enable <code className="bg-purple-100 px-1 rounded">use_xml: true</code>.
-                  Reads coefficients directly from the XML file. Default location:
-                  {' '}<code className="bg-purple-100 px-1 rounded text-xs">source_path/Calibration.xml</code>.
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <h4 className="font-semibold text-gray-800 mb-2">Manual Entry Mode</h4>
-                <p className="text-gray-700 text-sm">
-                  Set <code className="bg-gray-100 px-1 rounded">use_xml: false</code> and enter
-                  10 polynomial coefficients per axis manually:
-                  {' '}<code className="text-xs bg-gray-100 px-1 rounded">1, s, s2, s3, t, t2, t3, st, s2t, st2</code>.
-                </p>
-              </div>
-            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">The Polynomial Model</h3>
+            <p className="text-gray-700 mb-4">
+              Pixel coordinates are normalised about the image centre and scaled by the image
+              half-dimensions (so s, t span roughly [-1, 1]), then mapped to world mm by a 10-term
+              cubic basis per axis:
+              {' '}<code className="text-xs bg-gray-100 px-1 rounded">1, s, s2, s3, t, t2, t3, st, s2t, st2</code>.
+              The clicked origin/+X/+Y and origin-mm are baked into the coefficients exactly as for
+              pinhole. Everything is produced by the fit -- the user enters none of it. Fit quality
+              is reported as the per-axis RMS residual in mm
+              (<code className="bg-gray-100 px-1 rounded text-sm">rms_x_mm</code>,{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">rms_y_mm</code>).
+            </p>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Per-Camera Parameters</h3>
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { param: "origin.x, origin.y", desc: "Normalisation origin (s_o, t_o)" },
-                    { param: "normalisation.nx, .ny", desc: "Normalisation scale factors" },
-                    { param: "mm_per_pixel", desc: "Pixel-to-mm conversion factor" },
-                    { param: "coefficients_x", desc: "10-element array for x displacement" },
-                    { param: "coefficients_y", desc: "10-element array for y displacement" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-700 text-sm">
+                <strong>Two deliberate differences from pinhole:</strong> the fit uses only the
+                datum view (it is a single-plane map), and it <strong>extrapolates silently</strong>{' '}
+                outside the fitted region -- values stay finite but are unconstrained beyond the
+                board. Keep the board covering the measurement region.
+              </p>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <ol className="space-y-2 mb-6">
               {[
-                "Enable \"Use XML\" toggle (default on)",
-                "Set XML path or leave empty for default location",
-                "Click \"Load XML\" to populate coefficients",
-                "Click \"Calibrate Vectors\" to apply",
-                "Click \"Set as Active\"",
+                "On the Dotboard or ChArUco tab, select \"Polynomial\" in the Camera Model dropdown",
+                "Complete the world-frame clicks (origin, +X, +Y) on the datum frame as usual",
+                "Click \"Generate Model\" -- detection runs, then the two 10-coefficient least-squares fits",
+                "Review the per-axis RMS in mm on the results card (it shows coefficients + RMS instead of intrinsics)",
+                "Click \"Calibrate Vectors\" to apply, then \"Set as Active\"",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
@@ -635,29 +689,94 @@ export default function PlanarCalibrationPage() {
               ))}
             </ol>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Setting the Datum</h3>
-            <p className="text-gray-700 mb-4">
-              After calibration, use the <strong>Set Datum</strong> control to shift the coordinate origin.
-              This applies x/y offsets to the coordinates of all runs in the selected data type.
-            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <h4 className="font-semibold text-purple-800 mb-2">CLI, Single Camera (ChArUco)</h4>
+                <p className="text-purple-700 text-sm">
+                  Run <code className="bg-purple-100 px-1 rounded">detect-charuco --model-type polynomial</code>.
+                  Detects ChArUco corners and fits the 10-coefficient polynomial per axis. Dotboard
+                  polynomial fits are GUI-only (they need the world-frame clicks).
+                </p>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <h4 className="font-semibold text-purple-800 mb-2">CLI, Multi-Camera (joint)</h4>
+                <p className="text-purple-700 text-sm">
+                  Run <code className="bg-purple-100 px-1 rounded">detect-joint --model-type polynomial</code>.
+                  Fits every camera&apos;s datum view in the shared global frame, producing
+                  per-camera polynomial records that are mutually consistent.
+                </p>
+              </div>
+            </div>
 
             <YamlDropdown
-              title="config.yaml - Polynomial"
+              title="config.yaml - Polynomial (a model type, not a separate block)"
               code={`calibration:
-  active: polynomial
-  polynomial:
-    xml_path: ''
-    use_xml: true
-    dt: 0.0057553
-    source_path_idx: 0
-    cameras:
-      1:
-        origin: {x: 0.0, y: 0.0}
-        normalisation: {nx: 512.0, ny: 384.0}
-        mm_per_pixel: 0.0
-        coefficients_x: []
-        coefficients_y: []`}
+  active: dotboard        # or charuco
+  dotboard:
+    dot_spacing_mm: 15.0
+    model_type: polynomial   # <- selects the polynomial camera model
+  # The fitted coefficients, normalisation, and per-axis RMS live in
+  # model_polynomial.mat in the calibration source folder, not in config.`}
             />
+          </Section>
+
+          {/* Persistence & Caching */}
+          <Section title="Persistence & Caching" icon={<Database size={32} />} id="persistence">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Everything needed to reproduce a model is saved beside it in the calibration source
+              folder. You never re-detect or re-click to regenerate.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">The inputs.mat Sidecar</h3>
+            <p className="text-gray-700 mb-6">
+              The fitted model record (.mat) is written to{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">&lt;source&gt;/calibration/Cam&#123;N&#125;/&lt;board&gt;_planar/model/</code>.
+              Beside it, an <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code>{' '}
+              sidecar stores the detected points, the clicked world frame, and the board geometry.
+              Generate re-solves from the sidecar with no re-detecting and no re-clicking -- even
+              after deleting the model file, one Generate press rebuilds it. The model is also
+              self-describing: the board geometry that produced it is stamped inside, and the GUI
+              seeds its parameter panel from the loaded model.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">What Lives in config.yaml</h3>
+            <p className="text-gray-700 mb-6">
+              Only what you type or select before detecting: image/source settings, dt, the datum
+              selection, the per-board geometry seed, the{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">model_type</code> selections, the{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">scale_factor</code> block, and{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">global_coordinates</code>.
+              <strong> Clicks are never written to config</strong> -- the sidecar is authoritative.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Caching</h3>
+            <p className="text-gray-700 mb-6">
+              Detections are cached in memory for the session and persisted on disk in the{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code> sidecar, so
+              previews and re-opens are instant. The <strong>Re-detect</strong> button forces a
+              fresh detection after the images on disk change.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Tolerant Detection</h3>
+            <p className="text-gray-700 mb-6">
+              A view that fails detection is dropped and reported per-view -- it never aborts the
+              solve. A camera only fails if <em>no</em> image detects (almost always a wrong path,
+              format, or board parameter).
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Auto-Load</h3>
+            <p className="text-gray-700 mb-6">
+              Visiting a tab restores its saved model automatically -- the origin/+X/+Y markers,
+              detection overlay, and results card all repaint. There is no &quot;Load Saved&quot;
+              button.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Setting the Datum Afterwards</h3>
+            <p className="text-gray-700 mb-4">
+              After applying any calibration, the vector viewer&apos;s <strong>Set Datum</strong>{' '}
+              control shifts a dataset&apos;s coordinate grid in place -- x/y offsets applied to
+              the coordinates of all runs in the selected data type. Velocities are untouched.
+            </p>
           </Section>
 
           {/* CLI */}
@@ -670,17 +789,20 @@ export default function PlanarCalibrationPage() {
             <h3 className="text-xl font-bold text-gray-900 mb-3">Step 1: Generate Camera Model</h3>
             <CodeBlock
               title="Detection Commands"
-              code={`# Dotboard detection
-pivtools-cli detect-planar
-
-# ChArUco detection
+              code={`# ChArUco detection (mono detection on the CLI is ChArUco-only)
 pivtools-cli detect-charuco
 
-# Process specific camera
-pivtools-cli detect-planar --camera 1
+# Process a specific camera
+pivtools-cli detect-charuco --camera 1
 
-# Process specific paths
-pivtools-cli detect-planar -p 0,1`}
+# Choose the camera model and distortion model
+pivtools-cli detect-charuco --model-type polynomial
+pivtools-cli detect-charuco --model-type pinhole --distortion rational
+
+# Joint multi-camera solve (ChArUco headless; dotboard clicks come from the GUI wizard)
+pivtools-cli detect-joint --cameras 1,2,3
+
+# Dotboard detection is GUI-only -- it needs the world-frame clicks.`}
             />
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Step 2: Apply Calibration</h3>
@@ -689,16 +811,16 @@ pivtools-cli detect-planar -p 0,1`}
               code={`# Use active method from config.yaml
 pivtools-cli apply-calibration
 
-# Override method
-pivtools-cli apply-calibration --method dotboard
-pivtools-cli apply-calibration --method charuco
-pivtools-cli apply-calibration --method scale_factor
+# Choose the board / method
+pivtools-cli apply-calibration --board dotboard
+pivtools-cli apply-calibration --board charuco
+pivtools-cli apply-calibration --board scale_factor
 
 # Specific camera + data type
 pivtools-cli apply-calibration --camera 1 --type-name ensemble
 
-# Specific runs
-pivtools-cli apply-calibration -r 1,2,3`}
+# All source paths
+pivtools-cli apply-calibration --all-paths`}
             />
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">apply-calibration Options</h3>
@@ -713,12 +835,13 @@ pivtools-cli apply-calibration -r 1,2,3`}
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { flag: "--method, -m", desc: "Calibration method: dotboard, charuco, scale_factor", def: "From config" },
-                    { flag: "--camera, -c", desc: "Camera number", def: "All cameras" },
-                    { flag: "--type-name, -t", desc: "Data type (instantaneous / ensemble)", def: "instantaneous" },
-                    { flag: "--runs, -r", desc: "Comma-separated run numbers", def: "All runs" },
-                    { flag: "--active-paths, -p", desc: "Comma-separated path indices", def: "From config" },
-                    { flag: "--align-coordinates", desc: "Apply global coordinate alignment after calibration", def: "Off" },
+                    { flag: "--board", desc: "Board / method: charuco, dotboard, stepped, scale_factor", def: "From config" },
+                    { flag: "--camera", desc: "Camera number", def: "All cameras" },
+                    { flag: "--source", desc: "Calibration source dir (where the models live)", def: "From config" },
+                    { flag: "--type-name", desc: "Data type (instantaneous / ensemble)", def: "instantaneous" },
+                    { flag: "--model-type", desc: "Which record to load when several exist: pinhole, polynomial, polynomial3d, scale_factor", def: "From model" },
+                    { flag: "--dt", desc: "Time between frames (seconds)", def: "From config" },
+                    { flag: "--all-paths", desc: "Apply to all source paths", def: "Off" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
@@ -733,8 +856,8 @@ pivtools-cli apply-calibration -r 1,2,3`}
             <h3 className="text-xl font-bold text-gray-900 mb-3">Complete Workflow</h3>
             <CodeBlock
               title="Full Planar Calibration Workflow"
-              code={`# 1. Detect calibration targets
-pivtools-cli detect-planar       # or detect-charuco
+              code={`# 1. Detect calibration targets (ChArUco; dotboard is GUI-only)
+pivtools-cli detect-charuco
 
 # 2. Run PIV processing
 pivtools-cli instantaneous
@@ -750,61 +873,53 @@ pivtools-cli apply-calibration`}
               title="Full Planar Calibration Configuration"
               defaultOpen={true}
               code={`calibration:
-  # Active method
-  active: dotboard  # scale_factor, dotboard, charuco, polynomial
-  piv_type: instantaneous
-
-  # Calibration image settings
-  image_format: calib_%02d.tif
-  num_images: 19
-  image_type: standard
+  # --- Image sourcing ---
+  calibration_sources:
+    - /data/experiment/calibration
+  image_format: calib%05d.tif
+  image_type: standard        # standard | cine | lavision_set | lavision_im7
+  n_views: 19
   zero_based_indexing: false
   use_camera_subfolders: true
-  subfolder: calibration
   camera_subfolders: ["Cam1", "Cam2"]
-  path_order: camera_first
+  piv_type: instantaneous     # data type for Calibrate Vectors
 
-  # Scale Factor
-  scale_factor:
-    dt: 0.56
-    px_per_mm: 3.41
-    source_path_idx: 0
+  # --- Calibration math ---
+  active: dotboard            # charuco | dotboard | scale_factor
+  source_idx: 0               # index into calibration_sources
+  datum_index: 0              # datum frame (world-frame clicks live here)
+  camera: 1
+  dt: 0.0057553               # seconds between frames -- rig-specific
 
-  # Dotboard
+  # Per-board geometry seed + model selection
   dotboard:
-    camera: 1
-    pattern_cols: 10
-    pattern_rows: 10
-    dot_spacing_mm: 12.22
-    asymmetric: false
-    dt: 0.0057553
-    source_path_idx: 0
-
-  # ChArUco
+    dot_spacing_mm: 15.0
+    k_neighbors: 9
+    model_type: pinhole       # pinhole | polynomial
+    fix_k2: false
   charuco:
-    camera: 1
     squares_h: 10
-    squares_v: 9
-    square_size: 0.03
+    squares_v: 7
+    square_size: 0.03         # metres
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6
-    dt: 0.0057553
-    source_path_idx: 0
+    model_type: pinhole
+  scale_factor:
+    px_per_mm: 3.41
+    dt: 0.56
 
-  # Polynomial (LaVision XML)
-  polynomial:
-    xml_path: ''
-    use_xml: true
-    dt: 0.0057553
-    source_path_idx: 0
-    cameras:
-      1:
-        origin: {x: 0.0, y: 0.0}
-        normalisation: {nx: 512.0, ny: 384.0}
-        mm_per_pixel: 0.0
-        coefficients_x: []
-        coefficients_y: []`}
+  # Multi-camera global frame (scale-factor path -- see Global Coordinates)
+  global_coordinates:
+    enabled: false
+    datum_camera: 1
+    datum_pixel: null
+    datum_physical: [0.0, 0.0]
+    datum_frame: 1
+    overlap_pairs: []
+
+# World-frame clicks and detections are NOT in config -- they persist in
+# the model's inputs.mat sidecar in the calibration source folder.`}
             />
           </Section>
 
@@ -835,121 +950,6 @@ pivtools-cli apply-calibration`}
                 measure it in pixels with this tool, then divide by the known length in mm
                 to get your <code className="bg-blue-100 px-1 rounded">px_per_mm</code> value for
                 Scale Factor calibration.
-              </p>
-            </div>
-          </Section>
-
-          {/* Global Coordinate System */}
-          <Section title="Global Coordinate System" icon={<Globe size={32} />} id="global-coordinates">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              For multi-camera setups, the Global Coordinate System aligns all cameras into a single
-              physical coordinate frame. It uses a chain topology (camera N to camera N+1) with
-              shared overlap features between adjacent camera pairs.
-            </p>
-
-            <FeatureList items={[
-              "Chain topology: N cameras require N-1 adjacent overlap pairs",
-              "Datum point defines the coordinate origin (pixel + physical position)",
-              "Overlap features link adjacent cameras via shared physical points",
-              "Automatic Invert Ux detection based on feature position relative to datum",
-              "Applied automatically after calibration in both GUI and CLI",
-            ]} />
-
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Configuration</h3>
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Setting</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { setting: "enabled", desc: "Enable global coordinate alignment" },
-                    { setting: "datum_pixel", desc: "Pixel coordinates of the datum point {x, y}" },
-                    { setting: "datum_physical", desc: "Physical coordinates of the datum point {x, y} in mm" },
-                    { setting: "datum_frame", desc: "Frame number containing the datum point" },
-                    { setting: "overlap_pairs", desc: "List of adjacent camera pairs with shared pixel features" },
-                    { setting: "invert_ux", desc: "Negate ux velocity and reflect x-coordinates (auto-detected or manual)" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.setting}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
-            <ol className="space-y-2 mb-6">
-              {[
-                "Open the calibration image viewer and navigate to the Global Coordinates panel",
-                "Set the datum point by clicking a known physical location on camera 1",
-                "Enter the physical coordinates (mm) of the datum point",
-                "For each adjacent camera pair, select overlap features visible in both cameras",
-                "Invert Ux is auto-detected; override manually if needed",
-                "Alignment is applied automatically when calibrating vectors",
-              ].map((step, idx) => (
-                <li key={idx} className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
-                    {idx + 1}
-                  </span>
-                  <span className="text-gray-700">{step}</span>
-                </li>
-              ))}
-            </ol>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">CLI Usage</h3>
-            <CodeBlock
-              title="Global Coordinate CLI"
-              code={`# Apply alignment after calibration in one step
-pivtools-cli apply-calibration --align-coordinates
-
-# Or as a standalone command on already-calibrated data
-pivtools-cli align-coordinates
-
-# Process specific paths
-pivtools-cli align-coordinates -p 0,1`}
-            />
-
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Invert Ux</h3>
-            <p className="text-gray-700 mb-4">
-              When the first overlap feature is to the left of the datum origin, the x-axis
-              direction is automatically inverted. This negates{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">ux</code> and{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">UV_stress</code> in all
-              cameras and reflects x-coordinates around the datum physical x-position in{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">coordinates.mat</code>.
-            </p>
-
-            <YamlDropdown
-              title="config.yaml - Global Coordinates"
-              code={`calibration:
-  global_coordinates:
-    enabled: true
-    datum_pixel: {x: 512, y: 384}
-    datum_physical: {x: 0.0, y: 0.0}
-    datum_frame: 1
-    invert_ux: false
-    overlap_pairs:
-      - camera_a: 1
-        camera_b: 2
-        pixel_on_a: {x: 1020, y: 400}
-        pixel_on_b: {x: 5, y: 398}
-        frame_a: 1
-        frame_b: 1`}
-            />
-
-            <div className="mt-6 p-4 bg-soton-lightblue border border-soton-blue/20 rounded-lg">
-              <p className="text-gray-700">
-                For a more detailed guide including camera participation rules, complete YAML field reference,
-                and step-by-step workflow, see the dedicated{' '}
-                <Link href="/manual/global-coordinates" className="text-soton-blue font-semibold hover:underline">
-                  Global Coordinates
-                </Link>{' '}
-                page.
               </p>
             </div>
           </Section>

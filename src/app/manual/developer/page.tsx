@@ -10,7 +10,6 @@ import {
   AlertTriangle,
   Play,
   Cpu,
-  Bot
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -163,6 +162,24 @@ pip install -e ".[dev,cine]"
 # Recompile the C extensions after editing C sources
 python setup.py build`} />
 
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <p className="text-blue-700 text-sm">
+                The Python side loads the compiled libraries via <code className="bg-blue-100 px-1 rounded">ctypes</code> by
+                absolute path from <code className="bg-blue-100 px-1 rounded">pivtools_cli/lib/</code>, so a rebuild is
+                picked up <strong>without reinstalling</strong> -- just restart the GUI/CLI. Nothing recompiles
+                automatically after a C edit, so always rebuild before running.
+              </p>
+            </div>
+
+            <p className="text-gray-700 text-lg leading-relaxed mb-4">
+              The FFT engine is generated for a fixed set of interrogation window sizes --
+              <strong> 8, 12, 16, 24, 32, 48, 64, 96, 128</strong>. Config validation rejects any
+              other window size at load time. Builds use accuracy-preserving flags
+              (<code className="bg-gray-100 px-1 rounded">-ffp-contract=fast</code>, never
+              <code className="bg-gray-100 px-1 rounded">-ffast-math</code>) and the SIMD output is
+              validated bit-identical to the old FFTW build.
+            </p>
+
             {/* Platform Requirements */}
             <h3 className="text-2xl font-semibold text-gray-900 mb-4 mt-8">Platform Requirements</h3>
 
@@ -202,20 +219,98 @@ python setup.py build`} />
               </div>
               <p className="text-red-700 mb-3">
                 All commands (<code className="bg-red-100 px-1 rounded">pip install -e .</code> and <code className="bg-red-100 px-1 rounded">python setup.py build</code>) <strong>must</strong> be
-                run from the <strong>x64 Native Tools Command Prompt for VS</strong>. The standard Command Prompt, PowerShell, and VS Code terminal will not work.
+                run from the <strong>x64 Native Tools Command Prompt for VS</strong> (or a shell where <code className="bg-red-100 px-1 rounded">vcvars64.bat</code> has
+                been called). A plain Command Prompt, PowerShell, or VS Code terminal fails with <code className="bg-red-100 px-1 rounded">clang-cl not found</code>.
               </p>
               <p className="text-red-700 text-sm">
                 Find it in Start Menu &rarr; Visual Studio &rarr; <strong>x64 Native Tools Command Prompt for VS 2022</strong>.
+                Set <code className="bg-red-100 px-1 rounded">PIVTOOLS_WIN_COMPILER</code> to a specific <code className="bg-red-100 px-1 rounded">clang-cl.exe</code>,
+                or to <code className="bg-red-100 px-1 rounded">cl</code> to force plain MSVC (the batched SIMD peak fitter is unavailable under plain cl).
               </p>
             </div>
 
             <div className="bg-green-50 rounded-lg p-6 border-l-4 border-green-400">
               <h4 className="text-lg font-semibold text-green-800 mb-2">End Users: No Compiler Needed</h4>
-              <p className="text-green-700">
+              <p className="text-green-700 mb-2">
                 PyPI wheels ship with pre-compiled <code className="bg-green-100 px-1 rounded">.dll</code>/<code className="bg-green-100 px-1 rounded">.so</code> files.
                 Running <code className="bg-green-100 px-2 py-1 rounded">pip install pivtools</code> just works.
               </p>
+              <p className="text-green-700 text-sm">
+                One wheel per platform serves every Python 3.12+: Linux x86_64
+                (<code className="bg-green-100 px-1 rounded">manylinux_2_28</code>, glibc 2.28+), macOS arm64
+                (macOS 15+, floor set by the bundled Homebrew libomp), and Windows AMD64. Linux and Windows
+                wheels enforce an AVX2+FMA CPU floor at load time
+                (<code className="bg-green-100 px-1 rounded">pivtools_cpu_supported()</code>) -- pre-Haswell CPUs
+                get a clear error pointing at the source install.
+              </p>
             </div>
+          </Section>
+
+          {/* Build Tuning */}
+          <Section title="Build Tuning" icon={<Wrench size={32} />} id="build-tuning">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              All build knobs are environment variables read by <code className="bg-gray-100 px-2 py-1 rounded">setup.py</code> at
+              build time. Local source builds default to native tuning
+              (<code className="bg-gray-100 px-1 rounded">-march=native</code> / <code className="bg-gray-100 px-1 rounded">-mcpu=native</code>);
+              PyPI wheels pin portable flags instead.
+            </p>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="py-3 pr-4 text-gray-900 font-semibold">Variable</th>
+                    <th className="py-3 pr-4 text-gray-900 font-semibold">Default</th>
+                    <th className="py-3 text-gray-900 font-semibold">Effect</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-700 text-sm">
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded">PIVTOOLS_FFT_ISA</code></td>
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded">neon4</code> (macOS arm64), <code className="bg-gray-100 px-2 py-0.5 rounded">vext8</code> (Linux x86_64), <code className="bg-gray-100 px-2 py-0.5 rounded">avx2</code> (Windows)</td>
+                    <td className="py-3">SIMD lane width of the codelet FFT and batched peak fitter (one PIV window per lane). <code className="bg-gray-100 px-1 rounded">avx512</code> is available for HPC but is a measured <strong>loss</strong> on AMD Zen 4 (double-pumped AVX-512) -- keep <code className="bg-gray-100 px-1 rounded">vext8</code> there; it only pays on true-512-bit Intel nodes.</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded">PIVTOOLS_FFT_MARCH</code></td>
+                    <td className="py-3 pr-4">platform arch flag (native)</td>
+                    <td className="py-3">Replaces the FFT arch flag verbatim (e.g. <code className="bg-gray-100 px-1 rounded">-march=icelake-server</code>). Important on HPC: <code className="bg-gray-100 px-1 rounded">native</code> bakes in the <em>build host&apos;s</em> ISA, so build on a compute node or pin this explicitly.</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded">PIVTOOLS_WARP_MARCH</code></td>
+                    <td className="py-3 pr-4">platform arch flag (native)</td>
+                    <td className="py-3">Same override for <code className="bg-gray-100 px-1 rounded">libfusedwarp</code>&apos;s SIMD warp kernel.</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded">PIVTOOLS_FFT_LTO</code></td>
+                    <td className="py-3 pr-4">off</td>
+                    <td className="py-3"><code className="bg-gray-100 px-1 rounded">1</code> enables link-time optimisation for the FFT translation units.</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded">PIVTOOLS_WIN_COMPILER</code></td>
+                    <td className="py-3 pr-4">VS-bundled clang-cl</td>
+                    <td className="py-3">Path to a specific <code className="bg-gray-100 px-1 rounded">clang-cl.exe</code>, or <code className="bg-gray-100 px-1 rounded">cl</code> to force MSVC.</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 pr-4"><code className="bg-gray-100 px-2 py-0.5 rounded">CC</code></td>
+                    <td className="py-3 pr-4">clang (macOS/Linux)</td>
+                    <td className="py-3">Explicit compiler override on macOS/Linux (e.g. <code className="bg-gray-100 px-1 rounded">CC=gcc</code>). There is no silent fallback -- missing clang is a hard error.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <CodeBlock title="Example: pinned HPC build (Intel AVX-512 compute nodes)" code={`PIVTOOLS_FFT_ISA=avx512 \\
+PIVTOOLS_FFT_MARCH='-march=icelake-server' \\
+PIVTOOLS_WARP_MARCH='-march=icelake-server' \\
+pip install -e .`} />
+
+            <p className="text-gray-600 text-sm">
+              The build prints what it resolved
+              (<code className="bg-gray-100 px-1 rounded">isa=... lanes=... arch=...</code>) and emits a NOTICE
+              whenever a <code className="bg-gray-100 px-1 rounded">native</code> arch flag is in play. See
+              <code className="bg-gray-100 px-1 rounded"> BUILD-SIMD.md</code> in the repository for per-platform
+              build and verification recipes.
+            </p>
           </Section>
 
           {/* GUI Development */}
@@ -249,63 +344,6 @@ npm run build`} />
             </div>
           </Section>
 
-          {/* AI-Assisted Development */}
-          <Section title="AI-Assisted Development" icon={<Bot size={32} />} id="ai-development">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              The repository includes <code className="bg-gray-100 px-2 py-1 rounded">CLAUDE.md</code>, a comprehensive
-              reference file that serves as the single source of truth for the entire codebase architecture.
-            </p>
-
-            <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">What CLAUDE.md Contains</h4>
-              <p className="text-gray-600 mb-4">
-                At ~1200 lines, it documents:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {[
-                  "Feature-to-file map (backend modules, frontend hooks, components)",
-                  "All REST API routes with parameters and return types",
-                  "Every config.yaml property with types and defaults",
-                  "Processing pipeline architecture (Dask, sliding window I/O)",
-                  "C extension function signatures and array conventions",
-                  "Data formats (.mat structure, directory layout)",
-                  "Build system details (setup.py, SIMD build knobs, CI/CD)",
-                  "Code conventions and architectural patterns"
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <CheckCircle size={16} className="text-soton-gold mt-1 flex-shrink-0" />
-                    <span className="text-gray-700 text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-6 border border-gray-200 mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Point-and-Shoot Development</h4>
-              <p className="text-gray-700 mb-3">
-                Give any AI coding assistant (Claude Code, Cursor, Copilot, etc.) access to the codebase and it can
-                understand the full architecture immediately. No onboarding needed.
-              </p>
-              <p className="text-gray-600 text-sm">
-                The file maps every feature to its exact files, every route to its handler, and every config key
-                to its purpose. An AI assistant can navigate the codebase, add features, fix bugs, and refactor
-                code with full context from the start.
-              </p>
-            </div>
-
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <Wrench className="text-yellow-600" size={20} />
-                <h4 className="text-lg font-semibold text-yellow-800">Keep It Updated</h4>
-              </div>
-              <p className="text-yellow-700">
-                When making changes to the codebase, update <code className="bg-yellow-100 px-1 rounded">CLAUDE.md</code> to
-                reflect new routes, config keys, or architectural changes. It is the documentation that makes
-                AI-assisted development work.
-              </p>
-            </div>
-          </Section>
-
           {/* Running the Code */}
           <Section title="Running the Code" icon={<Play size={32} />} id="running">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
@@ -326,8 +364,8 @@ python pivtools_gui/app.py`} />
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <h4 className="text-xl font-semibold text-gray-900 mb-4">CLI</h4>
                 <CodeBlock code={`pivtools-cli <command>
-# e.g. instantaneous, ensemble,
-# detect-charuco, statistics, etc.`} />
+# init, instantaneous, ensemble,
+# transform, merge, statistics, video`} />
                 <p className="text-gray-500 text-sm">
                   See <a href="/manual/cli-reference" className="text-soton-blue hover:underline">CLI Reference</a> for all commands
                 </p>

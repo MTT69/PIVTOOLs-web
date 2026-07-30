@@ -205,6 +205,8 @@ export default function TransformsPage() {
                     { op: 'rotate_180', desc: 'Rotate 180 degrees', effect: 'Equivalent to flip_ud + flip_lr' },
                     { op: 'swap_ux_uy', desc: 'Swap ux and uy components', effect: 'UU_stress <-> VV_stress for ensemble' },
                     { op: 'invert_ux_uy', desc: 'Negate ux and uy', effect: 'Stresses unchanged (variance is sign-invariant)' },
+                    { op: 'invert_ux', desc: 'Negate ux only', effect: 'UV_stress sign flips; UU, VV unchanged' },
+                    { op: 'invert_uy', desc: 'Negate uy only', effect: 'UV_stress sign flips; UU, VV unchanged' },
                     { op: 'scale_velocity:<factor>', desc: 'Multiply velocities by factor', effect: 'Stresses scaled by factor squared' },
                     { op: 'scale_coords:<factor>', desc: 'Multiply coordinates by factor', effect: 'Only x, y grids affected' },
                   ].map((row, index) => (
@@ -231,7 +233,6 @@ export default function TransformsPage() {
                 {[
                   { from: "flip_ud + flip_ud", to: "(no operation)" },
                   { from: "rotate_90_cw x 4", to: "(no operation)" },
-                  { from: "flip_lr + flip_ud", to: "rotate_180" },
                   { from: "scale_velocity:1000 + scale_velocity:0.5", to: "scale_velocity:500" },
                 ].map((item, i) => (
                   <div key={i} className="bg-white rounded-lg p-3">
@@ -375,7 +376,7 @@ pivtools-cli transform -p 0,1`}
             <h3 className="text-3xl font-bold mb-4">Next: Merge Multi-Camera Data</h3>
             <p className="text-gray-300 mb-6 text-lg">
               Combine vector fields from multiple cameras into a single seamless field
-              with Hanning window blending.
+              with Tukey window blending.
             </p>
             <Link
               href="/manual/merging"

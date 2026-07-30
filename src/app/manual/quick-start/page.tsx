@@ -179,11 +179,13 @@ pip install "pivtools[cine]"`} />
                   "Python 3.12, 3.13, or 3.14",
                   "macOS 15+ (Apple Silicon M1-M4)",
                   "Windows 10/11 (x86_64, AVX2 CPU: Intel 2013+ / AMD 2015+)",
-                  "Linux (x86_64, AVX2 CPU: Intel 2013+ / AMD 2015+)"
+                  "Linux (x86_64, AVX2 CPU: Intel 2013+ / AMD 2015+, glibc 2.28+: RHEL/Alma 8+, Ubuntu 20.04+, Debian 10+)"
                 ]} />
                 <p className="text-gray-600 text-sm">
-                  Older x86 CPUs are refused with a clear error at load time -- compile
-                  from source instead (see the <a href="/manual/developer" className="underline">Developer Guide</a>).
+                  Older x86 CPUs are refused with a clear error at load time, and on older
+                  Linux distros (e.g. CentOS 7, Ubuntu 18.04) pip falls back to the source
+                  distribution -- both cases compile from source instead
+                  (see the <a href="/manual/developer" className="underline">Developer Guide</a>).
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-6">

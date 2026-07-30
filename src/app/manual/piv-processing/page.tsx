@@ -185,7 +185,7 @@ export default function PIVProcessingPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "window_size", format: "[Height, Width]", desc: "Interrogation window in pixels per pass. Must be powers of 2. Rectangular windows supported." },
+                    { param: "window_size", format: "[Height, Width]", desc: "Interrogation window in pixels per pass. Each axis must be a built FFT size (8, 12, 16, 24, 32, 48, 64, 96, 128). Rectangular windows supported." },
                     { param: "overlap", format: "integer (%)", desc: "Overlap percentage per pass. 50% doubles grid density." },
                     { param: "runs", format: "list of pass numbers", desc: "Which passes to save (1-based). Last pass always saved." },
                     { param: "type (ensemble)", format: "'std' | 'single'", desc: "Standard or single-pixel mode per pass." },
@@ -244,13 +244,13 @@ instantaneous_piv:
                 <tbody className="divide-y divide-gray-100">
                   <tr className="bg-white">
                     <td className="px-4 py-3 font-mono text-purple-600">sum_window</td>
-                    <td className="px-4 py-3 text-gray-600">FFT correlation window size [H, W]</td>
-                    <td className="px-4 py-3 text-gray-600">Must be &gt;= window_size</td>
+                    <td className="px-4 py-3 text-gray-600">FFT correlation window size [H, W] (default [32, 32])</td>
+                    <td className="px-4 py-3 text-gray-600">Must be a built FFT size and &gt;= each single-mode pass window</td>
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="px-4 py-3 font-mono text-purple-600">sum_fitting_window</td>
-                    <td className="px-4 py-3 text-gray-600">Central extraction for fitting (optional)</td>
-                    <td className="px-4 py-3 text-gray-600">Reduces memory and speeds fitting</td>
+                    <td className="px-4 py-3 text-gray-600">Central crop of the summed plane used for fitting (default [32, 32]; falls back to sum_window when unset)</td>
+                    <td className="px-4 py-3 text-gray-600">Positive, even, &lt;= sum_window. Exempt from the FFT-size restriction (it is a crop, not an FFT)</td>
                   </tr>
                 </tbody>
               </table>
@@ -281,7 +281,7 @@ instantaneous_piv:
           <Section title="Peak Finding" icon={<Target size={32} />} id="peak-finding">
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
               <p className="text-blue-700 text-sm">
-                <strong>Both modes.</strong> Instantaneous defaults to gauss3. Ensemble defaults to gauss6.
+                <strong>Both modes.</strong> Instantaneous and ensemble both default to gauss6.
               </p>
             </div>
 
@@ -312,7 +312,7 @@ instantaneous_piv:
             </div>
 
             <CodeBlock code={`instantaneous_piv:
-  peak_finder: gauss3   # Options: gauss3, gauss4, gauss5, gauss6`} title="config.yaml" />
+  peak_finder: gauss6   # Options: gauss3, gauss4, gauss5, gauss6`} title="config.yaml" />
           </Section>
 
           {/* Predictor & Peak Settings */}
@@ -334,7 +334,6 @@ instantaneous_piv:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { setting: "predictor_smoothing", default: "true / false", mode: "Inst / Ens", desc: "Gaussian-smooth the predictor between passes. Recommended for instantaneous (reduces single-pair noise). For ensemble, smoothing can destroy real gradients — leave disabled unless data is very noisy." },
-                    { setting: "predictor_interpolation", default: "cubic", mode: "Ensemble", desc: "Interpolation for upscaling the predictor field between passes. Options: linear or cubic." },
                     { setting: "image_warp_interpolation", default: "cubic", mode: "Both", desc: "Interpolation kernel for image warping during predictor deformation. cubic = bicubic (4\u00d74 stencil), lanczos = Lanczos-3 (6\u00d76 stencil, slightly sharper)." },
                     { setting: "secondary_peak", default: "false", mode: "Instantaneous", desc: "Extract the second-highest correlation peak per window. Useful for reverse flow or multiple particle populations." },
                     { setting: "num_peaks", default: "1", mode: "Instantaneous", desc: "Number of correlation peaks to detect per window. Usually 1; increase for multi-peak analysis." },
@@ -362,7 +361,6 @@ instantaneous_piv:
 
 ensemble_piv:
   predictor_smoothing: false
-  predictor_interpolation: cubic
   image_warp_interpolation: cubic`} title="config.yaml" />
           </Section>
 
@@ -435,11 +433,9 @@ ensemble_piv:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { setting: "fit_offset", default: "true", desc: "Include a constant offset in the Gaussian sub-pixel fit. Accounts for correlation plane background level." },
-                    { setting: "mask_center_pixel", default: "true", desc: "Mask the autocorrelation center pixel before peak fitting. Prevents the zero-lag spike from biasing displacement estimates." },
                     { setting: "persist_images", default: "false", desc: "Keep all filtered images in worker RAM across passes. Faster on HPC with lots of memory, but significantly increases RAM usage." },
-                    { setting: "sum_fitting_window_enabled", default: "false", desc: "Extract a central sub-region from the summed correlation plane before peak fitting. Reduces memory and speeds up fitting." },
-                    { setting: "sum_fitting_window", default: "[16, 16]", desc: "Size [H, W] of the central extraction window. Only active when sum_fitting_window_enabled is true." },
+                    { setting: "sum_fitting_window_enabled", default: "true", desc: "Extract a central crop from the summed correlation plane before peak fitting. Reduces memory and speeds up fitting." },
+                    { setting: "sum_fitting_window", default: "[32, 32]", desc: "Size [H, W] of the central crop. Falls back to sum_window when unset. Must be positive, even, and <= sum_window; not restricted to built FFT sizes." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-purple-600">{row.setting}</td>
@@ -452,13 +448,11 @@ ensemble_piv:
             </div>
 
             <CodeBlock code={`ensemble_piv:
-  fit_offset: true
-  mask_center_pixel: true
   persist_images: false
-  sum_fitting_window_enabled: false
+  sum_fitting_window_enabled: true
   sum_fitting_window:
-  - 16
-  - 16`} title="config.yaml" />
+  - 32
+  - 32`} title="config.yaml" />
           </Section>
 
           {/* Ensemble Options */}
@@ -480,13 +474,17 @@ ensemble_piv:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { setting: "fit_method", default: "kspace", desc: "'kspace' (Fourier-space, 5-param, default, 50-100x faster) or 'gaussian' (Levenberg-Marquardt, 16-param). K-space recommended for all use cases." },
-                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation': R = <AB> - <A><B> (single-pass, memory efficient). 'image': R = <(A-\u03BCA)(B-\u03BCB)> (two-pass, more stable for k-space)" },
-                    { setting: "gradient_correction", default: "false", desc: "Reynolds stress gradient correction near walls" },
-                    { setting: "kspace_soft_weighting", default: "true", desc: "Anisotropic soft spectral weighting in k-space fitting. Improves Reynolds stress accuracy, especially at small window sizes." },
-                    { setting: "kspace_k_max_cap", default: "0.35", desc: "Maximum wavenumber cap for k-space fitting (0.0-0.5). Controls the spectral bandwidth used for displacement estimation." },
+                    { setting: "fit_method", default: "kspace", desc: "'kspace' (default): batched Levenberg-Marquardt two-stage nonlinear fit of the k-space transfer function. 'kspace_linear': closed-form linear fitter (fixed joint-floor + refc-weight + Gaussian recipe) \u2014 cannot fail to converge and is robust on model-violating experimental data. A stale 'gaussian' value errors loudly." },
+                    { setting: "background_subtraction_method", default: "correlation", desc: "'correlation' (default): ensemble-level <A\u2297B> \u2212 <\u0100>\u2297<B\u0304>, exact only for stationary brightness. 'image': two-phase mean-image subtraction. 'window_mean': per-pair per-window weighted-mean subtraction inside the C correlator \u2014 the only method that removes pair-to-pair brightness pedestals." },
+                    { setting: "per_pair_normalization", default: "false", desc: "Scale each pair's planes by its zero-lag energies (AB by sqrt(e_AA \u00B7 e_BB)) so every pair carries equal weight. Requires background_subtraction_method 'window_mean' \u2014 validation raises otherwise." },
+                    { setting: "predictor_rounding", default: "false", desc: "Round the predictor to the nearest 2 px so the symmetric-warp half-shifts are integer \u2014 no interpolation attenuation, flat noise PSD. Cost is unremoved sub-pixel shear near strong gradients (~(2 px)\u00B2/12 added variance)." },
+                    { setting: "skip_background_subtraction", default: "false", desc: "Debug switch \u2014 skip background subtraction entirely. Applies to the 'correlation' method only." },
+                    { setting: "window_type", default: "square", desc: "Correlation window taper. Ensemble defaults to 'square' (all-ones); only instantaneous defaults to 'gaussian'." },
+                    { setting: "gradient_correction", default: "false", desc: "Velocity-gradient correction of the Reynolds stresses. Under k-space only the L\u00B2/12 window-averaging term is applied; the sig_A_* output fields are written as zero." },
+                    { setting: "lm_soft_weighting", default: "true", desc: "Anisotropic soft spectral weighting in the LM ('kspace') fitter only. Set false as a flat-weight diagnostic ablation." },
+                    { setting: "lm_k_max_cap", default: "null", desc: "Wavenumber cap for the LM fitter in cycles/px, validated to (0, 0.5]. null uses the fitter's internal 0.35 cycles/px cap." },
                     { setting: "store_planes", default: "false", desc: "Save AA, BB, AB correlation planes to disk (large files)" },
-                    { setting: "save_diagnostics", default: "false", desc: "Save debug images and peak fitting data to filters/ directory" },
+                    { setting: "save_diagnostics", default: "false", desc: "Warped-image diagnostics under filters/. With the LM fitter also a per-window fit_diagnostics_pass_N.mat (snr, N0_abs, k_max_x/y, n_valid, stage-1/2 convergence and iterations, s2_cost_per_pt, status). The linear fitter writes no diagnostics." },
                     { setting: "resume_from_pass", default: "0", desc: "Resume from pass N (1-based). 0 = fresh start. Requires existing ensemble_result.mat." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -498,6 +496,29 @@ ensemble_piv:
                 </tbody>
               </table>
             </div>
+
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-700 text-sm">
+                <strong>Backwards compatible.</strong> The 2026-07 additions (<code className="bg-blue-100 px-1 rounded">window_mean</code>, <code className="bg-blue-100 px-1 rounded">per_pair_normalization</code>, <code className="bg-blue-100 px-1 rounded">predictor_rounding</code>, <code className="bg-blue-100 px-1 rounded">kspace_linear</code>) all default to the legacy/off behaviour \u2014 existing configs run unchanged.
+              </p>
+            </div>
+
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Brightness controls for difficult experimental data</h4>
+            <p className="text-gray-700 text-lg mb-4">
+              Three controls address distinct brightness artefacts and compose. The <code className="bg-gray-100 px-1 rounded">meannorm</code> preprocessing filter (<code className="bg-gray-100 px-1 rounded">filters: [{'{'}type: meannorm{'}'}]</code> \u2014 an image filter, not an <code className="bg-gray-100 px-1 rounded">ensemble_piv</code> key) divides each frame by its spatial mean and fixes multiplicative gain. <code className="bg-gray-100 px-1 rounded">window_mean</code> removes the additive per-pair pedestal. <code className="bg-gray-100 px-1 rounded">per_pair_normalization</code> equalises fluctuation-energy weighting across pairs.
+            </p>
+            <p className="text-gray-700 text-lg mb-4">
+              Recommended escalation ladder when ensemble results degrade on experimental data: <code className="bg-gray-100 px-1 rounded">meannorm</code> \u2192 <code className="bg-gray-100 px-1 rounded">window_mean</code> \u2192 add <code className="bg-gray-100 px-1 rounded">per_pair_normalization</code> \u2192 add <code className="bg-gray-100 px-1 rounded">predictor_rounding</code> and/or switch to <code className="bg-gray-100 px-1 rounded">fit_method: kspace_linear</code>.
+            </p>
+
+            <CodeBlock code={`filters:
+- type: meannorm          # image filter: fixes multiplicative gain
+
+ensemble_piv:
+  background_subtraction_method: window_mean
+  per_pair_normalization: true    # requires window_mean
+  predictor_rounding: true
+  fit_method: kspace_linear       # cannot fail to converge`} title="config.yaml \u2014 difficult-data recipe" />
           </Section>
 
           {/* Performance */}
@@ -644,8 +665,9 @@ ensemble_piv:
             <p className="text-gray-700 text-lg mb-4">
               Every interrogation window is assigned a <code className="bg-gray-100 px-1 rounded font-mono text-sm">nan_reason</code> code
               indicating why it was marked invalid, or <strong>0</strong> if it passed all checks.
-              This field is saved in the output <code className="bg-gray-100 px-1 rounded font-mono text-sm">.mat</code> file
-              and is shared by both Gaussian and k-space fitters.
+              This field is saved in the output <code className="bg-gray-100 px-1 rounded font-mono text-sm">.mat</code> file.
+              The table below is the ensemble taxonomy, produced by the k-space fitters and the
+              accumulator. Instantaneous PIV uses its own codes, aligned where the meanings match.
             </p>
 
             <div className="overflow-x-auto mb-6">
@@ -661,9 +683,10 @@ ensemble_piv:
                   {[
                     { code: '-1', stage: 'Pre-fitting', desc: 'Masked vector (outside ROI / polygon mask)' },
                     { code: '0', stage: 'Success', desc: 'Fit succeeded and passed all validation checks' },
-                    { code: '1', stage: 'Fitting', desc: 'Solver did not converge (LM for Gaussian, TRF for k-space)' },
-                    { code: '2', stage: 'Post-fit validation', desc: 'AB peak height invalid (Gaussian) or SNR too low (k-space)' },
+                    { code: '1', stage: 'Fitting', desc: 'Fit failed: LM did not converge (kspace) or the linear least-squares system is underdetermined / singular (kspace_linear)' },
+                    { code: '2', stage: 'Post-fit validation', desc: 'SNR too low' },
                     { code: '3', stage: 'Post-fit validation', desc: 'Displacement exceeds 3/4 window rule (peak too far from centre)' },
+                    { code: '4', stage: 'Fitting', desc: 'Singular phase solve (kspace_linear only): sub-pixel phase fit failed, displacement is integer-peak only' },
                     { code: '5', stage: 'Post-fit validation', desc: 'Negative sigma / variance values (unphysical fit)' },
                     { code: '6', stage: 'Displacement check', desc: 'Displacement exceeds 3/4 window rule (checked in accumulator)' },
                     { code: '10', stage: 'Outlier detection', desc: 'Velocity outlier: fit succeeded but flagged by median-based displacement outlier detection' },
@@ -691,8 +714,18 @@ ensemble_piv:
               </ol>
             </div>
 
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-sm mb-6">
               Codes 3 and 6 both enforce the 3/4 displacement rule but at different stages: code 3 is checked inside the fitter, code 6 in the accumulator after the fitter returns. Vectors flagged with codes 10 or 11 are infilled from neighbours if infilling is enabled.
+            </p>
+
+            <h5 className="font-semibold text-gray-900 mb-2">Instantaneous codes</h5>
+            <p className="text-gray-700 text-sm mb-4">
+              Instantaneous PIV writes <code className="bg-gray-100 px-1 rounded font-mono text-xs">nan_reason</code> in the{' '}
+              <code className="bg-gray-100 px-1 rounded font-mono text-xs">full</code> save mode with its own taxonomy.
+              Shared meanings keep the same numbers (-1 masked, 0 valid, 1 peak-fit failure, 6 large-displacement
+              rejection, 10 outlier on the primary peak). Instantaneous-only codes are <strong>9</strong> unclassified
+              (in the NaN mask but no stage claimed it), <strong>12</strong> outlier on a substituted secondary peak,
+              and <strong>13</strong> chosen peak magnitude NaN (peaks exhausted).
             </p>
           </Section>
 
@@ -748,30 +781,31 @@ processing:
                     { path: '*_piv.window_size', inst: 'Y', ens: 'Y', desc: 'List of [H, W] per pass' },
                     { path: '*_piv.overlap', inst: 'Y', ens: 'Y', desc: 'Overlap % per pass' },
                     { path: '*_piv.runs', inst: 'Y', ens: 'Y', desc: 'Passes to save (1-based)' },
-                    { path: '*_piv.peak_finder', inst: 'Y', ens: 'Y', desc: 'gauss3 (inst default) / gauss4 / gauss5 / gauss6 (ens default)' },
+                    { path: '*_piv.peak_finder', inst: 'Y', ens: 'Y', desc: 'gauss3 / gauss4 / gauss5 / gauss6 (default gauss6 for both)' },
                     { path: '*_piv.predictor_smoothing', inst: 'Y', ens: 'Y', desc: 'Smooth predictor between passes (inst: true, ens: false)' },
                     { path: 'instantaneous_piv.secondary_peak', inst: 'Y', ens: '-', desc: 'Detect secondary correlation peak (default false)' },
                     { path: 'instantaneous_piv.num_peaks', inst: 'Y', ens: '-', desc: 'Number of peaks to detect (default 1)' },
                     { path: 'ensemble_piv.type', inst: '-', ens: 'Y', desc: 'Per-pass: std or single' },
-                    { path: 'ensemble_piv.sum_window', inst: '-', ens: 'Y', desc: '[H, W] for single mode' },
-                    { path: 'ensemble_piv.fit_method', inst: '-', ens: 'Y', desc: 'gaussian or kspace' },
-                    { path: 'ensemble_piv.kspace_soft_weighting', inst: '-', ens: 'Y', desc: 'Soft spectral weighting for k-space (default true)' },
-                    { path: 'ensemble_piv.kspace_k_max_cap', inst: '-', ens: 'Y', desc: 'Max wavenumber cap (default 0.35)' },
-                    { path: 'ensemble_piv.background_subtraction_method', inst: '-', ens: 'Y', desc: 'correlation or image' },
-                    { path: 'ensemble_piv.gradient_correction', inst: '-', ens: 'Y', desc: 'Reynolds stress gradient correction' },
-                    { path: 'ensemble_piv.fit_offset', inst: '-', ens: 'Y', desc: 'Include offset in Gaussian fit (default true)' },
-                    { path: 'ensemble_piv.mask_center_pixel', inst: '-', ens: 'Y', desc: 'Mask autocorrelation center pixel (default true)' },
+                    { path: 'ensemble_piv.sum_window', inst: '-', ens: 'Y', desc: '[H, W] FFT size for single mode (default [32, 32]; built FFT size, >= each single-mode pass window)' },
+                    { path: 'ensemble_piv.fit_method', inst: '-', ens: 'Y', desc: 'kspace (default, batched-LM nonlinear) or kspace_linear (closed-form linear)' },
+                    { path: 'ensemble_piv.lm_soft_weighting', inst: '-', ens: 'Y', desc: 'Soft spectral weighting in LM fitter (default true)' },
+                    { path: 'ensemble_piv.lm_k_max_cap', inst: '-', ens: 'Y', desc: 'LM wavenumber cap in cycles/px, (0, 0.5]; null = fitter default 0.35' },
+                    { path: 'ensemble_piv.background_subtraction_method', inst: '-', ens: 'Y', desc: 'correlation, image, or window_mean' },
+                    { path: 'ensemble_piv.per_pair_normalization', inst: '-', ens: 'Y', desc: 'Equal-weight pairs via zero-lag energies (default false; requires window_mean)' },
+                    { path: 'ensemble_piv.predictor_rounding', inst: '-', ens: 'Y', desc: 'Round predictor to nearest 2 px for integer warp shifts (default false)' },
+                    { path: 'ensemble_piv.skip_background_subtraction', inst: '-', ens: 'Y', desc: 'Debug: skip background subtraction (correlation method only, default false)' },
+                    { path: 'ensemble_piv.gradient_correction', inst: '-', ens: 'Y', desc: 'Reynolds stress gradient correction (default false)' },
+                    { path: '*_piv.window_type', inst: 'Y', ens: 'Y', desc: 'Correlation window taper (inst default gaussian, ens default square)' },
                     { path: 'ensemble_piv.persist_images', inst: '-', ens: 'Y', desc: 'Keep filtered images in worker RAM (default false)' },
-                    { path: 'ensemble_piv.predictor_interpolation', inst: '-', ens: 'Y', desc: 'Predictor upscaling: linear or cubic' },
                     { path: 'ensemble_piv.image_warp_interpolation', inst: '-', ens: 'Y', desc: 'Image warp kernel: cubic or lanczos' },
                     { path: 'instantaneous_piv.image_warp_interpolation', inst: 'Y', ens: '-', desc: 'Image warp kernel: cubic or lanczos (default cubic)' },
                     { path: 'instantaneous_piv.save_mode', inst: 'Y', ens: '-', desc: 'minimal (3 fields) or full (11 fields)' },
                     { path: 'instantaneous_piv.save_compression', inst: 'Y', ens: '-', desc: 'ZLIB compression on .mat files (default false)' },
                     { path: 'ensemble_piv.predictor_boundary_conditions', inst: '-', ens: 'Y', desc: 'Wall boundary conditions array' },
-                    { path: 'ensemble_piv.sum_fitting_window_enabled', inst: '-', ens: 'Y', desc: 'Extract central sub-region for fitting' },
-                    { path: 'ensemble_piv.sum_fitting_window', inst: '-', ens: 'Y', desc: '[H, W] extraction size (default [16,16])' },
+                    { path: 'ensemble_piv.sum_fitting_window_enabled', inst: '-', ens: 'Y', desc: 'Crop summed plane before fitting (default true)' },
+                    { path: 'ensemble_piv.sum_fitting_window', inst: '-', ens: 'Y', desc: '[H, W] crop size (default [32, 32]; falls back to sum_window)' },
                     { path: 'ensemble_piv.store_planes', inst: '-', ens: 'Y', desc: 'Save correlation planes' },
-                    { path: 'ensemble_piv.save_diagnostics', inst: '-', ens: 'Y', desc: 'Save debug data' },
+                    { path: 'ensemble_piv.save_diagnostics', inst: '-', ens: 'Y', desc: 'Warped-image + LM fit diagnostics (default false)' },
                     { path: 'ensemble_piv.resume_from_pass', inst: '-', ens: 'Y', desc: '0 = fresh, N = resume from pass N' },
                     { path: 'outlier_detection.*', inst: 'Y', ens: '-', desc: 'enabled, methods: [{type, threshold, epsilon}]' },
                     { path: 'ensemble_outlier_detection.*', inst: '-', ens: 'Y', desc: 'Same structure as outlier_detection' },
@@ -825,7 +859,7 @@ instantaneous_piv:
   - 50
   runs:
   - 3
-  peak_finder: gauss3
+  peak_finder: gauss6
   predictor_smoothing: true
   secondary_peak: false
   num_peaks: 1
@@ -851,22 +885,23 @@ ensemble_piv:
   sum_window:
   - 64
   - 64
+  window_type: square
   fit_method: kspace
   background_subtraction_method: correlation
+  skip_background_subtraction: false
+  per_pair_normalization: false
+  predictor_rounding: false
   gradient_correction: false
-  kspace_soft_weighting: true
-  kspace_k_max_cap: 0.35
-  fit_offset: true
-  mask_center_pixel: true
+  lm_soft_weighting: true
+  lm_k_max_cap: null
   persist_images: false
   predictor_smoothing: false
-  predictor_interpolation: cubic
   image_warp_interpolation: cubic
   predictor_boundary_conditions: []
-  sum_fitting_window_enabled: false
+  sum_fitting_window_enabled: true
   sum_fitting_window:
-  - 16
-  - 16
+  - 32
+  - 32
   store_planes: false
   save_diagnostics: false
   resume_from_pass: 0
