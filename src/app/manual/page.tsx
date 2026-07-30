@@ -406,7 +406,7 @@ export default function ManualOverviewPage() {
               {[
                 { label: "New user", links: [{ text: "Quick Start", href: "/manual/quick-start" }] },
                 { label: "Run PIV", links: [{ text: "PIV Processing", href: "/manual/piv-processing" }] },
-                { label: "Calibrate", links: [{ text: "Planar", href: "/manual/planar-calibration" }, { text: "Stereo", href: "/manual/stereo-calibration" }, { text: "Self-Cal", href: "/manual/stereo-calibration#self-calibration" }] },
+                { label: "Calibrate", links: [{ text: "Planar", href: "/manual/planar-calibration" }, { text: "Stereo", href: "/manual/stereo-calibration" }, { text: "Stepped", href: "/manual/stepped-calibration" }, { text: "Self-Cal", href: "/manual/stereo-calibration#self-calibration" }] },
                 { label: "Statistics", links: [{ text: "Statistics", href: "/manual/statistics" }] },
                 { label: "Create videos", links: [{ text: "Video Maker", href: "/manual/video-maker" }] },
                 { label: "Automate", links: [{ text: "CLI Reference", href: "/manual/cli-reference" }] },

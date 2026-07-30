@@ -18,6 +18,7 @@ import {
   Crosshair,
   Layers,
 } from 'lucide-react';
+import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ManualNavigation from '@/components/ManualNavigation';
@@ -130,6 +131,28 @@ export default function StereoCalibrationPage() {
               Calibrate stereo camera pairs for three-component (3C) velocity measurements.
               Three methods available: Dotboard, ChArUco, and Stepped.
             </p>
+          </motion.div>
+
+          {/* Quick Recipe */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
+          >
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <CheckCircle className="text-soton-gold" size={22} />
+              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+            </div>
+            <ol className="space-y-2 text-gray-700">
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Note your configuration: <strong>same-side</strong> (both cameras on one side of the light sheet) or <strong>transmission</strong> (on opposite sides). If your setup is high-magnification or fragile at single-plane calibration, consider the <Link href="/manual/stepped-calibration" className="text-soton-blue font-semibold hover:underline">stepped board</Link> instead.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Pick detection: <strong>Stereo Dotboard</strong> (circular dot grids) or <strong>Stereo ChArUco</strong> (occlusion-tolerant). Configure images for both cameras in the calibration tab.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Click <strong>Generate Model</strong>. Targets: stereo RMS &lt; 0.5 px, relative angle 30&ndash;60&deg;. Verify the baseline matches your physical setup.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Run PIV on <em>both cameras</em> first (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli instantaneous</code> or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">ensemble</code>).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Reconstruct 3D</strong> (GUI) or run <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli apply-stereo</code> to produce <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">ux</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">uy</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">uz</code>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Recommended: run <strong>Self-Calibration</strong> afterwards to correct for laser-sheet Z-offset and tilt. Adds a few minutes, meaningfully improves accuracy.</span></li>
+            </ol>
           </motion.div>
 
           {/* Overview */}

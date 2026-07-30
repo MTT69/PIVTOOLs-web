@@ -145,6 +145,27 @@ export default function ImageConfigurationPage() {
             </p>
           </motion.div>
 
+          {/* Quick Recipe */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
+          >
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <CheckCircle className="text-soton-gold" size={22} />
+              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+            </div>
+            <ol className="space-y-2 text-gray-700">
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Add one or more <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">source_paths</code> (raw images) with matching <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">base_paths</code> (outputs).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_type</code> (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">standard</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">cine</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_im7</code>, or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_set</code>) and <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_format</code> (e.g. <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">B%05d.tif</code>).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">num_images</code> to frame pairs <em>per acquisition loop</em> (not total files across loops).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Pick a <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pairing_preset</code> from the table below &mdash; most users want <strong>A/B Format</strong> (separate <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_A</code>/<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_B</code> files) or <strong>Time Resolved</strong> (overlapping consecutive frames).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Save. Validation runs automatically: green = ready to process, yellow/red = check the filename pattern, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">start_index</code>, and count.</span></li>
+            </ol>
+          </motion.div>
+
           {/* Source & Base Directories Section */}
           <Section title="Source & Base Directories" icon={<FolderOpen size={32} />} id="directories">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -612,6 +633,100 @@ paths:
   source_paths:
     - /data/experiment.set     # Full path to .set file`}
             />
+          </Section>
+
+          {/* Multi-Loop Acquisition Section */}
+          <Section title="Multi-Loop Acquisition" icon={<Layers size={32} />} id="multi-loop">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              Some experiments record data across multiple acquisition loops &mdash; separate source
+              folders that should be combined into a single dataset for processing. Set{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">num_loops</code> to tell
+              PIVTools how many loops to stitch together. All loops must have the same number of
+              frame pairs and use the same image format.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">How It Works</h3>
+            <p className="text-gray-700 mb-4">
+              PIVTools finds additional loop folders by incrementing the <strong>last number</strong> in
+              the source path name. For example, if your source path
+              is <code className="bg-gray-100 px-1 rounded text-sm">experiment_0/</code> and{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">num_loops: 3</code>, it will read from:
+            </p>
+
+            <div className="text-sm text-gray-600 font-mono bg-gray-50 rounded p-4 mb-6">
+              experiment_0/&nbsp;&nbsp;&nbsp;# Loop 0 (the configured source_path)<br />
+              experiment_1/&nbsp;&nbsp;&nbsp;# Loop 1 (auto-discovered)<br />
+              experiment_2/&nbsp;&nbsp;&nbsp;# Loop 2 (auto-discovered)
+            </div>
+
+            <p className="text-gray-700 mb-6">
+              Downstream code sees a single unified array. For example, 3 loops of 40 pairs each
+              produces a 120-pair dask array. The GUI image viewer resolves global pair numbers back
+              to the correct loop and local pair index automatically.
+            </p>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Setting</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">YAML Key</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { setting: "Number of Loops", yaml: "images.num_loops", desc: "How many acquisition loops to combine (default: 1 = single loop)" },
+                    { setting: "Num Images", yaml: "images.num_images", desc: "Frame pairs per loop (not total). Total pairs = num_loops x per-loop pairs." },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.setting}</td>
+                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.yaml}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Works With All Image Types</h3>
+            <p className="text-gray-700 mb-4">
+              Multi-loop works with every image type: standard files (separate folders),
+              .set files (separate .set files), .cine (separate folders), and .im7 (separate folders).
+              Batch size is automatically capped at the per-loop pair count to prevent cross-loop batches.
+            </p>
+
+            <YamlDropdown
+              title="config.yaml - Multi-Loop Example"
+              code={`images:
+  num_images: 40       # 40 pairs per loop
+  num_loops: 5         # 5 loops = 200 total pairs
+  image_format:
+    - B%05d_A.tif
+    - B%05d_B.tif
+
+paths:
+  source_paths:
+    - /data/experiment_0   # Loop 0 — loops 1-4 auto-discovered
+  base_paths:
+    - /data/results`}
+            />
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mt-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Info className="text-blue-600" size={18} />
+                <strong className="text-blue-800">Naming Convention</strong>
+              </div>
+              <p className="text-blue-700 text-sm">
+                The folder name must end with a number. PIVTools increments the <strong>last</strong> number
+                in the path: <code className="bg-blue-100 px-1 rounded">run_0/</code> becomes{' '}
+                <code className="bg-blue-100 px-1 rounded">run_1/</code>,{' '}
+                <code className="bg-blue-100 px-1 rounded">loop=0.set</code> becomes{' '}
+                <code className="bg-blue-100 px-1 rounded">loop=1.set</code>. If your folders
+                don&apos;t follow this convention, rename them or use separate source paths with{' '}
+                <code className="bg-blue-100 px-1 rounded">active_paths</code> instead.
+              </p>
+            </div>
           </Section>
 
           {/* File Validation Section */}

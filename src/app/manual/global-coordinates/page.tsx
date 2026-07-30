@@ -145,6 +145,27 @@ export default function GlobalCoordinatesPage() {
             </p>
           </motion.div>
 
+          {/* Quick Recipe */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
+          >
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <CheckCircle className="text-soton-gold" size={22} />
+              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+            </div>
+            <ol className="space-y-2 text-gray-700">
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Open any calibration method tab to reveal the Calibration Image Viewer, then toggle <strong>Global Coords</strong> on in the settings bar.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>On <strong>Camera 1</strong>: click <strong>Set Origin</strong> and click your physical (0,0) reference point. Enter the physical X/Y in mm if it&apos;s not literally at (0,0).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Still on Camera 1: click <strong>Pick F1</strong> and click a feature visible in both Camera 1 and Camera 2. Navigate to Camera 2 and click the same physical point with Pick F1.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>For more cameras, each middle camera picks F1 (shared with the previous camera) and F2 (shared with the next). The last camera only needs F1.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Flip X auto-detects from the origin/feature geometry &mdash; override manually if it chooses wrong. Click <strong>Calibrate Vectors</strong>; alignment is applied automatically.</span></li>
+            </ol>
+          </motion.div>
+
           {/* Overview */}
           <Section title="Two paths, split by board type" icon={<Crosshair size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">

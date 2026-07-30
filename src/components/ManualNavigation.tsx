@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, Book, Download, Code, Image as ImageIcon, Layers, Filter, Video, Eye, RotateCw, BarChart2, GitMerge, Target, Zap, Home, Terminal, Crosshair } from 'lucide-react';
+import { ChevronDown, ChevronRight, Book, Download, Code, Image as ImageIcon, Layers, Filter, Video, Eye, RotateCw, BarChart2, GitMerge, Target, Zap, Home, Terminal, Crosshair, Box } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -53,6 +53,7 @@ const manualSections: ManualSection[] = [
       { title: 'Frame Pairing Modes', href: '/manual/image-configuration#pairing' },
       { title: 'Filename Patterns', href: '/manual/image-configuration#patterns' },
       { title: 'Container Formats', href: '/manual/image-configuration#containers' },
+      { title: 'Multi-Loop Acquisition', href: '/manual/image-configuration#multi-loop' },
       { title: 'File Validation', href: '/manual/image-configuration#validation' },
       { title: 'Output Structure', href: '/manual/image-configuration#output' },
     ],
@@ -136,6 +137,22 @@ const manualSections: ManualSection[] = [
       { title: 'Self-Calibration', href: '/manual/stereo-calibration#self-calibration' },
       { title: 'CLI Usage', href: '/manual/stereo-calibration#cli' },
       { title: 'YAML Configuration', href: '/manual/stereo-calibration#yaml' },
+    ],
+  },
+  {
+    title: 'Stepped Calibration',
+    href: '/manual/stepped-calibration',
+    icon: <Box size={18} />,
+    subsections: [
+      { title: 'Overview', href: '/manual/stepped-calibration#overview' },
+      { title: 'Board Geometry', href: '/manual/stepped-calibration#board-geometry' },
+      { title: 'Fiducial Setup', href: '/manual/stepped-calibration#fiducials' },
+      { title: 'Click-to-Label', href: '/manual/stepped-calibration#click-to-label' },
+      { title: 'Stereo Workflow', href: '/manual/stepped-calibration#stereo-workflow' },
+      { title: 'Planar Workflow', href: '/manual/stepped-calibration#planar-workflow' },
+      { title: 'CLI Usage', href: '/manual/stepped-calibration#cli' },
+      { title: 'YAML Configuration', href: '/manual/stepped-calibration#yaml' },
+      { title: 'Troubleshooting', href: '/manual/stepped-calibration#troubleshooting' },
     ],
   },
   {

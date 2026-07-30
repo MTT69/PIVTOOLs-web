@@ -93,6 +93,25 @@ export default function QuickStartPage() {
             </p>
           </motion.div>
 
+          {/* Quick Recipe */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
+          >
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <CheckCircle className="text-soton-gold" size={22} />
+              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+            </div>
+            <ol className="space-y-2 text-gray-700">
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Create a virtual environment with Python 3.12&ndash;3.14 and run <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pip install pivtools</code>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Launch the GUI with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-gui</code>, or initialise a CLI workspace with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli init</code>. Either way you get a default <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">config.yaml</code> in your current directory.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Point the config at your data (Image Configuration), run PIV, calibrate. The GUI and CLI share the same config file, so switch between them freely.</span></li>
+            </ol>
+          </motion.div>
+
           {/* Installation Section */}
           <Section title="Installation" icon={<Download size={32} />} id="installation">
             <div className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white mb-8">
@@ -207,7 +226,7 @@ pip install "pivtools[cine]"`} />
               </div>
             </div>
 
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mt-6">
+            <div className="bg-green-50 border-l-4 border-green-400 p-6 mt-6">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="text-yellow-600" size={20} />
                 <h4 className="text-lg font-semibold text-yellow-800">LaVision Formats (.im7 / .set)</h4>

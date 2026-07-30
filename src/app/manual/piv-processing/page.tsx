@@ -136,6 +136,27 @@ export default function PIVProcessingPage() {
             </p>
           </motion.div>
 
+          {/* Quick Recipe */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
+          >
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <Zap className="text-soton-gold" size={22} />
+              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+            </div>
+            <ol className="space-y-2 text-gray-700">
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Pick a mode: <strong>Instantaneous</strong> for per-pair velocity fields, <strong>Ensemble</strong> for time-averaged flow + Reynolds stresses from many pairs.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Window table <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">[128,128] &rarr; [64,64] &rarr; [32,32]</code> at <strong>50% overlap</strong> covers the vast majority of setups. Drop the final pass to <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">[16,16]</code> with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">single</code> mode for ensemble at max resolution.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Leave the peak finder at default (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">gauss3</code> instantaneous, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">gauss6</code> ensemble). Leave outlier detection and infilling <strong>on</strong>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Ensemble users: keep <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">fit_method: kspace</code> (the default) &mdash; it is faster and gives more accurate Reynolds stresses than the Gaussian fitter.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Run PIV</strong> (GUI) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli instantaneous</code> / <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">ensemble</code>. Come back to this page if results look wrong.</span></li>
+            </ol>
+          </motion.div>
+
           {/* Overview */}
           <Section title="Overview" icon={<Zap size={32} />} id="overview">
             <div className="overflow-x-auto mb-6">
@@ -460,6 +481,18 @@ ensemble_piv:
             <div className="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6">
               <p className="text-purple-700 text-sm">
                 <strong>Ensemble only.</strong> Available in the collapsible Ensemble Options panel.
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-700 text-sm">
+                <strong>Why <code className="bg-blue-100 px-1 rounded">kspace</code> is the ensemble default:</strong>{' '}
+                The k-space fitter (ensemble only) auto-corrects for noise coloring introduced by image warping
+                between passes, which would otherwise bias Reynolds stress estimates by several percent. In
+                practice the defaults work without tuning &mdash; only adjust{' '}
+                <code className="bg-blue-100 px-1 rounded">kspace_k_max_cap</code> if stresses look unphysical
+                in low-SNR regions. Instantaneous PIV always uses the LM Gaussian peak fitter; the k-space
+                option does not apply there.
               </p>
             </div>
 

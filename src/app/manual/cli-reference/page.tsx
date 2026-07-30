@@ -505,6 +505,15 @@ pivtools-cli video --data-source stereo -v uz`}</CodeBlock>
               </div>
 
               <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">Stepped Board Stereo PIV</h3>
+                <CodeBlock>{`# Configure board params and fiducials in GUI, export fiducials.json
+pivtools-cli detect-stepped-stereo -f fiducials.json  # Stereo model
+pivtools-cli instantaneous                             # PIV for both cameras
+pivtools-cli apply-stereo --method stepped_board       # 3D reconstruction
+pivtools-cli statistics --source-endpoint stereo`}</CodeBlock>
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Batch Processing</h3>
                 <CodeBlock>{`# PIV + post-processing accept --active-paths / -p
 pivtools-cli instantaneous -p 0,1,2

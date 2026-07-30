@@ -149,6 +149,28 @@ export default function PlanarCalibrationPage() {
             </p>
           </motion.div>
 
+          {/* Quick Recipe */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
+          >
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <CheckCircle className="text-soton-gold" size={22} />
+              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
+              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults &mdash; full reference below</span>
+            </div>
+            <ol className="space-y-2 text-gray-700">
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Put calibration images in <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">source_path/CamN/calibration/</code> (default layout). Configure image format and count in the calibration tab.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Pick a method by target type: <strong>Scale Factor</strong> if you have a known px/mm, <strong>Dotboard</strong> for circular dot grids, <strong>ChArUco</strong> for occlusion-tolerant targets, <strong>Polynomial</strong> to import an existing LaVision <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">Calibration.xml</code>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Enter board parameters: <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_cols</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_rows</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dot_spacing_mm</code> (dotboard) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">squares_h/v</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">square_size</code> (ChArUco). Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dt</code> to the time between laser pulses in seconds.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Click <strong>Detect One</strong> to verify detection on a single frame before running the full sequence. Detected dots/corners are overlaid in the viewer.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Generate Model</strong>. Aim for RMS reprojection error below <strong>0.5 px</strong>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Multi-camera setups with shared features also need Global Coordinates &mdash; see the bottom of this page.</span></li>
+            </ol>
+          </motion.div>
+
           {/* Overview */}
           <Section title="Overview" icon={<Target size={32} />} id="overview">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
@@ -305,6 +327,7 @@ export default function PlanarCalibrationPage() {
             </div>
 
             <div className="bg-green-50 border-l-4 border-green-400 p-4">
+            <div className="bg-green-50 border-l-4 border-green-400 p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Info className="text-green-600" size={18} />
                 <strong className="text-green-800">Platform Note</strong>
@@ -449,7 +472,7 @@ export default function PlanarCalibrationPage() {
               </table>
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Algorithm</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Behaviour</h3>
             <p className="text-gray-700 mb-4">
               Detection needs zero user configuration. Blob detection tries both polarities
               (dark-on-light and light-on-dark) and keeps whichever finds more blobs, then an Otsu
