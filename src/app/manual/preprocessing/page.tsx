@@ -130,9 +130,8 @@ export default function PreprocessingPage() {
                 </p>
                 <ul className="text-gray-600 text-sm space-y-1">
                   <li>Smoothing: gaussian, median</li>
-                  <li>Normalization: norm, norm2, maxnorm</li>
-                  <li>Background: ssmin, invert</li>
-                  <li>Enhancement: lmax, clahe</li>
+                  <li>Normalisation: norm, norm2, maxnorm, meannorm, ssmin</li>
+                  <li>Contrast/correction: lmax, invert, clahe</li>
                 </ul>
               </div>
             </div>
@@ -200,15 +199,16 @@ batches:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { type: "gaussian", params: "size: [7, 7], sigma: 1.0", desc: "Gaussian low-pass smoothing. Reduces high-frequency noise while preserving large-scale intensity. Uses a finite (FIR) kernel." },
-                    { type: "median", params: "size: [5, 5]", desc: "Replaces each pixel with its neighbourhood median. Removes salt-and-pepper noise and hot pixels without blurring edges." },
-                    { type: "norm", params: "size: [7, 7], max_gain: 1.0", desc: "Range normalize: subtracts the local minimum then divides by the local range (max \u2212 min). Maps each pixel to [0, 1] relative to its neighbourhood. Good general-purpose contrast equalization." },
-                    { type: "norm2", params: "size: [7, 7], max_gain: 1.0", desc: "Smoothed range normalize: like norm, but box-smooths both the min and max envelopes before normalizing. More robust to single-pixel noise spikes." },
-                    { type: "maxnorm", params: "size: [7, 7], max_gain: 1.0", desc: "Background normalize: divides by the smoothed local minimum (background level). Equalizes illumination gradients \u2014 particles come out as values > 1, background \u2192 1. Max gain limits amplification in dark regions." },
-                    { type: "ssmin", params: "size: [7, 7]", desc: "SSMin (sliding minimum background subtraction). Median-smooths, extracts the local minimum (background envelope), box-smooths it, and subtracts. Removes slowly-varying background (laser sheet profile, reflections). Output clipped to \u2265 0." },
-                    { type: "lmax", params: "size: [7, 7]", desc: "Morphological dilation (local maximum). Replaces each pixel with the maximum in its neighbourhood. Useful for expanding bright features and peak detection." },
-                    { type: "invert", params: "(none)", desc: "Inverts intensity: output = max(image) \u2212 pixel. For background-oriented schlieren (BOS) or shadowgraph where particles are dark on a bright background." },
-                    { type: "clahe", params: "clip_limit: 2.0, tile_grid_size: [8, 8]", desc: "Contrast Limited Adaptive Histogram Equalization. Enhances local contrast in tiles, useful for images with uneven illumination or very low contrast." },
+                    { type: "gaussian", params: "size: [7, 7], sigma: 1.0", desc: "FIR Gaussian blur (matches MATLAB fspecial). Reduces high-frequency noise." },
+                    { type: "median", params: "size: [5, 5] ([h, w])", desc: "Median filter. Removes salt-and-pepper noise, preserves edges." },
+                    { type: "norm", params: "size: [7, 7], max_gain: 1.0", desc: "Local contrast normalisation: subtract the sliding minimum, divide by the local range." },
+                    { type: "norm2", params: "size: [7, 7], max_gain: 1.0", desc: "Smoothed range normalisation: box-smooths the min and max envelopes before normalising (less sensitive to single-pixel noise than norm)." },
+                    { type: "maxnorm", params: "size: [7, 7], max_gain: 1.0", desc: "Background normalisation: divide by a smoothed local minimum to equalise illumination gradients." },
+                    { type: "meannorm", params: "(none)", desc: "Divide each frame by its own spatial mean intensity. Equalises pair-to-pair brightness (laser energy drift); recommended first step for ensemble processing. Global gain only -- within-frame illumination variation is the job of norm/norm2/maxnorm." },
+                    { type: "ssmin", params: "size: [7, 7]", desc: "Sliding-minimum background subtraction: median-smooth, take the local minimum, box-smooth, subtract, clip to >= 0." },
+                    { type: "lmax", params: "size: [7, 7]", desc: "Morphological dilation (local maximum). Enhances bright features." },
+                    { type: "invert", params: "(none)", desc: "Invert intensities per frame: output = frame max - input." },
+                    { type: "clahe", params: "clip_limit: 2.0, tile_grid_size: [8, 8]", desc: "Contrast-limited adaptive histogram equalisation (OpenCV)." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-blue-600">{row.type}</td>
@@ -268,25 +268,26 @@ batches:
 
   # Spatial (per-frame, order matters)
   - type: gaussian
-    size: [7, 7]            # [int, int]: kernel [h, w] (odd only)
+    size: [7, 7]            # [int, int]: kernel [h, w]
     sigma: 1.0              # float: std dev in pixels
   - type: median
-    size: [5, 5]            # [int, int]: kernel [h, w] (odd only)
-  - type: norm              # Range normalize
+    size: [5, 5]            # [int, int]: kernel [h, w]
+  - type: norm
     size: [7, 7]
-    max_gain: 1.0           # float: max amplification in low-contrast regions
-  - type: norm2             # Smoothed range normalize
-    size: [7, 7]
-    max_gain: 1.0
-  - type: maxnorm           # Background normalize
+    max_gain: 1.0           # float: max normalisation gain
+  - type: norm2
     size: [7, 7]
     max_gain: 1.0
-  - type: ssmin             # Subtract background
+  - type: maxnorm
     size: [7, 7]
-  - type: lmax              # Local maximum (dilation)
+    max_gain: 1.0
+  - type: meannorm          # no parameters (divide frame by its spatial mean)
+  - type: ssmin
     size: [7, 7]
-  - type: invert            # Invert (max - pixel)
-  - type: clahe             # Adaptive histogram equalization
+  - type: lmax
+    size: [7, 7]
+  - type: invert            # no parameters (output = frame max - input)
+  - type: clahe
     clip_limit: 2.0
     tile_grid_size: [8, 8]
 
@@ -310,12 +311,17 @@ batches:
                     { filter: "time", type: "Temporal", param: "(none)", default: "-" },
                     { filter: "pod", type: "Temporal", param: "(none)", default: "-" },
                     { filter: "gaussian", type: "Spatial", param: "size, sigma", default: "[7,7], 1.0" },
+                    { filter: "gaussian", type: "Spatial", param: "size, sigma", default: "[7,7], 1.0" },
                     { filter: "median", type: "Spatial", param: "size", default: "[5, 5]" },
                     { filter: "norm", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
                     { filter: "norm2", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
+                    { filter: "norm2", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
                     { filter: "maxnorm", type: "Spatial", param: "size, max_gain", default: "[7,7], 1.0" },
+                    { filter: "meannorm", type: "Spatial", param: "(none)", default: "-" },
                     { filter: "ssmin", type: "Spatial", param: "size", default: "[7, 7]" },
                     { filter: "lmax", type: "Spatial", param: "size", default: "[7, 7]" },
+                    { filter: "invert", type: "Spatial", param: "(none)", default: "-" },
+                    { filter: "clahe", type: "Spatial", param: "clip_limit, tile_grid_size", default: "2.0, [8,8]" },
                     { filter: "invert", type: "Spatial", param: "(none)", default: "-" },
                     { filter: "clahe", type: "Spatial", param: "clip_limit, tile_grid_size", default: "2.0, [8,8]" },
                   ].map((row, index) => (

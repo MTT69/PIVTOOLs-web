@@ -12,12 +12,11 @@ import {
   Terminal,
   ChevronDown,
   ChevronRight,
-  CheckCircle,
   AlertTriangle,
   Info,
   Box,
   Crosshair,
-  Cpu,
+  Layers,
 } from 'lucide-react';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
@@ -130,7 +129,7 @@ export default function StereoCalibrationPage() {
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Calibrate stereo camera pairs for three-component (3C) velocity measurements.
-              Two detection methods available: Dotboard and ChArUco.
+              Three methods available: Dotboard, ChArUco, and Stepped.
             </p>
           </motion.div>
 
@@ -185,23 +184,23 @@ export default function StereoCalibrationPage() {
                     <td className="px-6 py-4 text-sm text-gray-600">ChArUco board, multiple positions</td>
                   </tr>
                   <tr className="bg-white">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">Stepped Board</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">Transmission setups, high-magnification PIV</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">Stepped dot board (two Z-levels), multi-pose sequence</td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">Stereo Stepped</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">Transmission rigs where cameras image different board faces</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">Dual-level (stepped) dot board, 1+ positions (3+ recommended)</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <Info className="text-blue-600" size={18} />
+                <strong className="text-blue-800">Stereo is pinhole only</strong>
+              </div>
               <p className="text-blue-700 text-sm">
-                <strong>Stepped Board:</strong> For setups where cameras view opposite sides of the
-                target (transmission) or at high magnification where single-plane calibration is
-                fragile, see the dedicated{' '}
-                <a href="/manual/stepped-calibration" className="text-blue-800 font-semibold hover:underline">
-                  Stepped Calibration
-                </a>{' '}
-                page. Stepped boards use two Z-levels for robust 3D camera models.
+                The stereo tabs offer no polynomial camera model. A single-plane polynomial has no
+                out-of-plane sensitivity, so it cannot recover the W component. The model-type
+                dropdown that appears on the planar tabs is absent on the stereo tabs.
               </p>
             </div>
 
@@ -220,7 +219,8 @@ export default function StereoCalibrationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { metric: "Stereo RMS Error", desc: "Overall stereo reprojection error (pixels)", target: "< 0.5 px" },
+                    { metric: "Stereo RMS Error", desc: "Joint reprojection error from the stereoCalibrate pose fit (pixels). Dotboard and ChArUco only", target: "< 0.5 px" },
+                    { metric: "Stereo Views", desc: "Number of shared views used in the stereo pose fit (n_stereo_views)", target: "10+ typical" },
                     { metric: "Cam1 / Cam2 RMS Error", desc: "Per-camera reprojection error (pixels)", target: "< 0.5 px each" },
                     { metric: "Relative Angle", desc: "Angle between camera optical axes (degrees)", target: "30-60 degrees typical" },
                     { metric: "Baseline Distance", desc: "Physical camera separation (mm)", target: "Verify against setup" },
@@ -247,11 +247,27 @@ export default function StereoCalibrationPage() {
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                 <h4 className="font-semibold text-green-800 mb-2">Extrinsic Parameters</h4>
                 <ul className="text-green-700 space-y-1 text-sm">
-                  <li><strong>Rotation Matrix (R):</strong> 3x3 rotation from Cam1 to Cam2</li>
-                  <li><strong>Translation Vector (T):</strong> Baseline offset</li>
-                  <li><strong>Rectification:</strong> R1, R2, P1, P2, Q matrices</li>
+                  <li><strong>R_stereo:</strong> 3x3 rotation from Cam1 to Cam2</li>
+                  <li><strong>T_stereo:</strong> Baseline translation (mm)</li>
+                  <li><strong>self_cal block:</strong> Laser-sheet z_offset and tilt from self-calibration (empty until run)</li>
                 </ul>
               </div>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Persistence</h3>
+            <p className="text-gray-700 mb-2">
+              The model record is written into the calibration <em>source</em> folder, not the
+              output base path. Beside it, an <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code>{' '}
+              sidecar caches the detected points, the clicked world frame, and the board geometry, so
+              the model regenerates without re-detecting or re-clicking. Clicks and detections are
+              never stored in <code className="bg-gray-100 px-1 rounded text-sm">config.yaml</code> — config holds
+              only what you type or select before detecting (image settings, camera pair, dt, geometry seed).
+            </p>
+            <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
+              &lt;calibration_source&gt;/calibration/stereo_cam1_cam2/<br />
+              ├── model/stereo_model_pinhole.mat   (includes the self_cal block)<br />
+              ├── model/inputs.mat                 (cached detections + clicks)<br />
+              └── figures/                         (proof figures; self_cal/ subfolder after self-calibration)
             </div>
           </Section>
 
@@ -329,12 +345,22 @@ export default function StereoCalibrationPage() {
           {/* Stereo Dotboard */}
           <Section title="Stereo Dotboard" icon={<Grid3X3 size={32} />} id="dotboard">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Both cameras are calibrated simultaneously using shared views of a circular dot grid
-              at multiple target positions. Detection uses the same pipeline as planar dotboard &mdash;
-              auto-polarity selection by assembled grid size, reciprocal BFS grid walk, template-matching
-              rescue for missing interior dots, and a two-pass outlier refinement. See the{' '}
-              <Link href="/manual/planar-calibration#dotboard" className="text-soton-blue font-semibold hover:underline">Planar Dotboard</Link> section
-              for troubleshooting detection failures.
+              Both cameras view a circular dot grid at multiple target positions. Detection uses the
+              same algorithm as planar dotboard (blob detection, neighbour walk, RANSAC filtering) —
+              grid dimensions are found automatically, so no row/column counts are configured.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Model Fitting</h3>
+            <p className="text-gray-700 mb-4">
+              Each camera&apos;s intrinsics are fitted independently. Object-point release
+              (<code className="bg-gray-100 px-1 rounded text-sm">calibrateCameraRO</code>) is on by
+              default and falls back to plain <code className="bg-gray-100 px-1 rounded text-sm">calibrateCamera</code>{' '}
+              per camera when that camera&apos;s views are not identical (partial boards). The
+              cross-camera pose then comes from{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">cv2.stereoCalibrate(CALIB_FIX_INTRINSIC)</code>{' '}
+              over <em>all</em> shared views — a joint estimate that replaced the old compose of two
+              single-view solvePnP poses. The fit reports the stereo RMS (px) and the shared-view
+              count (n_stereo_views).
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Parameters</h3>
@@ -350,11 +376,10 @@ export default function StereoCalibrationPage() {
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "camera_pair", desc: "Camera numbers forming the stereo pair", def: "[1, 2]" },
-                    { param: "pattern_cols", desc: "Horizontal dot count", def: "10" },
-                    { param: "pattern_rows", desc: "Vertical dot count", def: "10" },
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "12.22" },
-                    { param: "asymmetric", desc: "Asymmetric grid pattern", def: "false" },
-                    { param: "dt", desc: "Time between frames (seconds)", def: "0.0057553" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "15.0" },
+                    { param: "datum_frame", desc: "Image index defining the world frame (1-based)", def: "1" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "1.0" },
+                    { param: "fix_k2", desc: "Pin the r^4 radial term to zero (toggle appears below 3 frames; on by default there)", def: "false" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
@@ -370,13 +395,12 @@ export default function StereoCalibrationPage() {
             <ol className="space-y-2 mb-6">
               {[
                 "Configure calibration images (format, count, subfolder)",
-                "Set camera pair (e.g. Camera 1 and Camera 2)",
-                "Set grid parameters (cols, rows, dot spacing)",
+                "Set camera pair (e.g. Camera 1 and Camera 2) and dot spacing",
                 "Browse images to verify both camera views show the target",
+                "Detect dots on the datum frame, then click origin / +X / +Y on camera 1 to define the world frame",
                 "Click \"Generate Model\" to compute stereo calibration",
-                "Review stereo RMS error, relative angle, and baseline distance",
+                "Review stereo RMS error, shared-view count, relative angle, and baseline distance",
                 "Click \"Calibrate Vectors\" to apply calibration to PIV data",
-                "Click \"Set as Active\" to make this the active method",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
@@ -389,16 +413,18 @@ export default function StereoCalibrationPage() {
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-              base_path/calibration/stereo_cam1_cam2/<br />
-              ├── model/stereo_model.mat<br />
-              ├── indices/indexing_*.mat<br />
+              &lt;calibration_source&gt;/calibration/stereo_cam1_cam2/<br />
+              ├── model/stereo_model_pinhole.mat<br />
+              ├── model/inputs.mat<br />
               └── figures/
             </div>
 
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
               <p className="text-blue-700 text-sm">
-                <strong>Validation:</strong> Stereo validation checks that images exist for both cameras
-                and reports the matching count (minimum of frames found in each camera).
+                <strong>Detection cache:</strong> detections persist in{' '}
+                <code className="bg-blue-100 px-1 rounded">inputs.mat</code> beside the model, so
+                Generate reuses them on a reopened tab. The <strong>Re-detect</strong> button ignores
+                the cache and detects fresh before recalibrating.
               </p>
             </div>
 
@@ -406,14 +432,12 @@ export default function StereoCalibrationPage() {
               title="config.yaml - Stereo Dotboard"
               code={`calibration:
   active: stereo_dotboard
-  stereo_dotboard:
-    camera_pair: [1, 2]
-    pattern_cols: 10
-    pattern_rows: 10
-    dot_spacing_mm: 12.2222
-    asymmetric: false
-    dt: 0.0057553
-    stereo_model_type: dotboard`}
+  camera_pair: [1, 2]
+  dt: 1.0
+  datum_frame: 1
+  dotboard:                # geometry seed, shared with the planar dotboard tab
+    dot_spacing_mm: 15.0
+    fix_k2: false`}
             />
           </Section>
 
@@ -422,7 +446,10 @@ export default function StereoCalibrationPage() {
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Combines ArUco marker detection with stereo geometry computation.
               ArUco markers identify which corners are visible, so detection works
-              with partial occlusion and oblique viewing angles.
+              with partial occlusion and oblique viewing angles. Model fitting is identical to
+              Stereo Dotboard — independent per-camera intrinsics, then{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">cv2.stereoCalibrate(CALIB_FIX_INTRINSIC)</code>{' '}
+              over all shared views, with corners matched across cameras by their global corner ids.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Parameters</h3>
@@ -467,7 +494,9 @@ export default function StereoCalibrationPage() {
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <p className="text-gray-700 mb-4">
               Same as Stereo Dotboard: configure images, set camera pair and board parameters,
-              generate model, review quality metrics, apply to vectors, and set as active.
+              generate model, review quality metrics, and apply to vectors. Detections cache in{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code> with the same
+              Re-detect override.
             </p>
 
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
@@ -482,11 +511,9 @@ export default function StereoCalibrationPage() {
               title="config.yaml - Stereo ChArUco"
               code={`calibration:
   active: stereo_charuco
-
-  # Stereo-specific settings
-  stereo_charuco:
-    camera_pair: [1, 2]
-    dt: 0.0057553
+  camera_pair: [1, 2]
+  dt: 1.0
+  datum_frame: 1
 
   # Board parameters (shared with planar ChArUco)
   charuco:
@@ -499,30 +526,142 @@ export default function StereoCalibrationPage() {
             />
           </Section>
 
+          {/* Stereo Stepped */}
+          <Section title="Stereo Stepped" icon={<Layers size={32} />} id="stepped">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              A stepped (dual-level) board carries dots on two Z planes, so a single view is
+              non-coplanar and constrains depth on its own. The cameras may image different board
+              faces (transmission rigs), which means they share no features and{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">cv2.stereoCalibrate</code> cannot
+              run. Instead, two mono pinhole fits are composed into one rig. This composed pose is
+              the DaVis-matching un-bundled method, not a weaker fallback.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Model Fitting</h3>
+            <p className="text-gray-700 mb-4">
+              Each camera is fitted into the shared plate frame independently, then the rig pose is
+              composed as
+            </p>
+            <div className="text-sm text-gray-700 font-mono bg-gray-50 rounded p-3 mb-4">
+              R_stereo = R2 · R1&#7488;<br />
+              T_stereo = t2 − R_stereo · t1
+            </div>
+            <p className="text-gray-700 mb-4">
+              Because composition has no joint reprojection step, there is no stereo RMS for this
+              method — the results card shows the two per-camera RMS values plus the self-calibration
+              residual disparity. Stereo stepped is strictly a two-camera pair; there is no
+              multi-camera stitching on this tab. The camera model is pinhole only.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Parameters</h3>
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Parameter</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Default</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { param: "camera_pair", desc: "Camera numbers forming the stereo pair (Camera 1 is the world reference)", def: "[1, 2]" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "15.0" },
+                    { param: "step_height_mm", desc: "Height between peak and trough levels (mm)", def: "3.0" },
+                    { param: "board_thickness_mm", desc: "Total thickness of the board (mm)", def: "14.8" },
+                    { param: "datum_frame", desc: "World origin image, 1-based, both cameras", def: "1" },
+                    { param: "stereo_config", desc: "Rig geometry: auto (from clicks), same_side, or transmission", def: "auto" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "1.0" },
+                    { param: "fix_k2", desc: "Pin the r^4 radial term to zero (toggle appears below 3 usable poses)", def: "on when shown" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{row.def}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="text-yellow-600" size={18} />
+                <strong className="text-yellow-800">Fewer than 3 poses: keep fix k2 on</strong>
+              </div>
+              <p className="text-yellow-700 text-sm">
+                One near-planar view has no leverage on the r^4 radial term. A free k2 runs away into
+                a degenerate basin, dragging focal length, principal point, stereo angle, and baseline
+                with it. The toggle defaults on below 3 poses. In-plane vectors stay usable either
+                way, but W picks up a bias from the wrong angle — use 3 or more views for
+                quantitative 3C.
+              </p>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
+            <ol className="space-y-2 mb-6">
+              {[
+                "Configure calibration images and the camera pair (both cameras, same frame count)",
+                "Set the board geometry (dot spacing, step height, thickness) and datum frame",
+                "Run detection — dots on both Z levels are found for every frame of both cameras",
+                "Click the three fiducials (origin / +X / +Y) on each camera's datum frame",
+                "Verify every usable pose: click one peak or trough dot per pose to label its face",
+                "Click \"Generate Model\" and review the per-camera RMS values",
+                "Optionally run self-calibration, then \"Calibrate Vectors\" for 3C reconstruction",
+              ].map((step, idx) => (
+                <li key={idx} className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
+                    {idx + 1}
+                  </span>
+                  <span className="text-gray-700">{step}</span>
+                </li>
+              ))}
+            </ol>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
+              <p className="text-blue-700 text-sm">
+                <strong>Peak/trough verification is enforced:</strong> Generate stays disabled until
+                every usable pose has its face labelled on both cameras. The detection figure colours
+                peaks blue and troughs red so labels can be checked at a glance. Detections,
+                fiducials, and labels persist per-pick to <code className="bg-blue-100 px-1 rounded">inputs.mat</code>,
+                so a reopened tab regenerates the model with one Generate press.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+              <p className="text-yellow-700 text-sm">
+                <strong>No polynomial3d:</strong> the stereo stepped model is pinhole only. A
+                per-camera polynomial pair builds no usable stereo baseline, so the UI drops the
+                option and the backend rejects it.
+              </p>
+            </div>
+
+            <YamlDropdown
+              title="config.yaml - Stereo Stepped"
+              code={`calibration:
+  active: stereo_stepped
+  camera_pair: [1, 2]
+  dt: 1.0
+  datum_frame: 1
+  stepped:                  # physical board geometry (shared seed)
+    dot_spacing_mm: 15.0
+    step_height_mm: 3.0
+    board_thickness_mm: 14.8
+  stepped_stereo:           # stereo-only selections
+    stereo_config: auto     # auto | same_side | transmission
+    model_type: pinhole
+    fix_k2: true`}
+            />
+          </Section>
+
           {/* 3D Reconstruction */}
           <Section title="3D Velocity Reconstruction" icon={<Box size={32} />} id="reconstruction">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              After computing the stereo model, use reconstruction to convert the 2D PIV velocity
-              fields from each camera into 3D velocity vectors (u, v, w) in world coordinates.
+              After computing the stereo model, reconstruction converts the 2D PIV velocity fields
+              from each camera into 3C velocity vectors (u, v, w) in world coordinates. The solve is
+              the Willert/Soloff method — both cameras&apos; projection Jacobians are stacked into a
+              4x3 least-squares system per grid point and solved for (U, V, W).
             </p>
-
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-              <p className="text-blue-700 text-sm mb-2">
-                <strong>How reconstruction works:</strong> Camera 1&apos;s PIV grid defines the world
-                coordinates. Camera 2&apos;s displacement field is interpolated at the <em>same</em> physical
-                locations (projected through the stereo model), so both cameras measure the same world points.
-                A least-squares system combines the two 2D measurements into one 3D velocity per grid point.
-                This avoids the pitfall of pairing cameras by array index &mdash; which looks right on a uniform
-                grid but silently gives wrong answers for any real stereo setup.
-              </p>
-              <p className="text-blue-700 text-sm">
-                <strong>Sign convention:</strong> <code className="bg-blue-100 px-1 rounded">uz</code> is
-                negated on output, so positive <code className="bg-blue-100 px-1 rounded">uz</code> points
-                <em>away</em> from the cameras in world coordinates (matching physical intuition for
-                out-of-plane flow). <code className="bg-blue-100 px-1 rounded">ux</code> and{' '}
-                <code className="bg-blue-100 px-1 rounded">uy</code> are not negated.
-              </p>
-            </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Process</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -550,7 +689,7 @@ export default function StereoCalibrationPage() {
                   <li>Valid stereo calibration model</li>
                   <li>2D PIV vectors from Camera 1</li>
                   <li>2D PIV vectors from Camera 2</li>
-                  <li>Matching grid coordinates between cameras</li>
+                  <li>Overlapping camera views on the sheet plane (empty overlap raises)</li>
                 </ul>
               </div>
               <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
@@ -559,15 +698,66 @@ export default function StereoCalibrationPage() {
                   <li><strong>ux:</strong> x-velocity (m/s)</li>
                   <li><strong>uy:</strong> y-velocity (m/s)</li>
                   <li><strong>uz:</strong> out-of-plane velocity (m/s)</li>
+                  <li><strong>b_mask:</strong> validity mask (0 = valid, non-zero = excluded)</li>
                   <li><strong>x, y:</strong> world coordinates (mm)</li>
                 </ul>
               </div>
             </div>
 
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Output Grid and Conventions</h3>
+            <ul className="text-gray-700 space-y-2 mb-6 text-sm list-disc pl-6">
+              <li>
+                Output lands on a <strong>regular world-mm grid</strong> spanning the two
+                cameras&apos; overlap on the sheet plane. Spacing is automatic — the median
+                world-space vector pitch of both PIV grids. To change the output resolution, change
+                the PIV window/overlap and re-run.
+              </li>
+              <li>
+                <strong>Row 0 is the top of the view</strong> (y descending down the rows), matching
+                every other calibrated product.
+              </li>
+              <li>
+                The frame is <strong>right-handed with +Z = +X x +Y</strong>, so W shares its axis
+                with the world z coordinate. The legacy &quot;+w toward cameras&quot; flip
+                (z_toward_cameras) has been removed.
+              </li>
+              <li>
+                A point is masked in <code className="bg-gray-100 px-1 rounded">b_mask</code> where
+                either camera&apos;s projection leaves its PIV grid or either camera flagged its
+                contributing vector.
+              </li>
+            </ul>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="text-yellow-600" size={18} />
+                <strong className="text-yellow-800">Old stereo files are rejected</strong>
+              </div>
+              <p className="text-yellow-700 text-sm">
+                The vector reader requires <code className="bg-yellow-100 px-1 rounded">b_mask</code>.
+                Stereo results written before it existed (ux/uy/uz only) raise on load and must be
+                re-reconstructed.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="text-yellow-600" size={18} />
+                <strong className="text-yellow-800">Stereo ensemble reconstructs mean flow only</strong>
+              </div>
+              <p className="text-yellow-700 text-sm">
+                Applying stereo calibration to ensemble results reconstructs the mean velocity
+                (ux/uy/uz/b_mask) per pass — the 4x3 solve is linear in the displacements, so the
+                ensemble mean reconstructs exactly. Reynolds stresses are <strong>not</strong>{' '}
+                reconstructed through stereo (they transform quadratically and require a separate
+                method).
+              </p>
+            </div>
+
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <ol className="space-y-2 mb-6">
               {[
-                "Ensure a stereo model has been generated (Dotboard or ChArUco)",
+                "Ensure a stereo model has been generated (Dotboard, ChArUco, or Stepped)",
                 "Run PIV processing for both cameras",
                 "Select data type (instantaneous or ensemble)",
                 "Click \"Reconstruct 3D\" to start reconstruction",
@@ -584,9 +774,12 @@ export default function StereoCalibrationPage() {
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-              base_path/stereo_calibrated/&#123;N&#125;/Cam1_Cam2/&#123;type&#125;/<br />
-              ├── B00001.mat ... B0NNNN.mat<br />
-              └── coordinates.mat
+              base_path/stereo_calibrated/&#123;N&#125;/Cam1_Cam2/instantaneous/<br />
+              ├── B00001.mat ... B0NNNN.mat   (ux, uy, uz, b_mask per frame)<br />
+              └── coordinates.mat             (regular world-mm grid)<br />
+              <br />
+              base_path/stereo_calibrated/&#123;N&#125;/Cam1_Cam2/ensemble/<br />
+              └── per-pass coordinates.mat + ensemble_result.mat (ux, uy, uz, b_mask)
             </div>
 
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
@@ -600,10 +793,12 @@ export default function StereoCalibrationPage() {
           {/* Self-Calibration */}
           <Section title="Self-Calibration (Wieneke 2005)" icon={<Crosshair size={32} />} id="self-calibration">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Self-calibration automatically detects and corrects laser-sheet misalignment in stereo PIV
-              setups. The laser sheet may be offset from the calibration plane (Z-offset) or tilted
-              relative to it. Self-calibration measures the disparity between camera views and iteratively
-              refines the dewarping parameters until the residual disparity converges.
+              Self-calibration detects and corrects laser-sheet misalignment from the recorded
+              particle images, not the calibration board. The laser sheet may be offset from the
+              calibration plane (z_offset) or tilted relative to it (tilt_x, tilt_y).
+              Self-calibration measures the disparity between camera views and iteratively refines
+              the sheet parameters until the corrections stabilise. It is available on the stereo
+              board tabs and on stereo stepped, for pinhole models only.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Algorithm Steps</h3>
@@ -613,7 +808,7 @@ export default function StereoCalibrationPage() {
                 "Cross-correlate Camera 1 vs Camera 2 (same time instant, different viewpoints)",
                 "Extract the disparity field -- residual displacement between the two dewarped views",
                 "Fit the disparity to a plane model, extracting Z-offset and tilt angles",
-                "Update the dewarping maps and repeat until RMS disparity converges",
+                "Update the dewarping maps and repeat until the per-iteration corrections (Z-offset and tilt) stabilise below threshold",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
@@ -639,7 +834,6 @@ export default function StereoCalibrationPage() {
                     { param: "n_images", desc: "Number of image pairs used for disparity estimation", def: "20" },
                     { param: "window_size", desc: "Correlation window size (pixels)", def: "64" },
                     { param: "overlap", desc: "Window overlap percentage", def: "50.0" },
-                    { param: "convergence_threshold", desc: "RMS disparity convergence target (pixels)", def: "0.05" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
@@ -674,13 +868,13 @@ export default function StereoCalibrationPage() {
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <ol className="space-y-2 mb-6">
               {[
-                "Complete stereo calibration (Dotboard or ChArUco)",
-                "Open the Self-Calibration panel below the stereo calibration section",
+                "Complete stereo calibration (Dotboard, ChArUco, or Stepped pinhole)",
+                "Open the Self-Calibration panel below the stereo model results",
+                "Select the PIV dataset (base path) providing the particle images",
                 "Preview the dewarp alignment (red-cyan overlay shows before/after)",
-                "Set number of images and window size",
+                "Set number of images, window size, and overlap",
                 "Click \"Run Self-Calibration\" to start the iterative process",
-                "Review convergence history and final RMS disparity",
-                "Results are automatically saved to config and applied during reconstruction",
+                "Review convergence history, final RMS disparity, and the diagnostic figures",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
@@ -691,84 +885,26 @@ export default function StereoCalibrationPage() {
               ))}
             </ol>
 
-            <YamlDropdown
-              title="config.yaml - Self-Calibration"
-              code={`calibration:
-  self_calibration:
-    z_offset: 0.0          # Laser sheet Z-offset (mm) — estimated by self-cal
-    tilt_x: 0.0            # Tilt about X-axis (radians)
-    tilt_y: 0.0            # Tilt about Y-axis (radians)
-    method: dotboard       # Calibration method used for stereo model
-    n_images: 20           # Image pairs for disparity estimation
-    window_size: 64        # Correlation window (pixels)
-    convergence_history: [] # Per-iteration RMS disparity values`}
-            />
-
-            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mt-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Storage and Application</h3>
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
               <p className="text-blue-700 text-sm">
-                <strong>Note:</strong> Self-calibration results are automatically applied during 3D
-                reconstruction. The corrected dewarping maps account for the measured Z-offset and tilt,
-                eliminating systematic errors caused by laser-sheet misalignment.
+                Results are stored in the stereo record&apos;s <code className="bg-blue-100 px-1 rounded">self_cal</code>{' '}
+                block inside <code className="bg-blue-100 px-1 rounded">stereo_model_pinhole.mat</code> —
+                not a sidecar file and not <code className="bg-blue-100 px-1 rounded">config.yaml</code>.
+                Subsequent stereo reconstruction applies the stored sheet automatically, so no extra
+                step is needed. Regenerating the stereo model clears the block — re-run
+                self-calibration after recalibrating.
               </p>
             </div>
-          </Section>
 
-          {/* Stereo Ensemble PIV */}
-          <Section title="Stereo Ensemble PIV" icon={<Cpu size={32} />} id="stereo-ensemble">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Stereo ensemble PIV combines correlation-of-correlations with stereo reconstruction to
-              estimate all three velocity components (U, V, W) and the full 3D Reynolds stress tensor
-              (6 components) from time-averaged data.
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Diagnostic Output</h3>
+            <p className="text-gray-700 mb-2">
+              Seven diagnostic figures plus <code className="bg-gray-100 px-1 rounded text-sm">correlation_planes.mat</code>{' '}
+              are written beside the model, shareable with the dataset.
             </p>
-
-            <div className="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-400 mb-6">
-              <div className="flex items-center gap-2 mb-1">
-                <Info className="text-purple-600" size={18} />
-                <strong className="text-purple-800">Ensemble only</strong>
-              </div>
-              <p className="text-purple-700 text-sm">
-                Requires a stereo camera pair and uses the <code className="bg-purple-100 px-1 rounded">stereo_ensemble_piv</code> config
-                section (falls back to <code className="bg-purple-100 px-1 rounded">ensemble_piv</code> for unset keys).
-              </p>
+            <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
+              &lt;calibration_source&gt;/calibration/stereo_cam1_cam2/figures/self_cal/
             </div>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Outputs</h3>
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Output</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { output: "ux, uy, uz", desc: "Time-averaged 3D velocity (m/s)" },
-                    { output: "UU, VV, WW", desc: "Normal Reynolds stresses" },
-                    { output: "UV, UW, VW", desc: "Shear Reynolds stresses" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.output}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{row.desc}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <YamlDropdown
-              title="config.yaml - Stereo Ensemble PIV"
-              code={`processing:
-  ensemble: true
-
-stereo_ensemble_piv:
-  # Inherits all settings from ensemble_piv
-  # Override specific settings here if needed
-  window_size:
-  - [128, 128]
-  - [64, 64]
-  - [32, 32]`}
-            />
           </Section>
 
           {/* CLI */}
@@ -781,40 +917,37 @@ stereo_ensemble_piv:
             <h3 className="text-xl font-bold text-gray-900 mb-3">Step 1: Generate Stereo Model</h3>
             <CodeBlock
               title="Detection Commands"
-              code={`# Dotboard stereo detection
-pivtools-cli detect-stereo-planar
+              code={`# Stereo ChArUco detection (CLI detection is ChArUco-only —
+# dotboard and stepped need interactive clicks, so they are GUI-only)
+pivtools-cli detect-stereo
 
-# ChArUco stereo detection
-pivtools-cli detect-stereo-charuco
-
-# Process specific paths
-pivtools-cli detect-stereo-planar -p 0,1`}
+# Specify the camera pair explicitly
+pivtools-cli detect-stereo --camera-pair 1,2`}
             />
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Step 2: Reconstruct 3D Velocity</h3>
             <CodeBlock
               title="Apply Stereo Calibration"
-              code={`# Use active settings from config.yaml
-pivtools-cli apply-stereo
+              code={`# Reconstruct using the ChArUco stereo model
+pivtools-cli apply-stereo --board charuco
 
-# Specify camera pair explicitly
-pivtools-cli apply-stereo --camera-pair 1,2
+# Specify the camera pair explicitly
+pivtools-cli apply-stereo --board charuco --camera-pair 1,2
 
-# Use charuco stereo model
-pivtools-cli apply-stereo --method charuco
+# Process every configured path (like the GUI)
+pivtools-cli apply-stereo --board charuco --all-paths
 
-# Specific data type and runs
-pivtools-cli apply-stereo -t instantaneous -r 1,2,3
-
-# Process specific paths
-pivtools-cli apply-stereo -p 0,1`}
+# Choose the resample kernel
+pivtools-cli apply-stereo --board charuco --interpolator lanczos`}
             />
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Step 3: Self-Calibration (Optional)</h3>
             <CodeBlock
               title="Self-Calibration Command"
               code={`# Run self-calibration to correct laser-sheet misalignment
-pivtools-cli self-calibrate --camera-pair 1,2 --method dotboard --n-images 20`}
+# (--base-path-idx selects the PIV dataset providing particle images)
+pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
+  --base-path-idx 0 --n-images 20 --window-size 64 --overlap 50`}
             />
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">apply-stereo Options</h3>
@@ -829,11 +962,13 @@ pivtools-cli self-calibrate --camera-pair 1,2 --method dotboard --n-images 20`}
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { flag: "--method, -m", desc: "Stereo method: dotboard or charuco", def: "From config" },
-                    { flag: "--camera-pair, -c", desc: "Camera pair as \"1,2\"", def: "From config" },
-                    { flag: "--type-name, -t", desc: "Data type (instantaneous / ensemble)", def: "instantaneous" },
-                    { flag: "--runs, -r", desc: "Comma-separated run numbers", def: "All runs" },
-                    { flag: "--active-paths, -p", desc: "Comma-separated path indices", def: "From config" },
+                    { flag: "--board", desc: "Stereo board: charuco, dotboard, or stepped", def: "From config" },
+                    { flag: "--camera-pair", desc: "Camera pair as \"1,2\"", def: "From config" },
+                    { flag: "--dt", desc: "Time between frames (seconds)", def: "From model / config" },
+                    { flag: "--all-paths", desc: "Derive every base_path from config (like the GUI)", def: "off" },
+                    { flag: "--type-name", desc: "PIV result type for --all-paths: instantaneous or ensemble", def: "instantaneous" },
+                    { flag: "--interpolator", desc: "Resample kernel: cubic or lanczos", def: "lanczos" },
+                    { flag: "--model-type", desc: "Which stereo record to load when several exist in the model dir", def: "pinhole" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
@@ -848,14 +983,14 @@ pivtools-cli self-calibrate --camera-pair 1,2 --method dotboard --n-images 20`}
             <h3 className="text-xl font-bold text-gray-900 mb-3">Complete Workflow</h3>
             <CodeBlock
               title="Full Stereo PIV Workflow"
-              code={`# 1. Generate stereo calibration model
-pivtools-cli detect-stereo-planar       # or detect-stereo-charuco
+              code={`# 1. Generate stereo calibration model (ChArUco; dotboard/stepped via GUI)
+pivtools-cli detect-stereo
 
 # 2. Run PIV processing for both cameras
 pivtools-cli instantaneous
 
 # 3. Reconstruct 3D velocities
-pivtools-cli apply-stereo --camera-pair 1,2
+pivtools-cli apply-stereo --board charuco --camera-pair 1,2
 
 # 4. Compute statistics on stereo data
 pivtools-cli statistics --source-endpoint stereo`}
@@ -869,7 +1004,7 @@ pivtools-cli statistics --source-endpoint stereo`}
               defaultOpen={true}
               code={`calibration:
   # Active method
-  active: stereo_dotboard  # stereo_dotboard, stereo_charuco, or stepped_board
+  active: stereo_dotboard  # stereo_dotboard | stereo_charuco | stereo_stepped
   piv_type: instantaneous
 
   # Calibration image settings (shared)
@@ -882,22 +1017,17 @@ pivtools-cli statistics --source-endpoint stereo`}
   camera_subfolders: ["Cam1", "Cam2"]
   path_order: camera_first
 
-  # Stereo Dotboard
-  stereo_dotboard:
-    camera_pair: [1, 2]
-    pattern_cols: 10
-    pattern_rows: 10
-    dot_spacing_mm: 12.2222
-    asymmetric: false
-    dt: 0.0057553
-    stereo_model_type: dotboard
+  # Shared stereo settings (all three stereo methods)
+  camera_pair: [1, 2]
+  dt: 1.0
+  datum_frame: 1
 
-  # Stereo ChArUco (board params from charuco section)
-  stereo_charuco:
-    camera_pair: [1, 2]
-    dt: 0.0057553
+  # Dotboard geometry seed (shared with planar dotboard)
+  dotboard:
+    dot_spacing_mm: 15.0
+    fix_k2: false
 
-  # ChArUco board parameters (used by both planar and stereo)
+  # ChArUco board parameters (shared with planar ChArUco)
   charuco:
     squares_h: 10
     squares_v: 9
@@ -906,24 +1036,21 @@ pivtools-cli statistics --source-endpoint stereo`}
     aruco_dict: DICT_4X4_1000
     min_corners: 6
 
-  # Self-calibration (Wieneke 2005)
-  self_calibration:
-    z_offset: 0.0          # Laser sheet Z-offset (mm)
-    tilt_x: 0.0            # Tilt about X-axis (radians)
-    tilt_y: 0.0            # Tilt about Y-axis (radians)
-    method: dotboard       # Calibration method used for stereo model
-    n_images: 20           # Image pairs for disparity estimation
-    window_size: 64        # Correlation window (pixels)
-    convergence_history: [] # Per-iteration RMS disparity values
+  # Stepped board geometry (shared seed)
+  stepped:
+    dot_spacing_mm: 15.0
+    step_height_mm: 3.0
+    board_thickness_mm: 14.8
 
-# Stereo Ensemble PIV
-stereo_ensemble_piv:
-  # Inherits all settings from ensemble_piv
-  # Override specific settings here if needed
-  window_size:
-  - [128, 128]
-  - [64, 64]
-  - [32, 32]`}
+  # Stereo-stepped selections
+  stepped_stereo:
+    stereo_config: auto    # auto | same_side | transmission
+    model_type: pinhole
+    fix_k2: true
+
+# World-frame clicks, detections, and self-calibration results are NOT in
+# config.yaml — they live in the model record + inputs.mat sidecar beside
+# the calibration images.`}
             />
 
             <div className="mt-8">
@@ -939,17 +1066,20 @@ stereo_ensemble_piv:
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {[
-                      { gui: "Active Method", yaml: "calibration.active", values: "stereo_dotboard or stereo_charuco" },
-                      { gui: "Camera 1", yaml: "*.camera_pair[0]", values: "Integer (1-based)" },
-                      { gui: "Camera 2", yaml: "*.camera_pair[1]", values: "Integer (1-based)" },
-                      { gui: "Pattern Columns", yaml: "stereo_dotboard.pattern_cols", values: "Integer" },
-                      { gui: "Pattern Rows", yaml: "stereo_dotboard.pattern_rows", values: "Integer" },
-                      { gui: "Dot Spacing (mm)", yaml: "stereo_dotboard.dot_spacing_mm", values: "Float (mm)" },
-                      { gui: "Squares H", yaml: "charuco.squares_h", values: "Integer" },
-                      { gui: "Squares V", yaml: "charuco.squares_v", values: "Integer" },
-                      { gui: "Square Size", yaml: "charuco.square_size", values: "Float (metres)" },
-                      { gui: "ArUco Dictionary", yaml: "charuco.aruco_dict", values: "DICT_{4-7}X{4-7}_{50-1000}" },
-                      { gui: "dt", yaml: "stereo_dotboard.dt / stereo_charuco.dt", values: "Float (seconds)" },
+                      { gui: "Active Method", yaml: "calibration.active", values: "stereo_dotboard, stereo_charuco, or stereo_stepped" },
+                      { gui: "Camera 1", yaml: "calibration.camera_pair[0]", values: "Integer (1-based)" },
+                      { gui: "Camera 2", yaml: "calibration.camera_pair[1]", values: "Integer (1-based)" },
+                      { gui: "dt", yaml: "calibration.dt", values: "Float (seconds)" },
+                      { gui: "Datum Frame", yaml: "calibration.datum_frame", values: "Integer (1-based)" },
+                      { gui: "Dot Spacing (mm)", yaml: "calibration.dotboard.dot_spacing_mm", values: "Float (mm)" },
+                      { gui: "Fix radial k2 = 0", yaml: "calibration.dotboard.fix_k2 / stepped_stereo.fix_k2", values: "Boolean" },
+                      { gui: "Squares H", yaml: "calibration.charuco.squares_h", values: "Integer" },
+                      { gui: "Squares V", yaml: "calibration.charuco.squares_v", values: "Integer" },
+                      { gui: "Square Size", yaml: "calibration.charuco.square_size", values: "Float (metres)" },
+                      { gui: "ArUco Dictionary", yaml: "calibration.charuco.aruco_dict", values: "DICT_{4-7}X{4-7}_{50-1000}" },
+                      { gui: "Step Height (mm)", yaml: "calibration.stepped.step_height_mm", values: "Float (mm)" },
+                      { gui: "Board Thickness (mm)", yaml: "calibration.stepped.board_thickness_mm", values: "Float (mm)" },
+                      { gui: "Stereo Geometry", yaml: "calibration.stepped_stereo.stereo_config", values: "auto, same_side, or transmission" },
                     ].map((row, index) => (
                       <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-6 py-4 text-sm text-gray-900">{row.gui}</td>

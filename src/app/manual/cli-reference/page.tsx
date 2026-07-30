@@ -170,6 +170,7 @@ export default function CLIReferencePage() {
       description: 'Run instantaneous (per-frame) PIV processing',
       options: [
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices (e.g., "0,1,2")' },
+        { flag: '--camera', short: '-c', description: 'Camera number to process (default: all from config)' },
       ],
       examples: [
         'pivtools-cli instantaneous',
@@ -182,6 +183,7 @@ export default function CLIReferencePage() {
       description: 'Run ensemble PIV (time-averaged correlation)',
       options: [
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
+        { flag: '--camera', short: '-c', description: 'Camera number to process (default: all from config)' },
       ],
       examples: [
         'pivtools-cli ensemble',
@@ -190,109 +192,99 @@ export default function CLIReferencePage() {
       link: '/manual/piv-processing#cli',
     },
     {
-      command: 'pivtools-cli detect-planar',
-      description: 'Detect dot/circle grid, generate planar camera model',
-      options: [
-        { flag: '--camera', short: '-c', description: 'Camera number (default: all)' },
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
-        { flag: '--calibration-source', short: '-cs', description: 'Direct path to calibration images (overrides config)' },
-      ],
-      examples: [
-        'pivtools-cli detect-planar',
-        'pivtools-cli detect-planar -c 1',
-      ],
-      link: '/manual/planar-calibration#cli',
-    },
-    {
       command: 'pivtools-cli detect-charuco',
-      description: 'Detect ChArUco board, generate planar camera model',
+      description: 'Detect a ChArUco board, generate a mono camera model (CLI detection is ChArUco-only; dotboard/stepped are GUI-only)',
       options: [
-        { flag: '--camera', short: '-c', description: 'Camera number (default: all)' },
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
-        { flag: '--calibration-source', short: '-cs', description: 'Direct path to calibration images (overrides config)' },
+        { flag: '--camera', description: 'Camera number (default: all from config)' },
+        { flag: '--source', description: 'Calibration source directory (model saved here)' },
+        { flag: '--model-type', description: 'pinhole or polynomial (default: from config)' },
+        { flag: '--distortion', description: 'standard | rational | tilted' },
+        { flag: '--n-views', description: 'Number of calibration views to use' },
+        { flag: '--image-format', description: 'Calibration image format override' },
+        { flag: '--squares-h / --squares-v / --square-size / --marker-ratio / --aruco-dict / --min-corners', description: 'Board geometry overrides (square size in metres)' },
+        { flag: '--world-frame', description: '"default" or path to clicks JSON' },
+        { flag: '--no-figures', description: 'Skip the archival proof figures saved beside the model' },
+        { flag: '--force', description: 'Recompute even if a model already exists' },
       ],
       examples: [
         'pivtools-cli detect-charuco',
-        'pivtools-cli detect-charuco -c 1',
+        'pivtools-cli detect-charuco --camera 1',
       ],
       link: '/manual/planar-calibration#cli',
     },
     {
-      command: 'pivtools-cli detect-stereo-planar',
-      description: 'Detect dot/circle grid, generate stereo camera model',
+      command: 'pivtools-cli detect-stereo',
+      description: 'Detect a ChArUco board across a stereo pair, generate a stereo model',
       options: [
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
-        { flag: '--calibration-source', short: '-cs', description: 'Direct path to calibration images (overrides config)' },
+        { flag: '--camera-pair', description: 'Camera pair as "1,2" (default: from config)' },
+        { flag: '--source', description: 'Calibration source directory' },
+        { flag: '--model-type', description: 'pinhole or polynomial' },
+        { flag: '--distortion', description: 'standard | rational | tilted' },
+        { flag: '--n-views', description: 'Number of calibration views to use' },
+        { flag: '--no-figures', description: 'Skip the archival proof figures' },
+        { flag: '--force', description: 'Recompute even if a model already exists' },
       ],
       examples: [
-        'pivtools-cli detect-stereo-planar',
+        'pivtools-cli detect-stereo',
+        'pivtools-cli detect-stereo --camera-pair 1,2',
       ],
       link: '/manual/stereo-calibration#cli',
     },
     {
-      command: 'pivtools-cli detect-stereo-charuco',
-      description: 'Detect ChArUco board, generate stereo camera model',
+      command: 'pivtools-cli detect-joint',
+      description: 'Joint multi-camera shared-board solve (DaVis-equivalent)',
       options: [
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
-        { flag: '--calibration-source', short: '-cs', description: 'Direct path to calibration images (overrides config)' },
+        { flag: '--cameras', description: 'Comma-separated cameras, e.g. "1,2,3" (default: from config)' },
+        { flag: '--source', description: 'Calibration source directory' },
+        { flag: '--model-type', description: 'pinhole (shared released board) or polynomial' },
+        { flag: '--distortion', description: 'standard (the pinhole joint solve is DaVis pinhole only)' },
+        { flag: '--n-views', description: 'Number of calibration views to use' },
+        { flag: '--board-release', description: 'Released-board DOF: full3d | z_only | none (default: full3d)' },
       ],
       examples: [
-        'pivtools-cli detect-stereo-charuco',
+        'pivtools-cli detect-joint',
+        'pivtools-cli detect-joint --cameras 1,2,3',
       ],
-      link: '/manual/stereo-calibration#cli',
+      link: '/manual/global-coordinates#cli',
     },
     {
-      command: 'pivtools-cli detect-stepped-stereo',
-      description: 'Detect a stepped board on a multi-pose sequence and generate a stereo camera model',
+      command: 'pivtools-cli scale-factor',
+      description: 'Build a scale-factor mono model (uniform pixel -> mm)',
       options: [
-        { flag: '--fiducials', short: '-f', description: 'Path to fiducials JSON file (required)' },
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
-        { flag: '--calibration-source', short: '-cs', description: 'Direct path to calibration images (overrides config)' },
-        { flag: '--num-frames', short: '-n', description: 'Number of poses (default: from config or 11)' },
-        { flag: '--start-frame', short: '-s', description: 'First frame index (default: 1)' },
-        { flag: '--datum-frame', short: '-d', description: 'Datum frame index (default: same as start-frame)' },
-        { flag: '--stereo-config', description: 'auto | same_side | transmission (default: auto)' },
+        { flag: '--px-per-mm', description: 'Pixels per millimetre (required)' },
+        { flag: '--origin', description: 'World-origin pixel as "X Y", image-down (required)' },
+        { flag: '--origin-mm', description: 'World (X, Y) mm assigned to the origin pixel (default: 0 0)' },
+        { flag: '--camera', description: 'Camera number' },
+        { flag: '--source', description: 'Calibration source directory (model saved here)' },
+        { flag: '--frame', description: '1-based frame for image size and proof figure' },
+        { flag: '--dt', description: 'Time between frames (s)' },
+        { flag: '--x-dir', description: '+X direction: right or left (default: right)' },
+        { flag: '--y-dir', description: '+Y direction: up or down (default: up)' },
+        { flag: '--swap', description: '+X follows the vertical pixel axis' },
+        { flag: '--no-figures', description: 'Skip the proof figure' },
       ],
       examples: [
-        'pivtools-cli detect-stepped-stereo -f fiducials.json',
-        'pivtools-cli detect-stepped-stereo -f fiducials.json --stereo-config transmission',
+        'pivtools-cli scale-factor --px-per-mm 20.5 --origin 100 900',
+        'pivtools-cli scale-factor --px-per-mm 20.5 --origin 100 900 --dt 0.0006',
       ],
-      link: '/manual/stepped-calibration#cli',
-    },
-    {
-      command: 'pivtools-cli detect-stepped-planar',
-      description: 'Detect a stepped board and fit a per-camera 3D pinhole model (uses both Z levels)',
-      options: [
-        { flag: '--camera', short: '-c', description: 'Single camera to process (default: all cameras in fiducials)' },
-        { flag: '--fiducials', short: '-f', description: 'Path to fiducials JSON file (required)' },
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
-        { flag: '--calibration-source', short: '-cs', description: 'Direct path to calibration images (overrides config)' },
-        { flag: '--num-frames', short: '-n', description: 'Number of poses (default: from config or 11)' },
-        { flag: '--start-frame', short: '-s', description: 'First frame index (default: 1)' },
-        { flag: '--datum-frame', short: '-d', description: 'Datum frame index (default: same as start-frame)' },
-      ],
-      examples: [
-        'pivtools-cli detect-stepped-planar -f fiducials.json',
-        'pivtools-cli detect-stepped-planar -f fiducials.json -c 1',
-      ],
-      link: '/manual/stepped-calibration#cli',
+      link: '/manual/planar-calibration#cli',
     },
     {
       command: 'pivtools-cli apply-calibration',
-      description: 'Apply calibration to vectors (pixels to m/s)',
+      description: 'Apply a mono model to vectors (pixels to m/s)',
       options: [
-        { flag: '--method', short: '-m', description: 'dotboard | charuco | scale_factor | polynomial | stepped_board (default: from config)' },
-        { flag: '--camera', short: '-c', description: 'Camera number (default: all)' },
-        { flag: '--type-name', short: '-t', description: 'instantaneous | ensemble' },
-        { flag: '--runs', short: '-r', description: 'Comma-separated run numbers' },
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
-        { flag: '--align-coordinates', description: 'Apply global coordinate alignment after calibration' },
+        { flag: '--board', description: 'Model type: charuco | dotboard | stepped | scale_factor' },
+        { flag: '--camera', description: 'Camera number (default: all)' },
+        { flag: '--source', description: 'Calibration source directory' },
+        { flag: '--dt', description: 'Time between frames (s)' },
+        { flag: '--uncalibrated-dir / --calibrated-dir', description: 'Explicit input/output vector directories (instead of --all-paths)' },
+        { flag: '--all-paths', description: 'Derive every base_path x camera from config (like the GUI)' },
+        { flag: '--type-name', description: 'PIV result type for --all-paths (default: instantaneous)' },
+        { flag: '--model-type', description: 'pinhole | polynomial | polynomial3d | scale_factor' },
       ],
       examples: [
-        'pivtools-cli apply-calibration',
-        'pivtools-cli apply-calibration --method scale_factor',
-        'pivtools-cli apply-calibration -t ensemble -c 1',
-        'pivtools-cli apply-calibration --align-coordinates',
+        'pivtools-cli apply-calibration --board charuco',
+        'pivtools-cli apply-calibration --board scale_factor --all-paths',
       ],
       link: '/manual/planar-calibration#cli',
     },
@@ -300,35 +292,55 @@ export default function CLIReferencePage() {
       command: 'pivtools-cli apply-stereo',
       description: 'Stereo 3D reconstruction (ux, uy, uz)',
       options: [
-        { flag: '--method', short: '-m', description: 'dotboard | charuco | stepped_board' },
-        { flag: '--camera-pair', short: '-c', description: 'Camera pair as "1,2" (default: from config)' },
-        { flag: '--type-name', short: '-t', description: 'instantaneous | ensemble' },
-        { flag: '--runs', short: '-r', description: 'Comma-separated run numbers' },
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
+        { flag: '--board', description: 'Stereo model type: charuco | dotboard | stepped' },
+        { flag: '--camera-pair', description: 'Camera pair as "1,2" (default: from config)' },
+        { flag: '--source', description: 'Calibration source directory' },
+        { flag: '--dt', description: 'Time between frames (s)' },
+        { flag: '--interpolator', description: 'Cam2 resample kernel: cubic or lanczos (default: lanczos)' },
+        { flag: '--calibrated-dir', description: 'Explicit calibrated vector directory (instead of --all-paths)' },
+        { flag: '--all-paths', description: 'Derive every base_path from config (like the GUI)' },
+        { flag: '--type-name', description: 'PIV result type for --all-paths (default: instantaneous)' },
+        { flag: '--model-type', description: 'pinhole or polynomial3d' },
       ],
       examples: [
-        'pivtools-cli apply-stereo',
-        'pivtools-cli apply-stereo --camera-pair 1,2',
+        'pivtools-cli apply-stereo --board charuco --camera-pair 1,2',
+        'pivtools-cli apply-stereo --board charuco --all-paths',
       ],
       link: '/manual/stereo-calibration#cli',
     },
     {
       command: 'pivtools-cli self-calibrate',
-      description: 'Run stereo self-calibration to correct laser-sheet misalignment',
+      description: 'Stereo self-calibration to correct laser-sheet misalignment (Wieneke disparity minimisation)',
       options: [
-        { flag: '--camera-pair', short: '-c', description: 'Camera pair as "1,2" (default: from config)' },
-        { flag: '--method', short: '-m', description: 'Stereo model type: dotboard | charuco' },
-        { flag: '--n-images', short: '-n', description: 'Number of image pairs for disparity estimation (default: 20)' },
-        { flag: '--window-size', short: '-w', description: 'Correlation window size in pixels (default: 64)' },
-        { flag: '--overlap', short: '-o', description: 'Window overlap percentage (default: 50)' },
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
+        { flag: '--board', description: 'Stereo model type: charuco or dotboard' },
+        { flag: '--camera-pair', description: 'Camera pair as "1,2" (default: from config)' },
+        { flag: '--source', description: 'Calibration source directory (stereo model location)' },
+        { flag: '--base-path-idx', description: 'Index into config.base_paths for the particle images' },
+        { flag: '--n-images', description: 'Number of frame pairs to correlate' },
+        { flag: '--window-size', description: 'Correlation window size (pixels)' },
+        { flag: '--overlap', description: 'Window overlap percentage' },
+        { flag: '--no-filters', description: 'Skip the PIV pre-filters on the particle frames' },
+        { flag: '--no-figures', description: 'Skip writing diagnostic figures' },
+        { flag: '--model-type', description: 'pinhole or polynomial3d (which stereo record to load)' },
       ],
       examples: [
-        'pivtools-cli self-calibrate',
-        'pivtools-cli self-calibrate --camera-pair 1,2 --method dotboard',
-        'pivtools-cli self-calibrate -n 30 -w 128',
+        'pivtools-cli self-calibrate --board dotboard --camera-pair 1,2',
+        'pivtools-cli self-calibrate --board charuco --n-images 30 --window-size 128',
       ],
       link: '/manual/stereo-calibration#self-calibration',
+    },
+    {
+      command: 'pivtools-cli global-frame',
+      description: 'Bake the multi-camera global frame (datum + overlap from config) into each model',
+      options: [
+        { flag: '--board', description: 'Model type: charuco | dotboard | scale_factor' },
+        { flag: '--source', description: 'Calibration source directory (models live here)' },
+        { flag: '--model-type', description: 'pinhole | polynomial | polynomial3d | scale_factor' },
+      ],
+      examples: [
+        'pivtools-cli global-frame --board charuco',
+      ],
+      link: '/manual/global-coordinates#cli',
     },
     {
       command: 'pivtools-cli transform',
@@ -348,7 +360,7 @@ export default function CLIReferencePage() {
     },
     {
       command: 'pivtools-cli merge',
-      description: 'Merge multi-camera vector fields (Hanning blend)',
+      description: 'Merge multi-camera vector fields (Tukey blend)',
       options: [
         { flag: '--cameras', short: '-c', description: 'Comma-separated camera numbers' },
         { flag: '--type-name', short: '-t', description: 'instantaneous | ensemble' },
@@ -402,22 +414,6 @@ export default function CLIReferencePage() {
       ],
       link: '/manual/video-maker#cli',
     },
-    {
-      command: 'pivtools-cli align-coordinates',
-      description: 'Apply global coordinate alignment to calibrated vectors',
-      options: [
-        { flag: '--type-name', short: '-t', description: 'instantaneous | ensemble (default: instantaneous)' },
-        { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
-        { flag: '--force', short: '-f', description: 'Force alignment even if already applied (WARNING: will double shifts)' },
-      ],
-      examples: [
-        'pivtools-cli align-coordinates',
-        'pivtools-cli align-coordinates -t ensemble',
-        'pivtools-cli align-coordinates -p 0,1',
-        'pivtools-cli align-coordinates --force',
-      ],
-      link: '/manual/global-coordinates#cli',
-    },
   ];
 
   return (
@@ -458,20 +454,18 @@ export default function CLIReferencePage() {
                   <div className="text-green-400">pivtools-cli ensemble</div>
                 </div>
                 <div>
-                  <div className="text-gray-500 mb-2"># Calibration Detection</div>
-                  <div className="text-green-400">pivtools-cli detect-planar</div>
+                  <div className="text-gray-500 mb-2"># Calibration</div>
                   <div className="text-green-400">pivtools-cli detect-charuco</div>
-                  <div className="text-green-400">pivtools-cli detect-stereo-planar</div>
-                  <div className="text-green-400">pivtools-cli detect-stereo-charuco</div>
-                  <div className="text-green-400">pivtools-cli detect-stepped-stereo</div>
-                  <div className="text-green-400">pivtools-cli detect-stepped-planar</div>
+                  <div className="text-green-400">pivtools-cli detect-stereo</div>
+                  <div className="text-green-400">pivtools-cli detect-joint</div>
+                  <div className="text-green-400">pivtools-cli scale-factor</div>
                 </div>
                 <div>
                   <div className="text-gray-500 mb-2"># Post-Processing</div>
                   <div className="text-green-400">pivtools-cli apply-calibration</div>
                   <div className="text-green-400">pivtools-cli apply-stereo</div>
                   <div className="text-green-400">pivtools-cli self-calibrate</div>
-                  <div className="text-green-400">pivtools-cli align-coordinates</div>
+                  <div className="text-green-400">pivtools-cli global-frame</div>
                   <div className="text-green-400">pivtools-cli transform</div>
                   <div className="text-green-400">pivtools-cli merge</div>
                   <div className="text-green-400">pivtools-cli statistics</div>
@@ -491,9 +485,9 @@ export default function CLIReferencePage() {
                 <h3 className="font-semibold text-gray-900 mb-3">2D PIV (Single or Multi-Camera)</h3>
                 <CodeBlock>{`pivtools-cli init                          # Create config.yaml
 # Edit config.yaml with your settings
-pivtools-cli detect-planar                  # Generate camera model
+pivtools-cli detect-charuco                 # Generate camera model (ChArUco; dotboard/stepped via GUI)
 pivtools-cli instantaneous                  # Run PIV
-pivtools-cli apply-calibration              # Pixels to m/s
+pivtools-cli apply-calibration --board charuco   # Pixels to m/s
 pivtools-cli transform -o flip_ud           # Geometric transform (optional)
 pivtools-cli merge                          # Merge cameras (if multi-camera)
 pivtools-cli statistics                     # Mean, TKE, vorticity, etc.
@@ -502,10 +496,10 @@ pivtools-cli video -v mag                   # Create video`}</CodeBlock>
 
               <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Stereo PIV</h3>
-                <CodeBlock>{`pivtools-cli detect-stereo-charuco           # Stereo camera model
+                <CodeBlock>{`pivtools-cli detect-stereo                   # Stereo camera model (ChArUco)
 pivtools-cli instantaneous                   # PIV for both cameras
-pivtools-cli self-calibrate --camera-pair 1,2 # Correct laser-sheet misalignment (optional)
-pivtools-cli apply-stereo --camera-pair 1,2  # 3D reconstruction (ux, uy, uz)
+pivtools-cli self-calibrate --board charuco --camera-pair 1,2 # Correct laser-sheet misalignment (optional)
+pivtools-cli apply-stereo --board charuco --camera-pair 1,2  # 3D reconstruction (ux, uy, uz)
 pivtools-cli statistics --source-endpoint stereo
 pivtools-cli video --data-source stereo -v uz`}</CodeBlock>
               </div>
@@ -521,10 +515,12 @@ pivtools-cli statistics --source-endpoint stereo`}</CodeBlock>
 
               <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Batch Processing</h3>
-                <CodeBlock>{`# Process specific path indices
+                <CodeBlock>{`# PIV + post-processing accept --active-paths / -p
 pivtools-cli instantaneous -p 0,1,2
-pivtools-cli apply-calibration -p 0,1,2
-pivtools-cli statistics -p 0,1,2`}</CodeBlock>
+pivtools-cli statistics -p 0,1,2
+
+# Calibration applies across all configured paths
+pivtools-cli apply-calibration --board charuco --all-paths`}</CodeBlock>
               </div>
             </div>
           </Section>
@@ -533,8 +529,8 @@ pivtools-cli statistics -p 0,1,2`}</CodeBlock>
           <Section title="All Commands" icon={<Terminal size={28} />} id="commands">
             <p className="text-gray-700 mb-6">
               Click any command to expand options and examples.
-              All processing commands support <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--active-paths / -p</code> for
-              batch path selection.
+              PIV and post-processing commands support <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--active-paths / -p</code> for
+              batch path selection; calibration commands instead use <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--source</code> / <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--all-paths</code>.
             </p>
 
             <div className="space-y-3">
@@ -602,7 +598,7 @@ pivtools-cli statistics -p 0,1,2`}</CodeBlock>
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { var: 'PIV_ACTIVE_PATHS', desc: 'Override active paths (comma-separated indices)' },
-                    { var: 'MALLOC_TRIM_THRESHOLD_', desc: 'Set to "0" for better memory management on Linux' },
+                    { var: 'MALLOC_TRIM_THRESHOLD_', desc: 'Set to "0" automatically by the PIV pipelines (glibc memory trimming on Linux)' },
                     { var: 'OMP_NUM_THREADS', desc: 'Control OpenMP thread count for C extensions' },
                   ].map((item, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>

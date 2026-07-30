@@ -87,7 +87,7 @@ export default function Capabilities() {
       icon: <Zap size={28} />,
       color: "from-soton-blue to-cyan-600",
       capabilities: [
-        { name: "Frame-Pair PIV", desc: "Multi-pass with window deformation and sub-pixel fitting" },
+        { name: "Frame-Pair PIV", desc: "Multi-pass with iterative predictor-field warping and sub-pixel fitting" },
         { name: "Stereo PIV", desc: "3-component velocity from calibrated multi-camera setups" },
         { name: "Ensemble PIV", desc: "Correlation averaging with single-pixel resolution capability" },
         { name: "GUI & CLI", desc: "Run from either interface — configure visually or execute headlessly" }
@@ -102,7 +102,7 @@ export default function Capabilities() {
         { name: "Scale Calibration", desc: "Simple scale factor and timestep for planar PIV" },
         { name: "Camera Calibration", desc: "Full calibration with distortion correction using ChArUco boards or dot patterns" },
         { name: "Stereo Reconstruction", desc: "3D velocity field from multiple camera views" },
-        { name: "Field Merging", desc: "Hanning-window weighted multi-camera stitching" }
+        { name: "Field Merging", desc: "Tukey-window weighted multi-camera stitching" }
       ]
     },
     {

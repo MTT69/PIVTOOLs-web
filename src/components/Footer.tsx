@@ -15,7 +15,8 @@ export default function Footer() {
     resources: [
       { name: 'Backend Repository', href: 'https://github.com/MTT69/python-PIVTOOLs' },
       { name: 'Frontend Repository', href: 'https://github.com/MTT69/PIVTOOLs-GUI' },
-      { name: 'Demo Videos', href: 'https://www.youtube.com/@pivtools/playlists' },
+      { name: 'Video Tutorials', href: 'https://www.youtube.com/@pivtools' },
+      { name: 'Setup Checklist (PDF)', href: '/pivtools-experimental-setup-checklist.pdf' },
       { name: 'PyPI Package', href: 'https://pypi.org/project/pivtools/' },
       { name: 'Cite PIVtools', href: '#research' }
     ],

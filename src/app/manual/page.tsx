@@ -23,7 +23,8 @@ import {
   CheckCircle,
   FileText,
   Crosshair,
-  Box
+  ClipboardCheck,
+  Youtube
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -161,28 +162,21 @@ export default function ManualOverviewPage() {
       href: "/manual/planar-calibration",
       icon: <Target size={20} />,
       description: "Convert pixels to physical units.",
-      capabilities: ["Scale factor method", "Dotboard/ChArUco patterns", "LaVision polynomial"],
+      capabilities: ["Scale factor method", "Dotboard/ChArUco patterns", "Polynomial fitting"],
     },
     {
       title: "Stereo Calibration",
       href: "/manual/stereo-calibration",
       icon: <Eye size={20} />,
       description: "3D velocity reconstruction from camera pairs.",
-      capabilities: ["3D reconstruction (ux, uy, uz)", "Self-calibration (Wieneke 2005)", "Stereo ensemble PIV"],
-    },
-    {
-      title: "Stepped Calibration",
-      href: "/manual/stepped-calibration",
-      icon: <Box size={20} />,
-      description: "Calibrate with a stepped board for robust 3D models.",
-      capabilities: ["Two-level dot target", "Click-to-label workflow", "Stereo & single-camera modes"],
+      capabilities: ["3D reconstruction (ux, uy, uz)", "Dotboard, ChArUco & stepped boards", "Self-calibration (Wieneke 2005)"],
     },
     {
       title: "Global Coordinates",
       href: "/manual/global-coordinates",
       icon: <Crosshair size={20} />,
       description: "Align multi-camera coordinate systems.",
-      capabilities: ["Chain topology alignment", "Auto invert detection", "CLI & GUI support"],
+      capabilities: ["Joint multi-camera model", "Guided setup wizard", "Datum + overlap (scale factor)"],
     },
     {
       title: "Video Maker",
@@ -210,7 +204,7 @@ export default function ManualOverviewPage() {
       href: "/manual/merging",
       icon: <GitMerge size={20} />,
       description: "Combine multi-camera vector fields.",
-      capabilities: ["Hanning window blend", "Overlap detection", "Multi-camera fields"],
+      capabilities: ["Tukey window blend", "Overlap detection", "Multi-camera fields"],
     },
     {
       title: "Statistics",
@@ -224,7 +218,7 @@ export default function ManualOverviewPage() {
       href: "/manual/developer",
       icon: <Code size={20} />,
       description: "Build from source and contribute.",
-      capabilities: ["Clone & build", "C extension compilation", "AI-assisted development"],
+      capabilities: ["Clone & build", "C extension compilation", "Build tuning knobs"],
     },
   ];
 
@@ -249,6 +243,53 @@ export default function ManualOverviewPage() {
               Complete PIV processing from raw images to publication-ready results.
               GUI and CLI interfaces share the same engine.
             </p>
+          </motion.div>
+
+          {/* Before You Start */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16"
+          >
+            <a
+              href="/pivtools-experimental-setup-checklist.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-soton-blue transition-all duration-200 flex items-start gap-4"
+            >
+              <div className="text-soton-blue mt-0.5">
+                <ClipboardCheck size={28} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-soton-blue transition-colors flex items-center gap-2">
+                  Pre-PIV Experimental Setup Checklist
+                  <Download size={16} className="text-gray-400 group-hover:text-soton-blue transition-colors" />
+                </h3>
+                <p className="text-gray-600 text-sm mt-1">
+                  A printable checklist for planning seeding, lasers, cameras, and timing before you capture a single frame (PDF).
+                </p>
+              </div>
+            </a>
+            <a
+              href="https://www.youtube.com/@pivtools"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-soton-blue transition-all duration-200 flex items-start gap-4"
+            >
+              <div className="text-red-600 mt-0.5">
+                <Youtube size={28} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-soton-blue transition-colors flex items-center gap-2">
+                  Video Tutorials
+                  <ArrowRight size={16} className="text-gray-400 group-hover:text-soton-blue transition-colors" />
+                </h3>
+                <p className="text-gray-600 text-sm mt-1">
+                  Step-by-step walkthroughs of the GUI and CLI workflows on the PIVtools YouTube channel.
+                </p>
+              </div>
+            </a>
           </motion.div>
 
           {/* Processing Pipeline */}
@@ -328,7 +369,7 @@ export default function ManualOverviewPage() {
                 </div>
                 <p className="text-gray-400 text-sm mb-3">Batch processing and scripted workflows.</p>
                 <div className="space-y-2 text-sm font-mono">
-                  {["instantaneous", "detect-planar", "apply-calibration", "statistics"].map((cmd, i) => (
+                  {["instantaneous", "detect-charuco", "apply-calibration", "statistics"].map((cmd, i) => (
                     <div key={i} className="bg-gray-800 rounded p-2">
                       <span className="text-gray-500">$</span> <span className="text-green-400">pivtools-cli</span> {cmd}
                     </div>

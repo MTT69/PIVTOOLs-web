@@ -225,9 +225,10 @@ export default function StatisticsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
+                    { stat: 'inst_velocity', fields: 'ux, uy', desc: 'Per-frame velocity copied into the inst stats output' },
                     { stat: 'inst_vorticity', fields: 'vorticity', desc: 'Per-frame out-of-plane vorticity' },
                     { stat: 'inst_divergence', fields: 'divergence', desc: 'Per-frame velocity divergence' },
-                    { stat: 'inst_stresses', fields: "u_prime, v_prime, uu_inst, vv_inst, uv_inst", desc: 'Fluctuations and per-frame Reynolds stresses' },
+                    { stat: 'inst_stresses', fields: "uu_inst, vv_inst, uv_inst", desc: 'Per-frame Reynolds stresses (fluctuations u_prime, v_prime are computed internally, not stored)' },
                     { stat: 'inst_gamma', fields: 'gamma1, gamma2', desc: 'Gamma vortex detection criteria (Graftieaux et al.)' },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -263,7 +264,7 @@ export default function StatisticsPage() {
                   <tbody className="divide-y divide-gray-100">
                     <tr className="bg-white">
                       <td className="px-4 py-3 font-mono text-soton-blue text-sm">gamma1</td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">Local swirling strength. Values near |1| indicate strong vortex cores.</td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">Graftieaux Γ1 criterion: a normalised, gradient-free measure of vortex-centre location. Values near |1| indicate a vortex centre.</td>
                     </tr>
                     <tr className="bg-gray-50">
                       <td className="px-4 py-3 font-mono text-soton-blue text-sm">gamma2</td>
@@ -396,10 +397,11 @@ pivtools-cli statistics -p 0,1`}
     mean_peak_height: false     # Mean correlation peak magnitude
 
     # Instantaneous (per-frame)
-    inst_vorticity: false       # Per-frame vorticity
-    inst_divergence: false      # Per-frame divergence
-    inst_stresses: false        # Per-frame fluctuations and stresses
-    inst_gamma: false           # Gamma vortex criteria`}
+    inst_velocity: true         # Per-frame ux, uy in inst stats output
+    inst_vorticity: true        # Per-frame vorticity
+    inst_divergence: true       # Per-frame divergence
+    inst_stresses: true         # Per-frame fluctuations and stresses
+    inst_gamma: true            # Gamma vortex criteria`}
             />
           </Section>
 

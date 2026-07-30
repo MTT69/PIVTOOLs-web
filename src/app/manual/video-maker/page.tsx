@@ -234,8 +234,8 @@ pivtools-cli video -p 0,1`}
                     { flag: '--data-source, -d', desc: 'calibrated, uncalibrated, merged, stereo, inst_stats' },
                     { flag: '--fps', desc: 'Frame rate 1-120 (default: 30)' },
                     { flag: '--crf', desc: 'Quality 0-51 (default: 15, lower = better)' },
-                    { flag: '--resolution', desc: '1080p or 4k' },
-                    { flag: '--cmap', desc: 'Colormap name (default: bwr)' },
+                    { flag: '--resolution', desc: "'4k' or WIDTHxHEIGHT (e.g. 1920x1080); other values fall back to 1920x1080" },
+                    { flag: '--cmap', desc: "Colormap name (config default: viridis; 'default' = auto bwr)" },
                     { flag: '--lower / --upper', desc: 'Colour limits (blank = auto)' },
                     { flag: '--test', desc: 'Render first 50 frames only' },
                     { flag: '--active-paths, -p', desc: 'Comma-separated path indices' },
@@ -270,7 +270,7 @@ pivtools-cli video -p 0,1`}
                   {[
                     { source: 'calibrated', desc: 'Physical-unit velocity fields', path: 'calibrated_piv/{n}/Cam{c}/instantaneous/' },
                     { source: 'uncalibrated', desc: 'Raw pixel displacements', path: 'uncalibrated_piv/{n}/Cam{c}/instantaneous/' },
-                    { source: 'merged', desc: 'Multi-camera Hanning-blended fields', path: 'calibrated_piv/{n}/merged/Cam1/instantaneous/' },
+                    { source: 'merged', desc: 'Multi-camera Tukey-blended fields', path: 'calibrated_piv/{n}/merged/Cam1/instantaneous/' },
                     { source: 'stereo', desc: '3D velocity (ux, uy, uz)', path: 'stereo_calibrated/{n}/Cam1_Cam2/instantaneous/' },
                     { source: 'inst_stats', desc: 'Per-frame computed statistics', path: 'statistics/{n}/Cam{c}/.../instantaneous_stats/' },
                   ].map((row, index) => (
@@ -314,7 +314,7 @@ pivtools-cli video -p 0,1`}
                     { var: 'uv_inst', desc: 'Reynolds shear stress', source: 'Statistics' },
                     { var: 'vorticity', desc: 'Out-of-plane vorticity', source: 'Statistics' },
                     { var: 'divergence', desc: 'Velocity divergence', source: 'Statistics' },
-                    { var: 'gamma1', desc: 'Swirling strength criterion', source: 'Statistics' },
+                    { var: 'gamma1', desc: 'Graftieaux Γ1 vortex-centre criterion', source: 'Statistics' },
                     { var: 'gamma2', desc: 'Vortex core identification', source: 'Statistics' },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -337,9 +337,10 @@ pivtools-cli video -p 0,1`}
           {/* Colormaps */}
           <Section title="Colormaps" icon={<Palette size={32} />} id="colormaps">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Default colormap is <code className="bg-gray-100 px-1 rounded text-sm">bwr</code> (blue-white-red),
-              which auto-adjusts: symmetric around zero for diverging data, half-map for
-              all-positive or all-negative ranges.
+              The config default is <code className="bg-gray-100 px-1 rounded text-sm">viridis</code>.
+              The special value <code className="bg-gray-100 px-1 rounded text-sm">default</code> selects
+              an auto-adjusting <code className="bg-gray-100 px-1 rounded text-sm">bwr</code> (blue-white-red):
+              symmetric around zero for diverging data, half-map for all-positive or all-negative ranges.
             </p>
 
             <div className="overflow-x-auto mb-6">
@@ -384,8 +385,9 @@ pivtools-cli video -p 0,1`}
   variable: ux                 # Variable to visualise
   run: 1                       # Pass number (1-based)
   piv_type: instantaneous      # Must be instantaneous
+  source_endpoint: regular     # regular, merged, or stereo
 
-  cmap: default                # Colormap name or "default"
+  cmap: viridis                # Colormap name, or "default" for auto bwr
   lower: ""                    # Lower colour limit ("" for auto)
   upper: ""                    # Upper colour limit ("" for auto)
 
@@ -445,7 +447,7 @@ pivtools-cli video -p 0,1`}
                   {[
                     { setting: 'Codec', value: 'libx264' },
                     { setting: 'Pixel format', value: 'yuv420p' },
-                    { setting: 'Preset', value: 'slow' },
+                    { setting: 'Preset', value: 'veryslow' },
                     { setting: 'Tune', value: 'stillimage (optimised for smooth gradients)' },
                     { setting: 'Default CRF', value: '15 (near-lossless)' },
                     { setting: 'LUT resolution', value: '4096 levels (reduces colour banding)' },

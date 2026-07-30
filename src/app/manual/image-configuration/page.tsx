@@ -9,7 +9,6 @@ import {
   FileText,
   Layers,
   CheckCircle,
-  AlertTriangle,
   Database,
   FileCheck,
   HardDrive,
@@ -247,7 +246,7 @@ export default function ImageConfigurationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { type: "Standard", yaml: "standard", desc: "Individual image files (.tif, .png, .jpg). One frame per file." },
+                    { type: "Standard", yaml: "standard", desc: "Individual image files (.tif, .png, .jpg, .raw, .cr2, .nef, .arw). One frame per file. Camera RAW needs the optional rawpy dependency." },
                     { type: "Phantom CINE", yaml: "cine", desc: "High-speed camera container. One .cine file per camera, all frames inside." },
                     { type: "LaVision SET", yaml: "lavision_set", desc: "Single .set file with all cameras and timesteps." },
                     { type: "LaVision IM7", yaml: "lavision_im7", desc: "One .im7 file per timestep. May contain multiple cameras." },
@@ -268,15 +267,14 @@ export default function ImageConfigurationPage() {
   image_type: standard    # standard | cine | lavision_set | lavision_im7`}
             />
 
-            <div className="bg-green-50 border-l-4 border-green-400 p-6 mt-6">
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mt-6">
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="text-green-600" size={20} />
-                <h4 className="text-lg font-semibold text-green-800">Platform Compatibility</h4>
+                <Info className="text-blue-600" size={20} />
+                <h4 className="text-lg font-semibold text-blue-800">Platform Compatibility</h4>
               </div>
-              <p className="text-green-700">
-                <strong>LaVision formats</strong> (.im7, .set) are read by PIVTools&apos; built-in
-                pure-Python readers &mdash; no external dependencies, works on macOS, Windows, and Linux.
-                <strong> Phantom CINE</strong> requires the pycine library.
+              <p className="text-blue-700">
+                <strong>LaVision formats</strong> (.im7, .set) use a pure-Python reader and work on macOS, Linux, and Windows with no extra dependency.
+                <strong> Phantom CINE</strong> requires the cinereader library.
               </p>
             </div>
           </Section>
@@ -521,7 +519,8 @@ export default function ImageConfigurationPage() {
                 { ext: ".png", desc: "PNG" },
                 { ext: ".jpg/.jpeg", desc: "JPEG" },
                 { ext: ".cine", desc: "Phantom Video" },
-                { ext: ".im7/.set", desc: "LaVision" }
+                { ext: ".im7/.set", desc: "LaVision" },
+                { ext: ".raw/.cr2/.nef/.arw", desc: "Camera RAW" }
               ].map((item, index) => (
                 <div key={index} className="bg-gray-50 rounded-lg p-3 text-center">
                   <code className="text-soton-blue font-mono font-semibold">{item.ext}</code>
@@ -758,7 +757,7 @@ paths:
                 <li>-- <strong>Files not found:</strong> Check source path and filename pattern (capitalisation, padding, underscores).</li>
                 <li>-- <strong>Wrong count:</strong> Verify num_images matches actual file count.</li>
                 <li>-- <strong>First file missing:</strong> Check start_index (0 vs 1).</li>
-                <li>-- <strong>CINE on Mac:</strong> Phantom CINE format requires the pycine library.</li>
+                <li>-- <strong>RAW formats:</strong> .raw/.cr2/.nef/.arw require the optional rawpy dependency.</li>
               </ul>
             </div>
           </Section>

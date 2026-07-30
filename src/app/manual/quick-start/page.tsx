@@ -127,7 +127,10 @@ source piv/bin/activate        # macOS/Linux
 piv\\Scripts\\activate           # Windows
 
 # 3. Install
-pip install pivtools`} />
+pip install pivtools
+
+# Optional: Phantom .cine file support
+pip install "pivtools[cine]"`} />
             </div>
           </Section>
 
@@ -193,19 +196,23 @@ pip install pivtools`} />
                 <h3 className="text-2xl font-bold mb-4 text-gray-900">Supported Platforms</h3>
                 <FeatureList items={[
                   "Python 3.12, 3.13, or 3.14",
-                  "macOS 15+ (Apple Silicon, arm64)",
-                  "Windows 10/11 (x86_64)",
-                  "Linux (x86_64)"
+                  "macOS 15+ (Apple Silicon M1-M4)",
+                  "Windows 10/11 (x86_64, AVX2 CPU: Intel 2013+ / AMD 2015+)",
+                  "Linux (x86_64, AVX2 CPU: Intel 2013+ / AMD 2015+, glibc 2.28+: RHEL/Alma 8+, Ubuntu 20.04+, Debian 10+)"
                 ]} />
+                <p className="text-gray-600 text-sm">
+                  Older x86 CPUs are refused with a clear error at load time, and on older
+                  Linux distros (e.g. CentOS 7, Ubuntu 18.04) pip falls back to the source
+                  distribution -- both cases compile from source instead
+                  (see the <a href="/manual/developer" className="underline">Developer Guide</a>).
+                </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-6">
                 <h4 className="text-xl font-semibold mb-4 text-gray-900">Bundled C Libraries</h4>
                 <div className="space-y-3">
                   {[
-                    { title: "libbulkxcorr2d", desc: "FFT cross-correlation (FFTW3 + OpenMP)" },
-                    { title: "libmarquadt", desc: "Gaussian peak fitting (GSL + OpenMP)" },
-                    { title: "libfusedwarp", desc: "Fused image warping (OpenMP)" },
-                    { title: "libkspace", desc: "K-space transfer function fitting (FFTW3 + GSL + OpenMP)" }
+                    { title: "libbulkxcorr2d", desc: "SIMD codelet FFT cross-correlation + LM peak fitting (OpenMP)" },
+                    { title: "libfusedwarp", desc: "Fused symmetric image warping for multipass deformation (OpenMP)" }
                   ].map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <CheckCircle className="text-soton-gold mt-1 flex-shrink-0" size={18} />
@@ -221,14 +228,14 @@ pip install pivtools`} />
 
             <div className="bg-green-50 border-l-4 border-green-400 p-6 mt-6">
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="text-green-600" size={20} />
-                <h4 className="text-lg font-semibold text-green-800">LaVision Format Support</h4>
+                <AlertTriangle className="text-yellow-600" size={20} />
+                <h4 className="text-lg font-semibold text-yellow-800">LaVision Formats (.im7 / .set)</h4>
               </div>
-              <p className="text-green-700">
-                LaVision formats (<code className="bg-green-100 px-2 py-1 rounded text-sm">.im7</code>,
-                <code className="bg-green-100 px-2 py-1 rounded text-sm">.set</code>) are read by
-                PIVTools&apos; built-in pure-Python readers. No external dependencies required &mdash;
-                works on macOS, Windows, and Linux.
+              <p className="text-yellow-700">
+                LaVision formats (<code className="bg-yellow-100 px-2 py-1 rounded text-sm">.im7</code>,
+                <code className="bg-yellow-100 px-2 py-1 rounded text-sm">.set</code>) are read by a built-in
+                pure-Python reader with no <code className="bg-yellow-100 px-2 py-1 rounded text-sm">lvpyio</code> dependency,
+                so they work on macOS, Linux, and Windows alike.
               </p>
             </div>
           </Section>
