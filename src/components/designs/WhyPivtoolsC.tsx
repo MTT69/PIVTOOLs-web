@@ -67,8 +67,8 @@ export default function WhyPivtoolsC() {
     {
       icon: <Code2 size={28} />,
       title: "Open Source",
-      description: "BSD 3-Clause licensed with a fully transparent codebase. The community can extend, modify, and contribute.",
-      features: ["BSD 3-Clause", "GitHub hosted", "Community driven"]
+      description: "GPLv3 licensed with a fully transparent codebase. The community can extend, modify, and contribute.",
+      features: ["GPLv3", "GitHub hosted", "Community driven"]
     },
     {
       icon: <Monitor size={28} />,

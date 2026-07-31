@@ -134,8 +134,9 @@ cd PIVTOOLs-GUI`} />
               PIVTools includes three C libraries compiled via <code className="bg-gray-100 px-2 py-1 rounded">setup.py</code>.
               There are <strong>no external C dependencies</strong> -- the FFT engine is a
               code-generated SIMD codelet kernel and the peak fitter is a hand-rolled
-              Levenberg-Marquardt, so FFTW and GSL are not needed (the whole package is
-              BSD-3, with no copyleft libraries linked). The only requirement is an
+              Levenberg-Marquardt, so FFTW and GSL are not needed (every kernel is
+              original work shipped under GPL-3.0-or-later, linking only OpenMP and
+              libm). The only requirement is an
               OpenMP-capable <strong>clang</strong> toolchain.
             </p>
 

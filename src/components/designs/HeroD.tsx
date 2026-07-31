@@ -244,7 +244,7 @@ export default function HeroD() {
             className="flex flex-wrap justify-center gap-10 text-sm"
           >
             <div className="text-center">
-              <div className="text-yellow-400 font-mono font-semibold">BSD-3</div>
+              <div className="text-yellow-400 font-mono font-semibold">GPLv3</div>
               <div className="text-gray-600">License</div>
             </div>
             <div className="text-center">

@@ -113,7 +113,7 @@ export default function Hero() {
   }, [createParticle]);
 
   const highlights = [
-    { value: "100%", label: "Open Source", sublabel: "BSD 3-Clause" },
+    { value: "100%", label: "Open Source", sublabel: "GPL-3.0-or-later" },
     { value: "3-in-1", label: "PIV Methods", sublabel: "Planar • Stereo • Ensemble" },
     { value: "GUI+CLI", label: "Interfaces", sublabel: "Desktop to HPC" }
   ];

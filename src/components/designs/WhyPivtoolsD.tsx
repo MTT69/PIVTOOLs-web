@@ -100,7 +100,7 @@ export default function WhyPivtoolsD() {
     {
       icon: <Code2 size={24} />,
       title: "Open Source",
-      description: "BSD 3-Clause licensed. Fork, extend, and contribute to the community."
+      description: "GPLv3 licensed. Fork, extend, and contribute to the community."
     },
     {
       icon: <Monitor size={24} />,

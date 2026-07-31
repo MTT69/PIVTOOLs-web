@@ -514,7 +514,7 @@ export default function Figure1Page() {
 							fill={C.fg3}
 							fontFamily={FONT}
 						>
-							PIVtools · Open source (BSD-3-Clause) · University
+							PIVtools · Open source (GPLv3) · University
 							of Southampton · DNS validated
 						</text>
 

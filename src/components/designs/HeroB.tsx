@@ -123,7 +123,7 @@ export default function HeroB() {
   }, [createParticle]);
 
   const stats = [
-    { icon: <Sparkles size={20} />, value: "Open Source", label: "BSD 3-Clause License" },
+    { icon: <Sparkles size={20} />, value: "Open Source", label: "GPL-3.0-or-later License" },
     { icon: <Cpu size={20} />, value: "HPC Ready", label: "Scales to Clusters" },
     { icon: <Gauge size={20} />, value: "3 Methods", label: "Planar • Stereo • Ensemble" },
   ];

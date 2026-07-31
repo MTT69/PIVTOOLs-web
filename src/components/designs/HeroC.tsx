@@ -238,7 +238,7 @@ export default function HeroC() {
               className="flex gap-8 text-sm"
             >
               <div>
-                <div className="font-mono text-2xl font-bold text-gray-900">BSD-3</div>
+                <div className="font-mono text-2xl font-bold text-gray-900">GPLv3</div>
                 <div className="text-gray-500">License</div>
               </div>
               <div className="border-l border-gray-200 pl-8">
