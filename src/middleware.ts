@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Google Analytics 4 endpoints. Hits go to *.google-analytics.com/g/collect via
+// sendBeacon/fetch (connect-src) with an image-pixel fallback (img-src); regional
+// collection uses region*.google-analytics.com and *.analytics.google.com.
+// Without these the tag loads but every hit is dropped by the CSP.
+const GA_HOSTS =
+  "https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com";
+
+// gtag.js origin. 'strict-dynamic' already covers it in CSP Level 3 browsers, since
+// next/script injects the tag from an already-trusted script. This is the fallback for
+// CSP Level 2 browsers, which ignore 'strict-dynamic' and honour the host allowlist.
+const GA_SCRIPT_HOST = "https://www.googletagmanager.com";
+
 export function middleware(request: NextRequest) {
   // Generate cryptographic nonce for each request
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
@@ -10,13 +22,13 @@ export function middleware(request: NextRequest) {
   const cspDirectives = [
     "default-src 'self'",
     // Nonce-based script loading - 'strict-dynamic' allows scripts loaded by nonced scripts
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isProduction ? "" : " 'unsafe-eval'"}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${GA_SCRIPT_HOST}${isProduction ? "" : " 'unsafe-eval'"}`,
     // 'unsafe-inline' for styles is acceptable - CSS injection cannot execute JS
     // This is necessary for Tailwind CSS and is low security risk
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    `img-src 'self' data: blob: ${GA_HOSTS}`,
     "font-src 'self'",
-    `connect-src 'self'${isProduction ? "" : " ws://localhost:* wss://localhost:*"}`,
+    `connect-src 'self' ${GA_HOSTS}${isProduction ? "" : " ws://localhost:* wss://localhost:*"}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

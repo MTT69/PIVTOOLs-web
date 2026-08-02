@@ -149,6 +149,9 @@ export default function Footer() {
               © {currentYear} University of Southampton. All rights reserved.
             </div>
             <div className="flex space-x-6 text-sm text-gray-400">
+              <a href="/privacy" className="hover:text-soton-gold transition-colors duration-200">
+                Privacy &amp; Cookies
+              </a>
               <a href="#" className="hover:text-soton-gold transition-colors duration-200">
                 GPL-3.0-or-later License
               </a>
