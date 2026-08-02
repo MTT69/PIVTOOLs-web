@@ -18,10 +18,32 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://piv.tools"),
   title: "PIVtools - High-Performance PIV Processing",
   description: "PIVtools is a Python-based 2D planar and stereo PIV processing code, accelerated with C extensions for superior performance.",
   keywords: "PIV, Particle Image Velocimetry, Python, Image Processing, Fluid Dynamics, University of Southampton",
   authors: [{ name: "University of Southampton" }],
+  openGraph: {
+    title: "PIVtools - High-Performance PIV Processing",
+    description: "Open-source Python 2D planar and stereo PIV processing, accelerated with C extensions.",
+    url: "https://piv.tools",
+    siteName: "PIVtools",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 512,
+        height: 512,
+        alt: "PIVtools logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "PIVtools - High-Performance PIV Processing",
+    description: "Open-source Python 2D planar and stereo PIV processing, accelerated with C extensions.",
+    images: ["/og-image.png"],
+  },
 };
 
 export const viewport: Viewport = {
