@@ -134,12 +134,12 @@ export default function Research() {
     }
   ];
 
-  const bibtex = `@article{pivtools2026,
-  title={PIVtools: A Unified Open Source Platform for Particle Image Velocimetry (PIV) Analysis},
-  author={Author, A. and Author, B. and Author, C.},
-  journal={University of Southampton},
+  const bibtex = `@article{taylor_pivtools,
+  title={PIVtools: A comprehensive open source software for particle image velocimetry},
+  author={Taylor, M.T. and Lawson, J.M. and Ganapathisubramani, B.},
+  journal={SoftwareX},
   year={2026},
-  note={Paper coming soon}
+  note={submitted}
 }`;
 
   const handleCopyBibtex = () => {
@@ -170,10 +170,10 @@ export default function Research() {
               </p>
               <div className="bg-white rounded-lg p-4 mb-4">
                 <p className="text-gray-800 font-medium">
-                  &ldquo;PIVtools: A Unified Open Source Platform for Particle Image Velocimetry (PIV) Analysis&rdquo;
+                  &ldquo;PIVtools: A comprehensive open source software for particle image velocimetry&rdquo;
                 </p>
                 <p className="text-gray-600 text-sm mt-1">
-                  University of Southampton (2026) &mdash; Paper coming soon
+                  Submitted to SoftwareX (2026)
                 </p>
               </div>
               <details className="group">

@@ -785,7 +785,7 @@ ensemble_piv:
               <ol className="list-decimal list-inside text-gray-600 space-y-2">
                 <li>Check the datasets to include. Same PIV settings apply to all selected paths.</li>
                 <li>Click <strong>Run PIV</strong>. If output already exists, a confirmation dialog asks to clear and recompute.</li>
-                <li>Monitor progress via the progress bar (instantaneous) or console logs (both modes).</li>
+                <li>Monitor progress via the progress bar (instantaneous) or console logs (both modes). The bar spans every selected dataset, and with more than one selected a line beneath names the dataset currently running.</li>
                 <li>Cancel gracefully if needed. Partial results may be saved.</li>
               </ol>
             </div>
@@ -793,7 +793,7 @@ ensemble_piv:
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-blue-50 rounded-lg p-4">
                 <h5 className="font-semibold text-gray-900 mb-2">Instantaneous feedback</h5>
-                <p className="text-gray-600 text-sm">Progress bar, live vector field preview (variable selector, colormap), console logs.</p>
+                <p className="text-gray-600 text-sm">Progress bar across all selected datasets with a <em>Dataset n of N</em> counter, live vector field preview of the dataset being written (variable selector, colormap), console logs.</p>
               </div>
               <div className="bg-purple-50 rounded-lg p-4">
                 <h5 className="font-semibold text-gray-900 mb-2">Ensemble feedback</h5>
