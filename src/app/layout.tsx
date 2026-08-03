@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat, JetBrains_Mono } from "next/font/google";
 import { headers } from "next/headers";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import CookieConsent from "@/components/CookieConsent";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -18,10 +18,32 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://piv.tools"),
   title: "PIVtools - High-Performance PIV Processing",
   description: "PIVtools is a Python-based 2D planar and stereo PIV processing code, accelerated with C extensions for superior performance.",
   keywords: "PIV, Particle Image Velocimetry, Python, Image Processing, Fluid Dynamics, University of Southampton",
   authors: [{ name: "University of Southampton" }],
+  openGraph: {
+    title: "PIVtools - High-Performance PIV Processing",
+    description: "Open-source Python 2D planar and stereo PIV processing, accelerated with C extensions.",
+    url: "https://piv.tools",
+    siteName: "PIVtools",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 512,
+        height: 512,
+        alt: "PIVtools logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "PIVtools - High-Performance PIV Processing",
+    description: "Open-source Python 2D planar and stereo PIV processing, accelerated with C extensions.",
+    images: ["/og-image.png"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -35,8 +57,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // Reading headers makes this dynamic, enabling per-request CSP nonces
-  // The nonce is automatically applied to scripts by Next.js via x-nonce header
-  await headers();
+  // The nonce is automatically applied to scripts by Next.js via x-nonce header;
+  // it is forwarded explicitly to the analytics scripts, which are injected at runtime
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <html lang="en" className="scroll-smooth">
@@ -44,8 +67,8 @@ export default async function RootLayout({
         className={`${montserrat.variable} ${jetbrainsMono.variable} antialiased bg-gray-50 text-gray-900`}
       >
         {children}
+        <CookieConsent nonce={nonce} />
       </body>
-      <GoogleAnalytics gaId="G-8M59P7YDJG" />
     </html>
   );
 }
