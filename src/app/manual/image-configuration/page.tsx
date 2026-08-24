@@ -276,6 +276,11 @@ export default function ImageConfigurationPage() {
                 <strong>LaVision formats</strong> (.im7, .set) use a pure-Python reader and work on macOS, Linux, and Windows with no extra dependency.
                 <strong> Phantom CINE</strong> requires the cinereader library.
               </p>
+              <p className="text-blue-700 mt-2">
+                A .set carries a pixel encoding set at acquisition. Four of the eight DaVis encodings are decoded &mdash;
+                see <a href="#containers" className="underline font-semibold">Container Format Details</a> for the list. An
+                unsupported encoding is reported by name, not treated as a missing file.
+              </p>
             </div>
           </Section>
 
@@ -615,10 +620,89 @@ export default function ImageConfigurationPage() {
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">.set</td>
                     <td className="px-4 py-3 text-sm text-gray-600">Single file with all cameras and timesteps</td>
                     <td className="px-4 py-3 text-sm font-mono text-gray-600">experiment.set</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">source_path points to the .set file itself</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">source_path points to the .set file itself. Copy its companion folder with it</td>
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">.set pixel encodings</h3>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              A <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code> is a small file plus a
+              companion folder of the same name holding the image streams. <strong>Both must be copied together</strong> &mdash;
+              a .set on its own cannot be read. A DaVis <em>result</em> set (processed vectors) has no companion folder
+              and holds no images.
+            </p>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              The folder records which pixel encoding the camera used. DaVis writes eight; PIVTOOLs decodes four.
+              An encoding outside that list is reported by name so you know what to send us, rather than failing as a
+              missing file.
+            </p>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Encoding</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Shown in DaVis as</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Supported</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { id: "mono-10p", label: "Mono10p to 16 bit", ok: true },
+                    { id: "mono-12p", label: "Mono12p to 16 bit", ok: true },
+                    { id: "raw-16-bit", label: "Raw 16 bit", ok: true },
+                    { id: "raw-8-bit", label: "8 to 16 bit", ok: true },
+                    { id: "mono-10pmsb", label: "Mono10pmsb to 16 bit", ok: false },
+                    { id: "mono-12packed", label: "Mono12packed to 16 bit", ok: false },
+                    { id: "mono-12pmsb", label: "Mono12pmsb to 16 bit", ok: false },
+                    { id: "rgb-24", label: "RGB 24", ok: false },
+                  ].map((row, i) => (
+                    <tr key={row.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-4 py-3 text-sm font-mono text-gray-900">{row.id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{row.label}</td>
+                      <td className="px-4 py-3 text-sm">
+                        {row.ok
+                          ? <span className="text-green-700 font-semibold">Yes</span>
+                          : <span className="text-gray-500">Not yet</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Declared corrections</h3>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              A recording can declare a correction per camera that DaVis applies when it opens the
+              images. PIVTOOLs applies the same ones, so the intensities you process match what DaVis
+              shows. It is automatic and there is nothing to configure: the recording declares the
+              correction, and PIVTOOLs applies it only when it is declared. Recordings without one are
+              read unchanged. Two corrections are applied: <strong>dark image subtraction</strong> (the
+              camera&rsquo;s dark image is subtracted, floored at zero) and <strong>rotation by 180&deg;</strong>
+              (for a camera mounted upside down).
+            </p>
+            <p className="text-gray-700 leading-relaxed mb-6">
+              Three consequences worth knowing. Copy the companion folder complete &mdash; a declared dark
+              image that is missing is an error, not a silent skip. A camera that declares a correction
+              PIVTOOLs does not apply (an intensity correction, for example) is refused by name when you
+              read that camera, and the other cameras of the same recording are unaffected. And results
+              produced before August 2026 did not apply dark subtraction, so re-run rather than compare
+              against them.
+            </p>
+
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mb-8">
+              <div className="flex items-center gap-2 mb-2">
+                <Info className="text-blue-600" size={20} />
+                <h4 className="text-lg font-semibold text-blue-800">If your encoding is not supported</h4>
+              </div>
+              <p className="text-blue-700">
+                Re-export the recording from DaVis as <strong>Raw 16 bit</strong> to process it today, and send us the
+                original so the encoding can be added. We will not guess at an encoding we have not verified: the
+                unsupported ones differ from the supported ones only in bit order, so a guess would produce a scrambled
+                image instead of an error.
+              </p>
             </div>
 
             <YamlDropdown
