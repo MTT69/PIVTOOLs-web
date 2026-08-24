@@ -572,16 +572,13 @@ export default function ImageConfigurationPage() {
               <div className="bg-gray-50 rounded-lg p-6">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Vector Output Pattern</h4>
                 <p className="text-gray-600 mb-3">
-                  Naming pattern for output .mat files. Note that
-                  <code className="bg-gray-100 px-1 rounded ml-1">dtype</code> is unrelated -- it sets the dtype the
-                  <em> input images</em> are loaded as, not the type of the vector output.
+                  Naming pattern for output .mat files. Images are always loaded as float32;
+                  there is no setting for it.
                 </p>
                 <YamlDropdown
                   code={`images:
   vector_format:
-    - '%05d.mat'   # Output: 00001.mat, 00002.mat, ...
-  dtype: float32   # dtype used when LOADING images
-                   # uint8 | uint16 | float32 | float64`}
+    - '%05d.mat'   # Output: 00001.mat, 00002.mat, ...`}
                 />
               </div>
             </div>
@@ -958,7 +955,6 @@ images:
     - B%05d_B.tif
   vector_format:
     - '%05d.mat'
-  dtype: float32
 
 batches:
   size: 25
