@@ -251,6 +251,8 @@ export default function CLIReferencePage() {
         { flag: '--distortion', description: 'standard (the pinhole joint solve is DaVis pinhole only)' },
         { flag: '--n-views', description: 'Number of calibration views to use' },
         { flag: '--board-release', description: 'Released-board DOF: full3d | z_only | none (default: full3d)' },
+        { flag: '--datum-camera', description: 'Camera whose datum view pins the world frame (default: the saved wizard choice, else the first camera)' },
+        { flag: '--datum-view', description: '0-based view whose board plane is world z = 0 (default: the saved choice, else 0)' },
       ],
       examples: [
         'pivtools-cli detect-joint',

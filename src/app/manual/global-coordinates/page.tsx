@@ -296,6 +296,8 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
                     { flag: "--source", desc: "Calibration source (ChArUco)", def: "—" },
                     { flag: "--model-type", desc: "pinhole | polynomial", def: "pinhole" },
                     { flag: "--board-release", desc: "full3d | z_only | none -- how much of the board geometry is freed", def: "full3d" },
+                    { flag: "--datum-camera", desc: "Camera whose datum view pins the world frame", def: "saved GUI choice, else first camera" },
+                    { flag: "--datum-view", desc: "0-based view whose board plane is world z = 0. The GUI saves its Datum Frame here on Generate, so a CLI re-run anchors on the same view", def: "saved GUI choice, else 0" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-4 py-4 text-sm font-mono text-soton-blue">{row.flag}</td>
