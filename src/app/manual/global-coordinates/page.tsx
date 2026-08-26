@@ -14,6 +14,7 @@ import {
   Terminal,
   Layers,
   Wand2,
+  Gauge,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -223,16 +224,18 @@ export default function GlobalCoordinatesPage() {
               together into one shared world frame. This is the system-aware model. A single solve
               recovers per-camera intrinsics, per-(camera, view) poses, and one released board that
               every camera agrees on. Because the world frame is part of the solve itself, the
-              cameras are in the same frame by construction -- cross-camera agreement is zero, the
-              DaVis-equivalent result.
+              cameras are in the same frame by construction. The reported cross-camera agreement
+              of zero is a property of that formulation (one shared board, so there is no second
+              board to disagree with), not a measured check.
             </p>
 
             <FeatureList items={[
               "One shared board with a global dot index -- every camera looks at the same physical target",
-              "Per-camera intrinsics plus per-(camera, view) poses solved in a single joint optimisation",
+              "Per-camera intrinsics plus one rigid rig pose per camera and one pose per board view, solved in a single joint optimisation",
               "The shared world frame is intrinsic to the solve, not baked on afterwards",
               "No world_offset_mm and no separate alignment step -- there is nothing to align",
-              "Cross-camera agreement is 0 by construction (DaVis-matching)",
+              "Cross-camera agreement is 0 by construction of the formulation, not by measurement (DaVis-matching)",
+              "Traverse rigs calibrate: a camera need not see the datum view, only a connected chain of shared views across the rig",
             ]} />
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">In the GUI</h3>
@@ -333,6 +336,75 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
                 overlap-pair block below -- its datum and cross-camera ties come from the guided
                 wizard and persist in <code className="bg-blue-100 px-1 rounded">inputs.mat</code>,
                 and the shared frame is part of the solve itself.
+              </p>
+            </div>
+          </Section>
+
+          {/* Joint quality */}
+          <Section title="Judging the joint solve" icon={<Gauge size={32} />} id="quality">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              The results card and the saved record report the numbers below. Read them as
+              screening: a high value means something is wrong, a low one does not prove the
+              parameters are determined. The full treatment, including the pose-diversity
+              report, is on the{' '}
+              <Link href="/manual/calibration-quality#judging" className="text-soton-blue hover:underline">
+                Calibration Quality
+              </Link>{' '}
+              page.
+            </p>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Field</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Meaning</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { field: "rms_px", meaning: "Reprojection RMS over every corner, camera and view. Expect it above the rms after alternation: the final bundle holds the cameras on one rigid rig, and a rigid rig cannot follow a camera that crept between views" },
+                    { field: "per_camera_rms / cam_rms", meaning: "The same per camera. One camera well above the others has a detection, focus, or rig-motion problem" },
+                    { field: "converged", meaning: "The pose / board-release alternation met its tolerance. Always 0 under board_release: none, because nothing alternates; that is not a failure" },
+                    { field: "n_board_dots", meaning: "Board points reached by at least two rays and therefore released" },
+                    { field: "cross_camera_board_agreement_mm", meaning: "Exactly 0.0 by construction. Not a check" },
+                    { field: "pose_diversity", meaning: "Tilt, standoff and per-view RMS diagnostics with a DEGENERATE flag; printed by the CLI after the summary" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-4 py-3 text-sm font-mono text-gray-900">{row.field}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{row.meaning}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <p className="text-blue-700 text-sm">
+                <strong>The bundle guard.</strong> The final bundle is kept only if it improves
+                on the rigid seed it started from; otherwise the seed is returned and a warning
+                is logged. A calibration that hits the guard is worth a second look at its
+                flagged views.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-700 text-sm">
+                <strong>The real cross-camera check is a figure.</strong> In{' '}
+                <code className="bg-yellow-100 px-1 rounded">dewarp_dots.png</code> each physical
+                dot is back-projected by every camera that saw it. The spread of one dot across
+                cameras is the honest number that{' '}
+                <code className="bg-yellow-100 px-1 rounded">cross_camera_board_agreement_mm</code>{' '}
+                is not.
+              </p>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
+              <p className="text-blue-700 text-sm">
+                <strong>Camera positions are now constrained over every view.</strong> Baselines
+                from the joint solve are worth checking against the rig with a tape measure.
+                Joint models saved before this release used a free pose per camera and view and
+                must be re-run.
               </p>
             </div>
           </Section>

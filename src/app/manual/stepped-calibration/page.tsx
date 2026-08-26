@@ -180,7 +180,7 @@ export default function SteppedCalibrationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { metric: "Per-camera RMS", desc: "Reprojection error per camera (pixels). The two cameras are fitted separately and the stereo pose is composed from them, so these are the only reprojection numbers this method produces.", target: "< 0.5 px" },
+                    { metric: "Per-camera RMS", desc: "Reprojection error per camera (pixels). The two cameras are fitted separately and the stereo pose is composed from them, so these are the only reprojection numbers this method produces. Screening only: a low value does not prove the pose set determined the intrinsics.", target: "< 0.5 px" },
                     { metric: "Detected points per level", desc: "How many dots the walk-first separation recovered on each of the two levels, per camera", target: "Both levels well populated" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -468,7 +468,7 @@ methods:
                 "Browse to the datum frame and click three fiducial points per camera (origin, X-axis, Y-axis)",
                 "Navigate to each non-datum pose and click-to-label one dot per camera",
                 "Once all poses show verified labels, click \"Generate Model\"",
-                "Review per-camera RMS error, stereo RMS, relative angle, and baseline distance",
+                "Review per-camera RMS error, relative angle, and baseline distance (there is no joint stereo RMS on this path: the pose is composed, not refitted)",
                 "Click \"Calibrate Vectors\" to apply stereo calibration to PIV data",
                 "Click \"Set as Active\" to make stereo_stepped the active calibration method",
               ].map((step, idx) => (
@@ -638,8 +638,8 @@ methods:
                   solution: "Not all poses have been click-to-labelled. Check the pose list panel -- any pose without a label prevents model generation. You need one label per pose per camera."
                 },
                 {
-                  problem: "Stereo RMS error > 1.0 px",
-                  solution: "Step height measurement may be wrong -- verify with a micrometer. Also check that both cameras can resolve individual dots clearly. Blurred or underexposed images increase RMS."
+                  problem: "Per-camera RMS error > 1.0 px",
+                  solution: "Step height measurement may be wrong -- verify with a micrometer. Also check that both cameras can resolve individual dots clearly. Blurred or underexposed images increase RMS. If both per-camera values are low but the baseline or relative angle disagrees with the rig, the pose set is the problem, not the fit."
                 },
                 {
                   problem: "Focal length (fx) error is large",

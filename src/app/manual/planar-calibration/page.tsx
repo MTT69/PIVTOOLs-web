@@ -166,7 +166,7 @@ export default function PlanarCalibrationPage() {
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Pick a method by target type: <strong>Scale Factor</strong> if you have a known px/mm, <strong>Dotboard</strong> for circular dot grids, <strong>ChArUco</strong> for occlusion-tolerant targets, <strong>Polynomial</strong> as a camera model on top of a dotboard or ChArUco detection when a pinhole fit is not flexible enough.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Enter board parameters: <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_cols</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_rows</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dot_spacing_mm</code> (dotboard) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">squares_h/v</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">square_size</code> (ChArUco). Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">rig.dt</code> to the time between laser pulses in seconds. It is required before a model can be generated and is never defaulted.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Click <strong>Detect One</strong> to verify detection on a single frame before running the full sequence. Detected dots/corners are overlaid in the viewer.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Generate Model</strong>. Aim for RMS reprojection error below <strong>0.5 px</strong>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Generate Model</strong>. Screen on RMS reprojection error below <strong>0.5 px</strong>; a higher value means something is wrong, a lower one does not prove the parameters are determined (see <a href="/manual/calibration-quality#judging" className="underline">Calibration Quality</a>).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Multi-camera setups with shared features also need Global Coordinates -- see the bottom of this page.</span></li>
             </ol>
           </motion.div>
@@ -531,7 +531,7 @@ methods:
                 "On the datum frame, click Set Origin, then +X, then +Y -- clicks snap to the nearest detected dot and the detection overlay appears",
                 "Optionally type the origin X/Y in mm",
                 "Click \"Generate Model\" (disabled until the world frame is complete) to run detection on all frames and compute the camera model",
-                "Review the RMS reprojection error (target: < 0.5 px) and the proof figures",
+                "Review the RMS reprojection error (screening target: < 0.5 px; low RMS alone does not prove the intrinsics are determined) and the proof figures",
                 "Click \"Calibrate Vectors\" to apply calibration to PIV data",
                 "Click \"Set as Active\" to make this the active method",
               ].map((step, idx) => (
@@ -716,8 +716,19 @@ methods:
               pinhole. Everything is produced by the fit -- the user enters none of it. Fit quality
               is reported as the per-axis RMS residual in mm
               (<code className="bg-gray-100 px-1 rounded text-sm">rms_x_mm</code>,{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">rms_y_mm</code>).
+              <code className="bg-gray-100 px-1 rounded text-sm">rms_y_mm</code>), over the
+              datum view&apos;s detected points only.
             </p>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <p className="text-blue-700 text-sm">
+                <strong>There is no fixed mm target, because the residual scales with
+                magnification.</strong> Convert the pinhole rule instead: each axis below
+                0.5 x your mm-per-pixel (0.05 mm at 0.1 mm/px). One trap: the fit raises below
+                10 points, and at exactly 10 the cubic interpolates them, so the RMS is near
+                zero and means nothing. Use a board with many more detected dots than terms.
+              </p>
+            </div>
 
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
               <p className="text-yellow-700 text-sm">
@@ -734,7 +745,7 @@ methods:
                 "On the Dotboard or ChArUco tab, select \"Polynomial\" in the Camera Model dropdown",
                 "Complete the world-frame clicks (origin, +X, +Y) on the datum frame as usual",
                 "Click \"Generate Model\" -- detection runs, then the two 10-coefficient least-squares fits",
-                "Review the per-axis RMS in mm on the results card (it shows coefficients + RMS instead of intrinsics)",
+                "Review the per-axis RMS in mm on the results card (it shows coefficients + RMS instead of intrinsics); target each axis below 0.5 x your mm-per-pixel",
                 "Click \"Calibrate Vectors\" to apply, then \"Set as Active\"",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">

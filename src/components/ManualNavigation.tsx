@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, Book, Download, Code, Image as ImageIcon, Layers, Filter, Video, Eye, RotateCw, BarChart2, GitMerge, Target, Zap, Home, Terminal, Crosshair, Box } from 'lucide-react';
+import { ChevronDown, ChevronRight, Book, Download, Code, Image as ImageIcon, Layers, Filter, Video, Eye, RotateCw, BarChart2, GitMerge, Target, Zap, Home, Terminal, Crosshair, Box, Gauge } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -166,6 +166,18 @@ const manualSections: ManualSection[] = [
       { title: 'Global Frame (Scale Factor)', href: '/manual/global-coordinates#global-frame' },
       { title: 'YAML Configuration', href: '/manual/global-coordinates#yaml' },
       { title: 'CLI Usage', href: '/manual/global-coordinates#cli' },
+    ],
+  },
+  {
+    title: 'Calibration Quality',
+    href: '/manual/calibration-quality',
+    icon: <Gauge size={18} />,
+    subsections: [
+      { title: 'Overview', href: '/manual/calibration-quality#overview' },
+      { title: 'Capturing a Pose Set', href: '/manual/calibration-quality#capture' },
+      { title: 'Judging a Calibration', href: '/manual/calibration-quality#judging' },
+      { title: 'Reading the Model File', href: '/manual/calibration-quality#model-file' },
+      { title: 'Checklist', href: '/manual/calibration-quality#checklist' },
     ],
   },
   {

@@ -24,6 +24,7 @@ import {
   FileText,
   Crosshair,
   ClipboardCheck,
+  Gauge,
   Youtube
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
@@ -184,6 +185,13 @@ export default function ManualOverviewPage() {
       icon: <Crosshair size={20} />,
       description: "Align multi-camera coordinate systems.",
       capabilities: ["Joint multi-camera model", "Guided setup wizard", "Datum + overlap (scale factor)"],
+    },
+    {
+      title: "Calibration Quality",
+      href: "/manual/calibration-quality",
+      icon: <Gauge size={20} />,
+      description: "What to shoot, how to read the numbers, what the file means.",
+      capabilities: ["Pose-set recipe", "RMS as screening, not proof", "Model-file convention"],
     },
     {
       title: "Video Maker",

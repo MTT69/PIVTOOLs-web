@@ -149,7 +149,7 @@ export default function StereoCalibrationPage() {
             <ol className="space-y-2 text-gray-700">
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Note your configuration: <strong>same-side</strong> (both cameras on one side of the light sheet) or <strong>transmission</strong> (on opposite sides). If your setup is high-magnification or fragile at single-plane calibration, consider the <Link href="/manual/stepped-calibration" className="text-soton-blue font-semibold hover:underline">stepped board</Link> instead.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Pick detection: <strong>Stereo Dotboard</strong> (circular dot grids) or <strong>Stereo ChArUco</strong> (occlusion-tolerant). Configure images for both cameras in the calibration tab.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Click <strong>Generate Model</strong>. Targets: stereo RMS &lt; 0.5 px, relative angle 30&ndash;60&deg;. Verify the baseline matches your physical setup.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Click <strong>Generate Model</strong>. Screening targets: stereo RMS &lt; 0.5 px, relative angle 30&ndash;60&deg;. RMS tells you the fit matched the corners, not that the parameters are determined, so verify the baseline against your physical setup (<Link href="/manual/calibration-quality#judging" className="underline">Calibration Quality</Link>).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Run PIV on <em>both cameras</em> first (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli instantaneous</code> or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">ensemble</code>).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Reconstruct 3D</strong> (GUI) or run <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli apply-stereo</code> to produce <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">ux</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">uy</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">uz</code>.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Recommended: run <strong>Self-Calibration</strong> afterwards to correct for laser-sheet Z-offset and tilt. Adds a few minutes, meaningfully improves accuracy.</span></li>
@@ -235,9 +235,9 @@ export default function StereoCalibrationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { metric: "Stereo RMS Error", desc: "Joint reprojection error from the stereoCalibrate pose fit (pixels). Dotboard and ChArUco only", target: "< 0.5 px" },
+                    { metric: "Stereo RMS Error", desc: "Joint reprojection error from the stereoCalibrate pose fit (pixels). Dotboard and ChArUco only. A screening number: high is wrong, low is not yet proof", target: "< 0.5 px" },
                     { metric: "Stereo Views", desc: "Number of shared views used in the stereo pose fit (n_stereo_views)", target: "10+ typical" },
-                    { metric: "Cam1 / Cam2 RMS Error", desc: "Per-camera reprojection error (pixels)", target: "< 0.5 px each" },
+                    { metric: "Cam1 / Cam2 RMS Error", desc: "Per-camera reprojection error (pixels). Screening only; it does not show whether each camera's focal length is determined", target: "< 0.5 px each" },
                     { metric: "Relative Angle", desc: "Angle between camera optical axes (degrees)", target: "30-60 degrees typical" },
                     { metric: "Baseline Distance", desc: "Physical camera separation (mm)", target: "Verify against setup" },
                   ].map((row, idx) => (
@@ -898,11 +898,22 @@ methods:
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                 <h4 className="font-semibold text-green-800 mb-2">Quality Metrics</h4>
                 <ul className="text-green-700 space-y-1 text-sm">
-                  <li><strong>RMS disparity:</strong> Residual disparity (pixels)</li>
-                  <li><strong>Iteration count:</strong> Number of refinement iterations</li>
-                  <li><strong>Convergence status:</strong> Whether threshold was reached</li>
+                  <li><strong>RMS disparity:</strong> Residual disparity in dewarped pixels. Judge the drop from the first iteration to the last, not the value</li>
+                  <li><strong>Iteration count:</strong> Refinement iterations, capped at 10</li>
+                  <li><strong>Convergence status:</strong> A test on the per-iteration corrections (Z under 0.1 dewarped px, tilts under 0.01 degrees), never before iteration 2. It is not a test on the RMS</li>
                 </ul>
               </div>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-700 text-sm">
+                <strong>There is no pass/fail number, deliberately.</strong> Check three things:
+                it converged inside the cap; the disparity fell substantially between the first
+                and last iteration (<code className="bg-yellow-100 px-1 rounded">fig1_convergence.png</code>);
+                and <code className="bg-yellow-100 px-1 rounded">z_offset</code> is physically
+                plausible for your sheet. A run that converges after two iterations with an
+                unchanged RMS has corrected nothing.
+              </p>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
