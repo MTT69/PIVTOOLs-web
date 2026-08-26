@@ -5,7 +5,6 @@ import { useInView } from 'react-intersection-observer';
 import {
   Gauge,
   CheckCircle,
-  AlertTriangle,
   Info,
   Camera,
   FileText,
@@ -132,19 +131,19 @@ const judgingRows = [
     note: "Read the spread, not the mean. One view far above the rest was shot before something settled.",
   },
   {
-    field: "converged",
+    field: "board_meta.converged",
     where: "joint",
     meaning: "The alternation between pose fit and board release met its tolerance",
     note: "Always 0 under board_release: none, because nothing alternates. That is not a failure.",
   },
   {
-    field: "n_board_dots",
+    field: "board_meta.n_board_dots",
     where: "joint",
-    meaning: "Points on the released board that at least two rays reached",
-    note: "A point seen by one camera only cannot be triangulated and stays nominal.",
+    meaning: "Size of the shared board: every grid point any camera detected in any view",
+    note: "Not the released count. Points seen by fewer than two rays cannot be triangulated and stay nominal; the CLI prints released rows out of this total.",
   },
   {
-    field: "cross_camera_board_agreement_mm",
+    field: "board_meta.cross_camera_board_agreement_mm",
     where: "joint",
     meaning: "Distance between the boards each camera reconstructed",
     note: "Exactly 0.0 by construction. Every camera references the one shared board, so there is no second board to disagree with. It is not a check.",
@@ -176,7 +175,7 @@ const diversityRows = [
 const modelFileRows = {
   camera: [
     { field: "camera_matrix", meaning: "3x3 K: fx, fy, cx, cy in pixels" },
-    { field: "dist_coeffs", meaning: "OpenCV distortion vector (k1 k2 p1 p2 k3 for the standard model)" },
+    { field: "dist_coeffs", meaning: "OpenCV distortion vector k1 k2 p1 p2 k3; the standard model fixes k3 at 0" },
     { field: "R, t, rvec", meaning: "World to camera. X_cam = R X_world + t. The camera centre is minus R transpose t, not t" },
     { field: "image_width, image_height", meaning: "Sensor size the model was fitted at, pixels" },
     { field: "rms", meaning: "This camera's reprojection RMS, pixels" },
@@ -185,7 +184,7 @@ const modelFileRows = {
     { field: "cam1, cam2, model1, model2", meaning: "Camera numbers and their camera blocks as above" },
     { field: "R_stereo, T_stereo", meaning: "Camera 1 frame to camera 2 frame: X_cam2 = R_stereo X_cam1 + T_stereo. The norm of T_stereo is the baseline" },
     { field: "per_view_rms1, per_view_rms2", meaning: "Reprojection error per view, per camera" },
-    { field: "self_cal", meaning: "Self-calibration block when it has run: z_offset in mm, tilt_x and tilt_y in radians" },
+    { field: "self_cal", meaning: "Self-calibration block when it has run. The fitted sheet is fitted_z_offset (mm), fitted_tilt_x and fitted_tilt_y (radians); the correction is baked into the stored models, so z_offset, tilt_x and tilt_y read 0 with baked = 1" },
   ],
   joint: [
     { field: "cameras, camera_models", meaning: "Camera numbers and one camera block per camera (the rig pose in the datum board frame)" },
@@ -193,7 +192,7 @@ const modelFileRows = {
     { field: "board_release, spacing_mm", meaning: "Which board coordinates were freed (full3d, z_only, none) and the nominal pitch" },
     { field: "per_camera_rms, rms_px", meaning: "Reprojection RMS per camera and overall" },
     { field: "pose_diversity", meaning: "The diagnostic block. Parallel arrays ordered by its own cameras field; empty when the record predates it" },
-    { field: "world_frame, board_meta, contract_version", meaning: "The clicked origin and axes, the solve inputs, and the file-format version (1)" },
+    { field: "world_frame, board_meta, contract_version", meaning: "The clicked origin and axes; the solve inputs plus converged, n_board_dots and cross_camera_board_agreement_mm; and the file-format version (1)" },
   ],
 };
 
@@ -408,7 +407,7 @@ export default function CalibrationQualityPage() {
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Two things that look wrong and are not</h3>
             <FeatureList items={[
-              "The final rms_px is above the rms after alternation. The alternation fits a free pose per camera and view; the final bundle holds every camera on one rigid rig, and a rigid rig cannot follow a camera that crept between views. The rise is the price of a physical model, and the per-view flags show where it landed.",
+              "The final rms_px is above the rms after alternation, which the CLI prints on its stages line (it is not stored in the record). The alternation fits a free pose per camera and view; the final bundle holds every camera on one rigid rig, and a rigid rig cannot follow a camera that crept between views. The rise is the price of a physical model, and the per-view flags show where it landed.",
               "converged is 0 under board_release: none. Nothing alternates when the board is fixed, so the flag has nothing to report.",
             ]} />
 
@@ -488,7 +487,8 @@ C = -R' * t                        % camera centre, world mm`}
               title="Python"
               code={`from scipy.io import loadmat
 m = loadmat("joint_model_pinhole.mat", squeeze_me=True, struct_as_record=False)
-cam = m["camera_models"][0]        # first camera in m["cameras"]
+import numpy as np
+cam = np.atleast_1d(m["camera_models"])[0]   # first camera in m["cameras"]; atleast_1d survives a one-camera file
 K, R, t = cam.camera_matrix, cam.R, cam.t.reshape(3)
 C = -R.T @ t                       # camera centre, world mm`}
             />

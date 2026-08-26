@@ -363,12 +363,12 @@ pivtools-cli detect-joint --cameras 1,2,3 \\
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { field: "rms_px", meaning: "Reprojection RMS over every corner, camera and view. Expect it above the rms after alternation: the final bundle holds the cameras on one rigid rig, and a rigid rig cannot follow a camera that crept between views" },
+                    { field: "rms_px", meaning: "Reprojection RMS over every corner, camera and view. Expect it above the rms after alternation (printed on the CLI stages line, not stored): the final bundle holds the cameras on one rigid rig, and a rigid rig cannot follow a camera that crept between views" },
                     { field: "per_camera_rms / cam_rms", meaning: "The same per camera. One camera well above the others has a detection, focus, or rig-motion problem" },
-                    { field: "converged", meaning: "The pose / board-release alternation met its tolerance. Always 0 under board_release: none, because nothing alternates; that is not a failure" },
-                    { field: "n_board_dots", meaning: "Board points reached by at least two rays and therefore released" },
-                    { field: "cross_camera_board_agreement_mm", meaning: "Exactly 0.0 by construction. Not a check" },
-                    { field: "pose_diversity", meaning: "Tilt, standoff and per-view RMS diagnostics with a DEGENERATE flag; printed by the CLI after the summary" },
+                    { field: "board_meta.converged", meaning: "The pose / board-release alternation met its tolerance. Always 0 under board_release: none, because nothing alternates; that is not a failure" },
+                    { field: "board_meta.n_board_dots", meaning: "Size of the shared board (every point any camera detected), not the released count; the CLI prints released rows out of this total" },
+                    { field: "board_meta.cross_camera_board_agreement_mm", meaning: "Exactly 0.0 by construction. Not a check" },
+                    { field: "pose_diversity", meaning: "Tilt, standoff and per-view RMS diagnostics with a DEGENERATE flag; printed by the CLI after the summary and shown on the GUI results card" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-4 py-3 text-sm font-mono text-gray-900">{row.field}</td>
