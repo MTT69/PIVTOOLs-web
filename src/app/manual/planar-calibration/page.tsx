@@ -521,6 +521,9 @@ methods:
               (origin, then +X, then +Y). The axes are built from the board&apos;s orthogonal grid
               axes, so the +X/+Y clicks only choose which grid axis and its sign -- never skew. A
               typed origin X/Y in mm places the origin dot at an absolute world position.
+              The +X click must land on a dot along one grid line from the origin: a +X click on
+              the origin dot or on a diagonal dot is refused at Generate with the reason. The +Y
+              click only sets the sign along the other grid axis, so a diagonal +Y is accepted.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
