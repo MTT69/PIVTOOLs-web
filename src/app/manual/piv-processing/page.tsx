@@ -605,6 +605,16 @@ ensemble_piv:
   dask_max_in_flight_per_worker: 3
   open_dashboard: false
   cluster_type: local`} title="config.yaml" />
+
+            <p className="text-gray-700 mt-6">
+              The Run PIV panel shows a <strong>Memory estimate</strong> warning when the
+              batch will not fit in one worker. The estimate is
+              3 &times; <code>batches.size</code> &times; 2 images &times; H &times; W &times; 4 bytes
+              (raw, filtered, and warped copies of every image in the batch, as float32),
+              compared against <code>dask_memory_limit</code>. The warning updates as you edit
+              either value and does not block the run. To clear it, reduce
+              <code> batches.size</code> or raise <code>dask_memory_limit</code>.
+            </p>
           </Section>
 
           {/* Outlier Detection */}
