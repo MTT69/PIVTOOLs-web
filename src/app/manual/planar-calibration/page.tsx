@@ -836,10 +836,13 @@ methods:
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Caching</h3>
             <p className="text-gray-700 mb-6">
-              Detections are cached in memory for the session and persisted on disk in the{' '}
+              Detections are persisted on disk in the{' '}
               <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code> sidecar, so
-              previews and re-opens are instant. The <strong>Re-detect</strong> button forces a
-              fresh detection after the images on disk change.
+              previews and re-opens are instant. <strong>Detect Dots</strong> writes what it draws
+              into that sidecar, so the next Generate solves from exactly the detections you saw.
+              A single-frame preview never does: it is a partial set. The{' '}
+              <strong>Re-detect</strong> button forces a fresh detection after the images on disk
+              change, and keeps the clicked world frame stored beside the detections.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Tolerant Detection</h3>
