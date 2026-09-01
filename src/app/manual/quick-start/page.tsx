@@ -2,14 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import {
-  Download,
-  Terminal,
-  CheckCircle,
-  Cpu,
-  Monitor,
-  AlertTriangle,
-} from 'lucide-react';
+import { CheckCircle, Cpu } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ManualNavigation from '@/components/ManualNavigation';
@@ -42,16 +35,70 @@ const Section = ({ title, children, icon, id }: SectionProps) => {
   );
 };
 
-interface CodeBlockProps {
-  code: string;
-  language?: string;
+interface StepProps {
+  number: string;
+  title: string;
+  id: string;
+  last?: boolean;
+  children: React.ReactNode;
 }
 
-const CodeBlock = ({ code }: CodeBlockProps) => (
-  <div className="bg-gray-900 rounded-lg p-6 overflow-x-auto mb-6">
-    <code className="text-green-400 font-mono text-sm whitespace-pre-wrap">
-      {code}
-    </code>
+const Step = ({ number, title, id, last, children }: StepProps) => {
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+
+  return (
+    <motion.section
+      ref={ref}
+      id={id}
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6 }}
+      className="relative pl-14 sm:pl-16 scroll-mt-24"
+    >
+      {!last && (
+        <div className="absolute left-[15px] sm:left-[19px] top-10 bottom-0 w-px bg-gray-200" />
+      )}
+      <div className="absolute left-0 top-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-soton-gold text-soton-darkblue font-bold text-lg flex items-center justify-center">
+        {number}
+      </div>
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 pt-1">{title}</h2>
+      <div className="pb-14">{children}</div>
+    </motion.section>
+  );
+};
+
+interface CommandLineProps {
+  cmd: string;
+  label?: string;
+}
+
+const CommandLine = ({ cmd, label }: CommandLineProps) => (
+  <div className="flex items-center gap-3 font-mono text-sm overflow-x-auto">
+    <span className="text-soton-gold select-none" aria-hidden="true">$</span>
+    <code className="text-gray-100 whitespace-nowrap">{cmd}</code>
+    {label && (
+      <span className="ml-auto flex-shrink-0 text-xs uppercase tracking-wide bg-white/10 text-gray-300 px-2 py-0.5 rounded">
+        {label}
+      </span>
+    )}
+  </div>
+);
+
+const CommandBlock = ({ cmd }: { cmd: string }) => (
+  <div className="bg-gray-900 rounded-lg px-4 py-3 mb-3">
+    <CommandLine cmd={cmd} />
+  </div>
+);
+
+interface TerminalRowProps {
+  label: string;
+  children: React.ReactNode;
+}
+
+const TerminalRow = ({ label, children }: TerminalRowProps) => (
+  <div className="p-5">
+    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">{label}</p>
+    <div className="space-y-2">{children}</div>
   </div>
 );
 
@@ -89,117 +136,111 @@ export default function QuickStartPage() {
               Quick <span className="text-soton-gold">Start</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Install PIVTools and start processing in minutes. No compiler required.
+              From <code className="bg-gray-100 px-2 py-1 rounded text-lg">pip install</code> to
+              your first velocity field in four steps. No compiler required.
             </p>
           </motion.div>
 
-          {/* Quick Recipe */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-soton-gold/40 rounded-xl p-6 mb-16"
-          >
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <CheckCircle className="text-soton-gold" size={22} />
-              <h3 className="text-xl font-bold text-gray-900">Quick Recipe</h3>
-              <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults -- full reference below</span>
+          {/* Step 1: Install */}
+          <Step number="1" title="Install" id="installation">
+            <p className="text-gray-600 mb-4 text-lg">
+              Requires <strong className="text-gray-900">Python 3.12, 3.13, or 3.14</strong>.
+              All C extensions and dependencies ship pre-compiled.
+            </p>
+            <div className="bg-gray-900 rounded-xl divide-y divide-white/10 overflow-hidden">
+              <TerminalRow label="Create a virtual environment">
+                <CommandLine cmd="python3.12 -m venv piv" />
+              </TerminalRow>
+              <TerminalRow label="Activate it">
+                <CommandLine cmd="source piv/bin/activate" label="macOS / Linux" />
+                <CommandLine cmd={'piv\\Scripts\\activate'} label="Windows" />
+              </TerminalRow>
+              <TerminalRow label="Install">
+                <CommandLine cmd="pip install pivtools" />
+              </TerminalRow>
             </div>
-            <ol className="space-y-2 text-gray-700">
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Create a virtual environment with Python 3.12&ndash;3.14 and run <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pip install pivtools</code>.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Launch the GUI with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-gui</code>, or initialise a CLI workspace with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli init</code>. Either way you get a default <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">config.yaml</code> in your current directory.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Point the config at your data (Image Configuration), run PIV, calibrate. The GUI and CLI share the same config file, so switch between them freely.</span></li>
-            </ol>
-          </motion.div>
+          </Step>
 
-          {/* Installation Section */}
-          <Section title="Installation" icon={<Download size={32} />} id="installation">
-            <div className="bg-gradient-to-r from-soton-blue to-soton-darkblue rounded-xl p-8 text-white mb-8">
-              <h3 className="text-2xl font-bold mb-4">Install in 3 Steps</h3>
-              <p className="text-gray-200 mb-6 text-lg">
-                Requires <strong>Python 3.12, 3.13, or 3.14</strong>. All C extensions and dependencies are pre-compiled.
+          {/* Step 2: Launch */}
+          <Step number="2" title="Launch" id="gui">
+            <p className="text-gray-600 mb-4 text-lg">
+              Start with the GUI, the CLI, or both — they are two front ends to the same tool.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">GUI</h3>
+                <CommandBlock cmd="pivtools-gui" />
+                <p className="text-gray-600">
+                  Opens a web interface at{' '}
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">localhost:5000</code>.
+                  Your browser opens automatically.
+                </p>
+              </div>
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">CLI</h3>
+                <CommandBlock cmd="pivtools-cli init" />
+                <p className="text-gray-600">
+                  Sets up a workspace in the current directory, ready for the terminal-only
+                  workflow.
+                </p>
+              </div>
+            </div>
+            <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
+              <p className="text-green-700">
+                Either way, a default{' '}
+                <code className="bg-green-100 px-2 py-1 rounded text-sm">config.yaml</code> is
+                created in the current directory. The GUI and CLI share this file — configure
+                visually, run from the terminal, or the other way round.
               </p>
-              <CodeBlock code={`# 1. Create a virtual environment
-python3.12 -m venv piv
-
-# 2. Activate it
-source piv/bin/activate        # macOS/Linux
-piv\\Scripts\\activate           # Windows
-
-# 3. Install
-pip install pivtools
-
-# Optional: Phantom .cine file support
-pip install "pivtools[cine]"`} />
             </div>
-          </Section>
+          </Step>
 
-          {/* Launch GUI Section */}
-          <Section title="Launch the GUI" icon={<Monitor size={32} />} id="gui">
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-8">
-              <CodeBlock code="pivtools-gui" />
-              <p className="text-gray-600 mb-4">
-                Opens a web interface at <code className="bg-gray-100 px-2 py-1 rounded text-sm">localhost:5000</code>.
-                Your browser opens automatically.
-              </p>
-              <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
-                <p className="text-green-700">
-                  On first launch, a default <code className="bg-green-100 px-2 py-1 rounded text-sm mx-1">config.yaml</code> is
-                  created in the current directory. The GUI and CLI share this file.
+          {/* Step 3: Configure */}
+          <Step number="3" title="Point it at your data" id="configure">
+            <p className="text-gray-600 mb-4 text-lg">
+              Edit <code className="bg-gray-100 px-2 py-1 rounded text-lg">config.yaml</code> to
+              set the image source path, the number of cameras, and the file format. In the GUI
+              this is the <strong className="text-gray-900">Image Configuration</strong> tab.
+            </p>
+            <a
+              href="/manual/image-configuration"
+              className="inline-block bg-white border border-gray-200 shadow-sm rounded-lg px-5 py-3 text-soton-blue font-semibold hover:border-soton-gold transition-colors duration-200"
+            >
+              Image Configuration guide &rarr;
+            </a>
+          </Step>
+
+          {/* Step 4: Run PIV */}
+          <Step number="4" title="Run PIV" id="cli" last>
+            <p className="text-gray-600 mb-4 text-lg">
+              Pick the processing mode. Both read the same{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-lg">config.yaml</code>.
+            </p>
+            <div className="space-y-4 mb-4">
+              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <CommandBlock cmd="pivtools-cli instantaneous" />
+                <p className="text-gray-600">
+                  Cross-correlates each image pair. One velocity field per pair.
                 </p>
               </div>
-            </div>
-          </Section>
-
-          {/* CLI Usage Section */}
-          <Section title="CLI Usage" icon={<Terminal size={32} />} id="cli">
-            <div className="space-y-6 mb-8">
               <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Initialise Workspace</h4>
-                <CodeBlock code="pivtools-cli init" />
+                <CommandBlock cmd="pivtools-cli ensemble" />
                 <p className="text-gray-600">
-                  Creates an editable <code className="bg-gray-100 px-2 py-1 rounded text-sm">config.yaml</code> in the
-                  current directory. Edit this to set image paths, camera setup, and processing parameters.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Seed Calibration Settings</h4>
-                <CodeBlock code="pivtools-cli init-settings --source /data/experiment/calibration" />
-                <p className="text-gray-600">
-                  Writes <code className="bg-gray-100 px-2 py-1 rounded text-sm">&lt;source&gt;/calibration/settings.yaml</code>,
-                  which holds the calibration image format, board geometry, and rig <code className="bg-gray-100 px-2 py-1 rounded text-sm">dt</code>.
-                  Fill it in before calibrating. The image format is required when the settings are read and
-                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">rig.dt</code> is required when a model is generated,
-                  so a missing value fails loudly rather than defaulting.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Instantaneous PIV</h4>
-                <CodeBlock code="pivtools-cli instantaneous" />
-                <p className="text-gray-600">
-                  Per-frame cross-correlation. One velocity field per image pair.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Ensemble PIV</h4>
-                <CodeBlock code="pivtools-cli ensemble" />
-                <p className="text-gray-600">
-                  Averages correlation planes across all frames before peak detection. Single time-averaged velocity field.
+                  Averages correlation planes across all frames before peak detection. One
+                  time-averaged velocity field.
                 </p>
               </div>
             </div>
-
             <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
               <p className="text-blue-700">
-                The GUI and CLI share the same <code className="bg-blue-100 px-2 py-1 rounded text-sm">config.yaml</code>.
-                Configure visually in the GUI, then run via CLI -- or vice versa.
-                See the <a href="/manual/cli-reference" className="underline font-medium">CLI Reference</a> for all commands.
+                Every command, flag, and workflow — including calibration — is in the{' '}
+                <a href="/manual/cli-reference" className="underline font-medium">
+                  CLI Reference
+                </a>
+                .
               </p>
             </div>
-          </Section>
+          </Step>
 
           {/* System Requirements Section */}
           <Section title="System Requirements" icon={<Cpu size={32} />} id="requirements">
@@ -239,15 +280,15 @@ pip install "pivtools[cine]"`} />
               </div>
             </div>
 
-            <div className="bg-green-50 border-l-4 border-green-400 p-6 mt-6">
+            <div className="bg-green-50 border-l-4 border-green-400 p-6 mt-6 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="text-yellow-600" size={20} />
-                <h4 className="text-lg font-semibold text-yellow-800">LaVision Formats (.im7 / .set)</h4>
+                <CheckCircle className="text-green-600" size={20} />
+                <h4 className="text-lg font-semibold text-green-800">LaVision Formats (.im7 / .set)</h4>
               </div>
-              <p className="text-yellow-700">
-                LaVision formats (<code className="bg-yellow-100 px-2 py-1 rounded text-sm">.im7</code>,
-                <code className="bg-yellow-100 px-2 py-1 rounded text-sm">.set</code>) are read by a built-in
-                pure-Python reader with no <code className="bg-yellow-100 px-2 py-1 rounded text-sm">lvpyio</code> dependency,
+              <p className="text-green-700">
+                LaVision formats (<code className="bg-green-100 px-2 py-1 rounded text-sm">.im7</code>,
+                <code className="bg-green-100 px-2 py-1 rounded text-sm">.set</code>) are read by a built-in
+                pure-Python reader with no <code className="bg-green-100 px-2 py-1 rounded text-sm">lvpyio</code> dependency,
                 so they work on macOS, Linux, and Windows alike.
               </p>
             </div>

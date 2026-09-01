@@ -24,9 +24,10 @@ const manualSections: ManualSection[] = [
     href: '/manual/quick-start',
     icon: <Download size={18} />,
     subsections: [
-      { title: 'Installation', href: '/manual/quick-start#installation' },
-      { title: 'Launch GUI', href: '/manual/quick-start#gui' },
-      { title: 'CLI Usage', href: '/manual/quick-start#cli' },
+      { title: 'Install', href: '/manual/quick-start#installation' },
+      { title: 'Launch', href: '/manual/quick-start#gui' },
+      { title: 'Point it at your data', href: '/manual/quick-start#configure' },
+      { title: 'Run PIV', href: '/manual/quick-start#cli' },
       { title: 'System Requirements', href: '/manual/quick-start#requirements' },
     ],
   },
