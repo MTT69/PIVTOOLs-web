@@ -156,10 +156,10 @@ cd PIVTOOLs-GUI`} />
             <h3 className="text-2xl font-semibold text-gray-900 mb-4">Build Steps</h3>
             <p className="text-gray-700 text-lg leading-relaxed mb-4">
               Install the package in editable mode (this compiles the C extensions), with
-              the optional dev/cine extras for tests and Phantom .cine support:
+              the optional dev extra for tests:
             </p>
             <CodeBlock code={`# Editable install -- compiles all three C libraries into pivtools_cli/lib/
-pip install -e ".[dev,cine]"
+pip install -e ".[dev]"
 
 # Recompile the C extensions after editing C sources
 python setup.py build`} />
