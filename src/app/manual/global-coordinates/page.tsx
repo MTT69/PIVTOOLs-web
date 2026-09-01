@@ -256,7 +256,12 @@ export default function GlobalCoordinatesPage() {
                 Detections are cached in memory and persisted in the{' '}
                 <code className="bg-green-100 px-1 rounded">inputs.mat</code> sidecar, so previews
                 reuse them; the <strong>Re-detect</strong> button forces a refresh after the images
-                change.
+                change. Detection never starts on its own: previously detected dots load into
+                the viewer automatically from the cache, but a fresh detection only runs when
+                you press <strong>Detect Dots</strong> (ChArUco: <strong>Detect Markers</strong>),{' '}
+                <strong>Preview Image &amp; Grid</strong> or <strong>Re-detect</strong>, after the
+                dot spacing is entered (board geometry has no default) -- the viewer bar shows a
+                hint for whichever step is pending.
               </p>
             </div>
 
