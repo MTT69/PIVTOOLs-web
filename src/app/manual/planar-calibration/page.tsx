@@ -506,9 +506,13 @@ methods:
               <code className="bg-gray-100 px-1 rounded text-sm">BFS</code> neighbourhood walk --
               purely local neighbour relationships, so it is robust to perspective, tilt, and
               boards partially out of frame -- and a RANSAC homography models the perspective and
-              rejects outliers. Missing interior dots are rescued by predicting their position with
-              a local homography and confirming by template matching against a nearby healthy dot.
-              Grid dimensions are discovered automatically -- only the dot spacing is entered.
+              rejects gross mis-assignments. Missing interior dots are rescued by predicting their
+              position with a local homography and confirming by template matching against a nearby
+              healthy dot. A final gate fits the whole grid as a homography plus two-term radial
+              lens distortion and drops any dot more than 2 px from that fit: lens distortion at the
+              board edge is kept, while reflections of the board (a crease in the row pitch at the
+              seam), droplets and occlusions are dropped, never infilled. Grid dimensions are
+              discovered automatically -- only the dot spacing is entered.
               OpenCV <code className="bg-gray-100 px-1 rounded text-sm">calibrateCamera</code> /{' '}
               <code className="bg-gray-100 px-1 rounded text-sm">calibrateCameraRO</code> then
               computes the camera model.
