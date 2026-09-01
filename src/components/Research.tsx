@@ -138,8 +138,10 @@ export default function Research() {
   title={PIVtools: A comprehensive open source software for particle image velocimetry},
   author={Taylor, M.T. and Lawson, J.M. and Ganapathisubramani, B.},
   journal={SoftwareX},
+  volume={35},
+  pages={102967},
   year={2026},
-  note={submitted}
+  doi={10.1016/j.softx.2026.102967}
 }`;
 
   const handleCopyBibtex = () => {
@@ -173,8 +175,16 @@ export default function Research() {
                   &ldquo;PIVtools: A comprehensive open source software for particle image velocimetry&rdquo;
                 </p>
                 <p className="text-gray-600 text-sm mt-1">
-                  Submitted to SoftwareX (2026)
+                  SoftwareX, Volume 35, 102967 (2026)
                 </p>
+                <a
+                  href="https://doi.org/10.1016/j.softx.2026.102967"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-soton-blue hover:text-soton-darkblue text-sm mt-1 inline-block underline"
+                >
+                  doi.org/10.1016/j.softx.2026.102967
+                </a>
               </div>
               <details className="group">
                 <summary className="cursor-pointer text-soton-blue hover:text-soton-darkblue font-medium flex items-center gap-2">
