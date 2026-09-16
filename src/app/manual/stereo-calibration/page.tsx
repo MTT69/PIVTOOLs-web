@@ -449,10 +449,16 @@ image:
               <p className="text-blue-700 text-sm">
                 <strong>Detection cache:</strong> detections persist in{' '}
                 <code className="bg-blue-100 px-1 rounded">inputs.mat</code> beside the model, so
-                Generate reuses them on a reopened tab. <strong>Detect Dots</strong> detects both
+                Generate reuses them on a reopened tab and the overlay repaints both cameras from
+                that file without detecting again. <strong>Detect Dots</strong> detects both
                 cameras as one set and writes it into that sidecar, so Generate solves from the
                 dots you saw. The <strong>Re-detect</strong> button ignores the cached detections
                 and detects fresh before recalibrating, keeping the stored world-frame clicks.
+                The pair is stored and restored together — you never get one camera&apos;s dots
+                without the other. If the board geometry, image format, view count or detector
+                version has changed since they were saved, both overlays stay blank with a note
+                beside <strong>Detect Dots</strong> rather than showing dots the solve would
+                refuse to reuse.
               </p>
             </div>
 

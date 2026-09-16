@@ -319,7 +319,7 @@ export default function PlanarCalibrationPage() {
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
               <h5 className="font-semibold text-blue-800 mb-2">Image Viewer Tools</h5>
               <p className="text-blue-700 text-sm mb-2">
-                The Calibration Image Viewer includes interactive tools for verifying your setup:
+                The Calibration Image Viewer opens as soon as the images validate; the button above it hides and shows it. It includes interactive tools for verifying your setup:
               </p>
               <ul className="text-blue-700 text-sm space-y-1">
                 <li><strong>Measure Tool:</strong> Click two points on the image to measure distance in pixels (dx, dy, and total length). Useful for verifying dot spacing and image scale.</li>
@@ -835,7 +835,7 @@ methods:
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Caching</h3>
-            <p className="text-gray-700 mb-6">
+            <p className="text-gray-700 mb-4">
               Detections are persisted on disk in the{' '}
               <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code> sidecar, so
               previews and re-opens are instant. <strong>Detect Dots</strong> writes what it draws
@@ -844,12 +844,52 @@ methods:
               <strong>Re-detect</strong> button forces a fresh detection after the images on disk
               change, and keeps the clicked world frame stored beside the detections.
             </p>
+            <p className="text-gray-700 mb-4">
+              Re-opening a tab <strong>reads</strong> those stored dots rather than detecting
+              again. Nothing runs the detector on its own: the only things that do are{' '}
+              <strong>Detect Dots</strong>, <strong>Re-detect</strong>, and Generate when the
+              cache does not match.
+            </p>
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <p className="text-blue-700 text-sm">
+                <strong>When the overlay comes back empty.</strong> The stored dots are tied to
+                the settings that produced them — board geometry, image format and type, the
+                number of views, and the detector version. Change any of those and the saved set
+                no longer applies, so the overlay stays blank and a note beside{' '}
+                <strong>Detect Dots</strong> says so. That is deliberate: drawing dots the solve
+                would refuse to reuse would misrepresent what Generate is about to do. Press{' '}
+                <strong>Detect Dots</strong> to rebuild the set. Frames beyond the configured
+                number of views are also blank, because they were never part of the calibration.
+              </p>
+            </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Tolerant Detection</h3>
             <p className="text-gray-700 mb-6">
               A view that fails detection is dropped and reported per-view -- it never aborts the
               solve. A camera only fails if <em>no</em> image detects (almost always a wrong path,
               format, or board parameter).
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Image Caching</h3>
+            <p className="text-gray-700 mb-4">
+              Calibration frames are cached twice, and both caches exist because the images are
+              large and often live on a slow disk or a synced folder.
+            </p>
+            <p className="text-gray-700 mb-4">
+              The <strong>server</strong> keeps recently decoded frames in memory, so the second
+              request for a frame costs no disk read. Entries are checked against the file&apos;s
+              modification time and size on every use: re-export an image and the next view shows
+              the new one. The budget defaults to 512 MB and can be changed with the{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">PIV_CALIB_FRAME_CACHE_MB</code>{' '}
+              environment variable.
+            </p>
+            <p className="text-gray-700 mb-6">
+              The <strong>browser</strong> keeps the frames it has displayed. As soon as an image
+              source validates, the first few frames of <em>every</em> camera are fetched in the
+              background — the camera you are looking at first — so opening the viewer and
+              switching camera are both immediate rather than a fresh round trip. Changing the
+              source path, image format, image type or camera subfolders replaces that cache,
+              because those settings change what a frame contains.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Auto-Load</h3>
