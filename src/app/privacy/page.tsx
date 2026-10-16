@@ -2,11 +2,19 @@ import type { Metadata } from 'next';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import CookieSettingsButton from '@/components/CookieSettingsButton';
+import { OPEN_GRAPH_BASE } from '@/data/site';
 
 export const metadata: Metadata = {
-  title: 'Privacy & Cookies - PIVtools',
+  title: 'Privacy & Cookies',
   description:
     'How the PIVtools website handles analytics cookies and personal data, and how to change your cookie choice.',
+  alternates: { canonical: '/privacy' },
+  openGraph: {
+    ...OPEN_GRAPH_BASE,
+    title: 'Privacy & Cookies - PIVtools',
+    description: 'How the PIVtools website handles analytics cookies and personal data.',
+    url: '/privacy',
+  },
 };
 
 export default function PrivacyPage() {

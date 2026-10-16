@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Montserrat, JetBrains_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import CookieConsent from "@/components/CookieConsent";
+import { OPEN_GRAPH_BASE, SITE_ORIGIN } from "@/data/site";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -17,33 +18,40 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+/**
+ * Home-page title and description, worded for what people search: the method's
+ * full name ("particle image velocimetry", 1k-10k searches a month) and "PIV
+ * analysis" (100-1k) rather than "PIV processing" (0-10). Keyword Planner,
+ * all locations, Oct 2025 - Sep 2026; see wiki/deployment/search-console-seo.md.
+ */
+const HOME_TITLE = "PIVtools – Open-Source Particle Image Velocimetry (PIV) in Python";
+const HOME_DESCRIPTION =
+  "Free, open-source particle image velocimetry (PIV) software for Python: planar and stereo PIV analysis from calibration to turbulence statistics, with a GUI and a CLI.";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://piv.tools"),
-  title: "PIVtools - High-Performance PIV Processing",
-  description: "PIVtools is a Python-based 2D planar and stereo PIV processing code, accelerated with C extensions for superior performance.",
+  metadataBase: new URL(SITE_ORIGIN),
+  title: {
+    default: HOME_TITLE,
+    template: "%s - PIVtools",
+  },
+  description: HOME_DESCRIPTION,
   keywords: "PIV, Particle Image Velocimetry, Python, Image Processing, Fluid Dynamics, University of Southampton",
   authors: [{ name: "University of Southampton" }],
   openGraph: {
-    title: "PIVtools - High-Performance PIV Processing",
-    description: "Open-source Python 2D planar and stereo PIV processing, accelerated with C extensions.",
-    url: "https://piv.tools",
-    siteName: "PIVtools",
-    type: "website",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 512,
-        height: 512,
-        alt: "PIVtools logo",
-      },
-    ],
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    url: "/",
+    ...OPEN_GRAPH_BASE,
   },
   twitter: {
     card: "summary",
-    title: "PIVtools - High-Performance PIV Processing",
-    description: "Open-source Python 2D planar and stereo PIV processing, accelerated with C extensions.",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     images: ["/og-image.png"],
   },
+  // Google Search Console ownership (URL-prefix property https://www.piv.tools/,
+  // morgantaylor.mtt@gmail.com). Removing it unverifies the property.
+  verification: { google: "9JhjEyumY8W0vDbRGAsb_n62eEdc4B1aUOsq0zbJDg" },
 };
 
 export const viewport: Viewport = {
