@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   },
   // Google Search Console ownership (URL-prefix property https://www.piv.tools/,
   // morgantaylor.mtt@gmail.com). Removing it unverifies the property.
-  verification: { google: "9JhjEyumY8W0vDbRGAsb_n62eEdc4B1aUOsq0zbJDg" },
+  verification: { google: "9JhjEyumyY8W0vDbRGAsb_n62eEdc4B1aUOsq0zbJDg" },
 };
 
 export const viewport: Viewport = {
