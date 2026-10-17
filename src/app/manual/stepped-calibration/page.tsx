@@ -509,7 +509,7 @@ methods:
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-&lt;calibration_source&gt;/calibration/stereo_cam1_cam2/<br />
+&lt;calibration_source&gt;/calibration/stereo_stepped_cam1_cam2/<br />
               ├── model/stereo_model_pinhole.mat<br />
               ├── model/inputs.mat&nbsp;&nbsp;&nbsp;&nbsp;# your fiducial clicks and pose labels<br />
               └── figures/<br />

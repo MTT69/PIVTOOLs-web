@@ -165,10 +165,12 @@ export default function StereoCalibrationPage() {
                 <code className="bg-yellow-100 px-1 rounded">config.yaml</code> is a four-key pointer saying which
                 source and which method are active. Image format, board geometry, and the rig{' '}
                 <code className="bg-yellow-100 px-1 rounded">dt</code> live in a per-source sidecar at{' '}
-                <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>. Create one
+                <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>. A <code className="bg-yellow-100 px-1 rounded">.set</code> or <code className="bg-yellow-100 px-1 rounded">.cine</code> source is a single file, so its calibration
+                gets its own folder beside it, <code className="bg-yellow-100 px-1 rounded">&lt;parent&gt;/calibration/&lt;file name&gt;/</code>, and several such files in one
+                folder never share settings or models. Create one
                 with <code className="bg-yellow-100 px-1 rounded">pivtools-cli init-settings --source &lt;dir&gt;</code>{' '}
                 or by filling in the calibration tab. The image format is required when the settings are read and{' '}
-                <code className="bg-yellow-100 px-1 rounded">rig.dt</code> when a model is generated, so a missing
+                <code className="bg-yellow-100 px-1 rounded">rig.dt</code> when a model is generated (it must be greater than zero), so a missing
                 value stops the run instead of quietly defaulting.
               </p>
             </div>
@@ -265,7 +267,7 @@ export default function StereoCalibrationPage() {
                 <ul className="text-green-700 space-y-1 text-sm">
                   <li><strong>R_stereo:</strong> 3x3 rotation from Cam1 to Cam2</li>
                   <li><strong>T_stereo:</strong> Baseline translation (mm)</li>
-                  <li><strong>self_cal block:</strong> Laser-sheet z_offset and tilt from self-calibration (empty until run)</li>
+                  <li><strong>self_cal block:</strong> Record of the self-calibration bake: total sheet offset and tilt, the last run&apos;s correction, and the number of runs (empty until run)</li>
                 </ul>
               </div>
             </div>
@@ -280,7 +282,7 @@ export default function StereoCalibrationPage() {
               only what you type or select before detecting (image settings, camera pair, dt, geometry seed).
             </p>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-              &lt;calibration_source&gt;/calibration/stereo_cam1_cam2/<br />
+              &lt;calibration_source&gt;/calibration/stereo_&lt;board&gt;_cam1_cam2/   (board = dotboard, charuco or stepped)<br />
               ├── model/stereo_model_pinhole.mat   (includes the self_cal block)<br />
               ├── model/inputs.mat                 (cached detections + clicks)<br />
               └── figures/                         (proof figures; self_cal/ subfolder after self-calibration)
@@ -439,7 +441,7 @@ image:
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-              &lt;calibration_source&gt;/calibration/stereo_cam1_cam2/<br />
+              &lt;calibration_source&gt;/calibration/stereo_&lt;board&gt;_cam1_cam2/<br />
               ├── model/stereo_model_pinhole.mat<br />
               ├── model/inputs.mat<br />
               └── figures/
@@ -947,12 +949,15 @@ methods:
             <h3 className="text-xl font-bold text-gray-900 mb-3">Storage and Application</h3>
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
               <p className="text-blue-700 text-sm">
-                Results are stored in the stereo record&apos;s <code className="bg-blue-100 px-1 rounded">self_cal</code>{' '}
-                block inside <code className="bg-blue-100 px-1 rounded">stereo_model_pinhole.mat</code> --
-                not a sidecar file and not <code className="bg-blue-100 px-1 rounded">config.yaml</code>.
-                Subsequent stereo reconstruction applies the stored sheet automatically, so no extra
-                step is needed. Regenerating the stereo model clears the block -- re-run
-                self-calibration after recalibrating.
+                The correction is baked into both cameras&apos; extrinsics: the recovered sheet becomes the
+                model&apos;s Z = 0 plane and <code className="bg-blue-100 px-1 rounded">stereo_model_pinhole.mat</code> is
+                overwritten in place. Its <code className="bg-blue-100 px-1 rounded">self_cal</code> block records the total
+                sheet offset and tilt, the last run&apos;s correction, and how many runs have been baked --
+                not a sidecar file and not <code className="bg-blue-100 px-1 rounded">config.yaml</code>. Running again refines the
+                bake; the panel shows that run&apos;s correction and the total separately. Stereo
+                reconstruction needs no extra step. Regenerating the stereo model clears the bake -- re-run
+                self-calibration after recalibrating. There is one sheet per stereo model, so every
+                dataset applied with that model uses it.
               </p>
             </div>
 
@@ -962,7 +967,7 @@ methods:
               are written beside the model, shareable with the dataset.
             </p>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-              &lt;calibration_source&gt;/calibration/stereo_cam1_cam2/figures/self_cal/
+              &lt;calibration_source&gt;/calibration/stereo_&lt;board&gt;_cam1_cam2/figures/self_cal/
             </div>
           </Section>
 

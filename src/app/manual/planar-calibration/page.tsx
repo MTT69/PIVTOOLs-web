@@ -180,10 +180,12 @@ export default function PlanarCalibrationPage() {
                 <code className="bg-yellow-100 px-1 rounded">config.yaml</code> is a four-key pointer saying which
                 source and which method are active. Image format, board geometry, and the rig{' '}
                 <code className="bg-yellow-100 px-1 rounded">dt</code> live in a per-source sidecar at{' '}
-                <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>. Create one
+                <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>. A <code className="bg-yellow-100 px-1 rounded">.set</code> or <code className="bg-yellow-100 px-1 rounded">.cine</code> source is a single file, so its calibration
+                gets its own folder beside it, <code className="bg-yellow-100 px-1 rounded">&lt;parent&gt;/calibration/&lt;file name&gt;/</code>, and several such files in one
+                folder never share settings or models. Create one
                 with <code className="bg-yellow-100 px-1 rounded">pivtools-cli init-settings --source &lt;dir&gt;</code>{' '}
                 or by filling in the calibration tab. The image format is required when the settings are read and{' '}
-                <code className="bg-yellow-100 px-1 rounded">rig.dt</code> when a model is generated, so a missing
+                <code className="bg-yellow-100 px-1 rounded">rig.dt</code> when a model is generated (it must be greater than zero), so a missing
                 value stops the run instead of quietly defaulting.
               </p>
             </div>
