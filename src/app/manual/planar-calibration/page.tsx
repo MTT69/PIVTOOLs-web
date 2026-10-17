@@ -419,11 +419,11 @@ image:
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <ol className="space-y-2 mb-6">
               {[
-                "Set the Calibration Images Location (one reference image is enough)",
+                "Set the Calibration Images Location (one reference image is enough). With no images on disk, switch \"Use calibration images\" off and set the Calibration Folder instead -- the model is saved there and the origin is typed in px",
                 "Enter dt (seconds) and px_per_mm -- the two-point measure helper can fill px_per_mm from a known distance",
                 "Click \"Pick Origin\" and click the world origin on the image (or type Origin X/Y in px); optionally type the origin's world position in mm",
                 "Set the +X and +Y directions (defaults +X right, +Y up)",
-                "Click \"Generate Model\" -- the model and a proof figure are saved into the calibration source folder",
+                "Click \"Generate Model\" -- the model and a proof figure are saved into the calibration source folder (no proof figure with images off)",
                 "Click \"Calibrate Vectors\" to apply (instantaneous or ensemble)",
                 "Click \"Set as Active\" to make this the active method",
               ].map((step, idx) => (
