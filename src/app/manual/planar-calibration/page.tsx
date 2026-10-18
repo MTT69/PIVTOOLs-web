@@ -167,7 +167,7 @@ export default function PlanarCalibrationPage() {
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Enter board parameters: <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_cols</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_rows</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dot_spacing_mm</code> (dotboard) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">squares_h/v</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">square_size</code> (ChArUco). Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">rig.dt</code> to the time between laser pulses in seconds. It is required before a model can be generated and is never defaulted.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Click <strong>Detect One</strong> to verify detection on a single frame before running the full sequence. Detected dots/corners are overlaid in the viewer.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Generate Model</strong>. Screen on RMS reprojection error below <strong>0.5 px</strong>; a higher value means something is wrong, a lower one does not prove the parameters are determined (see <a href="/manual/calibration-quality#judging" className="underline">Calibration Quality</a>).</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Set as Active is the only thing that changes the active method -- opening or editing a tab never does; the tab list marks the active one. A running Calibrate Vectors job keeps going if you switch tab and can be cancelled from its progress bar (frames already written stay on disk). Multi-camera setups with shared features also need Global Coordinates -- see the bottom of this page.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Set as Active is the only thing that changes the active method -- opening or editing a tab never does; the tab list marks the active one. A running Calibrate Vectors job keeps going if you switch tab and can be cancelled from its progress bar (frames already written stay on disk). The progress bar shows the dt it calibrated with and whether that came from the model or the request. Multi-camera setups with shared features also need Global Coordinates -- see the bottom of this page.</span></li>
             </ol>
           </motion.div>
 
@@ -178,7 +178,10 @@ export default function PlanarCalibrationPage() {
                 <strong>Calibration settings live beside your images, not in config.yaml.</strong> The{' '}
                 <code className="bg-yellow-100 px-1 rounded">calibration:</code> block in{' '}
                 <code className="bg-yellow-100 px-1 rounded">config.yaml</code> is a four-key pointer saying which
-                source and which method are active. Image format, board geometry, and the rig{' '}
+                source and which method are active. <code className="bg-yellow-100 px-1 rounded">calibration.active</code> is
+                required. A config without it, or with a name that is not a calibration method, stops with an error
+                naming the allowed values instead of assuming one. Commands and requests that name no board use the
+                board of the active method. Image format, board geometry, and the rig{' '}
                 <code className="bg-yellow-100 px-1 rounded">dt</code> live in a per-source sidecar at{' '}
                 <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>. A <code className="bg-yellow-100 px-1 rounded">.set</code> or <code className="bg-yellow-100 px-1 rounded">.cine</code> source is a single file, so its calibration
                 gets its own folder beside it, <code className="bg-yellow-100 px-1 rounded">&lt;parent&gt;/calibration/&lt;file name&gt;/</code>, and several such files in one
@@ -263,7 +266,11 @@ export default function PlanarCalibrationPage() {
               direct paths to the calibration image locations (the &quot;Calibration Images
               Location&quot; input on each tab). When{' '}
               <code className="bg-gray-100 px-2 py-1 rounded text-sm">use_camera_subfolders</code> is
-              enabled, per-camera folders are appended to the source path.
+              enabled, per-camera folders are appended to the source path. A single-camera setup
+              (camera count 1) never uses a calibration subfolder. Its images are read from the source
+              folder itself, the subfolder switch is hidden, and any leftover subfolder names from an
+              earlier multi-camera session are removed when the settings are saved. With several cameras
+              and the switch off, every camera&apos;s images sit in the one folder.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -302,10 +309,10 @@ export default function PlanarCalibrationPage() {
                   {[
                     { setting: "Calibration Sources", yaml: "calibration_sources", desc: "Direct paths to calibration image locations" },
                     { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib%05d.tif)" },
-                    { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process. Leave blank to use every image found (auto-count)" },
+                    { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process. Leave blank to use every image found. The tab then shows the count and where it came from, e.g. \"auto: 19 (from files found)\" (or .set index, .cine header, saved detections)" },
                     { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset)" },
-                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0" },
-                    { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Append per-camera folders to the source path" },
+                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set it in settings.yaml (the tabs have no switch for it)" },
+                    { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Append per-camera folders to the source path (multi-camera only; ignored and hidden for one camera)" },
                     { setting: "Subfolder Names", yaml: "camera_subfolders", desc: "Custom folder names (default Cam1, Cam2, ...)" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -316,6 +323,17 @@ export default function PlanarCalibrationPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <h5 className="font-semibold text-blue-800 mb-2">What Validation Tells You</h5>
+              <ul className="text-blue-700 text-sm space-y-1">
+                <li><strong>Did you mean:</strong> when the format matches no file, the suggestion is built from the files in the folder. The frame number is the one number that changes from file to file, and its zero padding is copied exactly (<code className="bg-blue-100 px-1 rounded">Cam1_00001.tif</code> suggests <code className="bg-blue-100 px-1 rounded">Cam1_%05d.tif</code>). If no single number can be identified, there is no suggestion and the message says why (&quot;could not tell which number is the frame index&quot;).</li>
+                <li><strong>Start index:</strong> files numbered from 0 under a 1-based setting (or the reverse) give &quot;Files start at 0 but the start index is 1 — switch to 0-based indexing&quot;. Set <code className="bg-blue-100 px-1 rounded">zero_based_indexing</code> in the settings sidecar to match.</li>
+                <li><strong>Every view is checked:</strong> with Number of Views blank, validation checks the whole range detection will read, not just the first file.</li>
+                <li><strong>Unreadable containers:</strong> a <code className="bg-blue-100 px-1 rounded">.set</code> or <code className="bg-blue-100 px-1 rounded">.cine</code> whose image count cannot be read fails validation with the file name and the reason.</li>
+                <li><strong>Unknown frame count:</strong> if the viewer cannot count the frames it still shows them, as <code className="bg-blue-100 px-1 rounded">N / ?</code> with the reason underneath.</li>
+              </ul>
             </div>
 
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
@@ -425,7 +443,7 @@ image:
                 "Enter dt (seconds) and px_per_mm -- the two-point measure helper can fill px_per_mm from a known distance",
                 "Click \"Pick Origin\" and click the world origin on the image (or type Origin X/Y in px); optionally type the origin's world position in mm",
                 "Set the +X and +Y directions (defaults +X right, +Y up)",
-                "Click \"Generate Model\" -- the model and a proof figure are saved into the calibration source folder (no proof figure with images off)",
+                "Click \"Generate Model\" -- the model and a proof figure are saved into the calibration source folder (no proof figure with images off). A saved model that carries no dt shows \"dt missing — regenerate\" in its results card",
                 "Click \"Calibrate Vectors\" to apply (instantaneous or ensemble)",
                 "Click \"Set as Active\" to make this the active method",
               ].map((step, idx) => (
@@ -654,9 +672,17 @@ methods:
             <p className="text-gray-700 mb-3">
               Available dictionaries: <code className="bg-gray-100 px-1 rounded text-sm">DICT_4X4</code>,{' '}
               <code className="bg-gray-100 px-1 rounded text-sm">DICT_5X5</code>,{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">DICT_6X6</code>,{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">DICT_7X7</code> -- each with 50, 100, 250, or 1000 markers.
+              <code className="bg-gray-100 px-1 rounded text-sm">DICT_6X6</code> -- each with 50, 100, 250, or 1000 markers.
               Larger dictionaries support more unique markers; smaller bit sizes detect faster.
+            </p>
+            <p className="text-gray-700 mb-3">
+              When a single frame fails to detect (<strong>Detect One</strong> or a frame preview), the
+              error says why. With no markers in the chosen dictionary it tries all twelve and names the
+              one the board was printed with, e.g. &quot;board not detected — no markers with DICT_4X4_1000;
+              48 found with DICT_5X5_100 — check the dictionary&quot;. Marker ids larger than the board
+              can hold give &quot;… check the squares count&quot;, and an image with no ArUco markers at all
+              says so. Full Detect Dots and Generate runs do not run it on every view, because it repeats
+              detection for every dictionary.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
@@ -866,12 +892,21 @@ methods:
                 number of views are also blank, because they were never part of the calibration.
               </p>
             </div>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-700 text-sm">
+                <strong>A damaged inputs.mat is reported, never overwritten.</strong> If the file
+                exists but cannot be read, the tab shows &quot;Could not read saved detections: …&quot;
+                with the file path, and Detect Dots and Generate refuse to replace it. Delete the file,
+                then press <strong>Detect Dots</strong> to rebuild it.
+              </p>
+            </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Tolerant Detection</h3>
             <p className="text-gray-700 mb-6">
               A view that fails detection is dropped and reported per-view -- it never aborts the
               solve. A camera only fails if <em>no</em> image detects (almost always a wrong path,
-              format, or board parameter).
+              format, or board parameter). With several cameras, the result reads &quot;N of M cameras
+              succeeded&quot; and lists each camera&apos;s RMS or error.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Image Caching</h3>
@@ -967,12 +1002,12 @@ pivtools-cli apply-calibration --all-paths`}
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { flag: "--board", desc: "Board / method: charuco, dotboard, stepped, scale_factor", def: "From config" },
+                    { flag: "--board", desc: "Board / method: charuco, dotboard, stepped, scale_factor", def: "Board of calibration.active (must be set)" },
                     { flag: "--camera", desc: "Camera number", def: "All cameras" },
                     { flag: "--source", desc: "Calibration source dir (where the models live)", def: "From config" },
                     { flag: "--type-name", desc: "Data type (instantaneous / ensemble)", def: "instantaneous" },
                     { flag: "--model-type", desc: "Which record to load when several exist: pinhole, polynomial, polynomial3d, scale_factor", def: "From model" },
-                    { flag: "--dt", desc: "Time between frames (seconds)", def: "From config" },
+                    { flag: "--dt", desc: "Time between frames (seconds)", def: "dt stamped in the model" },
                     { flag: "--all-paths", desc: "Apply to all source paths", def: "Off" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -1013,8 +1048,8 @@ calibration:
     - /data/experiment/calibration
   source: ''                  # '' means use calibration_sources[source_idx]
   source_idx: 0
-  active: dotboard            # charuco | dotboard | stepped | scale_factor
-                              # | stereo_charuco | stereo_dotboard | stepped_stereo
+  active: dotboard            # REQUIRED. charuco | dotboard | scale_factor
+                              # | stereo_charuco | stereo_dotboard | stereo_stepped
 
 # ============================================================
 # <source>/calibration/settings.yaml -- everything else.

@@ -163,7 +163,9 @@ export default function StereoCalibrationPage() {
                 <strong>Calibration settings live beside your images, not in config.yaml.</strong> The{' '}
                 <code className="bg-yellow-100 px-1 rounded">calibration:</code> block in{' '}
                 <code className="bg-yellow-100 px-1 rounded">config.yaml</code> is a four-key pointer saying which
-                source and which method are active. Image format, board geometry, and the rig{' '}
+                source and which method are active. <code className="bg-yellow-100 px-1 rounded">calibration.active</code> is
+                required. A config without it, or with a name that is not a calibration method, stops with an error
+                naming the allowed values. Image format, board geometry, and the rig{' '}
                 <code className="bg-yellow-100 px-1 rounded">dt</code> live in a per-source sidecar at{' '}
                 <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>. A <code className="bg-yellow-100 px-1 rounded">.set</code> or <code className="bg-yellow-100 px-1 rounded">.cine</code> source is a single file, so its calibration
                 gets its own folder beside it, <code className="bg-yellow-100 px-1 rounded">&lt;parent&gt;/calibration/&lt;file name&gt;/</code>, and several such files in one
@@ -304,6 +306,16 @@ export default function StereoCalibrationPage() {
               sidecar and name them in <code className="bg-gray-100 px-1 rounded text-sm">image.camera_subfolders</code>.
               There is no layout-ordering switch.
             </p>
+            <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
+              <p className="text-blue-700 text-sm">
+                <strong>Both cameras must have the same number of views.</strong> Views are paired by
+                index, so with Number of Views blank each camera is counted and unequal counts stop
+                validation and Detect with &quot;Camera 1 has 20 views, camera 2 has 19 -- calibration
+                pairs views by index, so the counts must match&quot;. Remove the unmatched image or enter
+                the count explicitly (an explicit count applies to both cameras). When the counts match,
+                the field shows the count and its source, e.g. &quot;auto: 20 (from files found)&quot;.
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-blue-50 rounded-lg p-4">
                 <h5 className="font-semibold text-blue-800 mb-2">use_camera_subfolders: true</h5>
@@ -428,7 +440,7 @@ image:
                 "Detect dots on the datum frame, then click origin / +X / +Y on camera 1 to define the world frame",
                 "Click \"Generate Model\" to compute stereo calibration",
                 "Review stereo RMS error, shared-view count, relative angle, and baseline distance",
-                "Click \"Calibrate Vectors\" to apply calibration to PIV data",
+                "Click \"Calibrate Vectors\" to apply calibration to PIV data; the progress bar shows the dt used and whether it came from the model or the request",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
@@ -538,7 +550,9 @@ methods:
               Same as Stereo Dotboard: configure images, set camera pair and board parameters,
               generate model, review quality metrics, and apply to vectors. World-frame clicks on
               camera 1 are optional here: with none, the absolute corner ids give the board&apos;s
-              default frame. Results label each camera in the model&apos;s solve order. Detections cache in{' '}
+              default frame. Results label each camera in the model&apos;s solve order. A frame that fails
+              detection names the likely cause: the dictionary the markers were actually printed with, a
+              squares count too small for the marker ids seen, or no ArUco markers at all. Detections cache in{' '}
               <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code> with the same
               Re-detect override.
             </p>
@@ -687,7 +701,7 @@ methods:
               title="Stereo Stepped settings"
               code={`# config.yaml
 calibration:
-  active: stepped_stereo
+  active: stereo_stepped
 
 # <source>/calibration/settings.yaml
 rig:
@@ -1028,7 +1042,7 @@ pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { flag: "--board", desc: "Stereo board: charuco, dotboard, or stepped", def: "From config" },
+                    { flag: "--board", desc: "Stereo board: charuco, dotboard, or stepped", def: "Board of calibration.active (must be set)" },
                     { flag: "--camera-pair", desc: "Camera pair as \"1,2\"", def: "From config" },
                     { flag: "--dt", desc: "Time between frames (seconds)", def: "From model / config" },
                     { flag: "--all-paths", desc: "Derive every base_path from config (like the GUI)", def: "off" },
@@ -1077,7 +1091,7 @@ calibration:
     - /data/experiment/calibration
   source: ''
   source_idx: 0
-  active: stereo_dotboard   # stereo_dotboard | stereo_charuco | stepped_stereo
+  active: stereo_dotboard   # REQUIRED. stereo_dotboard | stereo_charuco | stereo_stepped
 
 # ============================================================
 # <source>/calibration/settings.yaml
@@ -1148,7 +1162,7 @@ methods:
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {[
-                      { gui: "Active Method", yaml: "config.yaml -> calibration.active", values: "stereo_dotboard, stereo_charuco, or stepped_stereo" },
+                      { gui: "Active Method", yaml: "config.yaml -> calibration.active", values: "stereo_dotboard, stereo_charuco, or stereo_stepped; required (missing or unknown stops with an error)" },
                       { gui: "Camera 1", yaml: "settings.yaml -> rig.camera_pair[0]", values: "Integer (1-based)" },
                       { gui: "Camera 2", yaml: "settings.yaml -> rig.camera_pair[1]", values: "Integer (1-based)" },
                       { gui: "dt", yaml: "settings.yaml -> rig.dt", values: "Float (seconds); required, never defaulted" },
@@ -1158,7 +1172,7 @@ methods:
                       { gui: "Squares H", yaml: "settings.yaml -> methods.charuco.squares_h", values: "Integer; required" },
                       { gui: "Squares V", yaml: "settings.yaml -> methods.charuco.squares_v", values: "Integer; required" },
                       { gui: "Square Size", yaml: "settings.yaml -> methods.charuco.square_size", values: "Float (metres); required" },
-                      { gui: "ArUco Dictionary", yaml: "settings.yaml -> methods.charuco.aruco_dict", values: "DICT_{4-7}X{4-7}_{50-1000}" },
+                      { gui: "ArUco Dictionary", yaml: "settings.yaml -> methods.charuco.aruco_dict", values: "DICT_{4,5,6}X{4,5,6}_{50,100,250,1000} (same N twice, e.g. DICT_5X5_100)" },
                       { gui: "Step Height (mm)", yaml: "settings.yaml -> methods.stepped.step_height_mm", values: "Float (mm); required" },
                       { gui: "Board Thickness (mm)", yaml: "settings.yaml -> methods.stepped.board_thickness_mm", values: "Float (mm)" },
                       { gui: "Stereo Geometry", yaml: "settings.yaml -> methods.stepped_stereo.stereo_config", values: "auto, same_side, or transmission" },

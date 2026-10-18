@@ -289,7 +289,7 @@ export default function CLIReferencePage() {
       command: 'pivtools-cli apply-calibration',
       description: 'Apply a mono model to vectors (pixels to m/s)',
       options: [
-        { flag: '--board', description: 'Model type: charuco | dotboard | stepped | scale_factor' },
+        { flag: '--board', description: 'Model type: charuco | dotboard | stepped | scale_factor (default: the board of calibration.active, which must then be set)' },
         { flag: '--camera', description: 'Camera number (default: all)' },
         { flag: '--source', description: 'Calibration source directory' },
         { flag: '--dt', description: 'Time between frames (s)' },
@@ -311,7 +311,7 @@ export default function CLIReferencePage() {
       command: 'pivtools-cli apply-stereo',
       description: 'Stereo 3D reconstruction (ux, uy, uz)',
       options: [
-        { flag: '--board', description: 'Stereo model type: charuco | dotboard | stepped' },
+        { flag: '--board', description: 'Stereo model type: charuco | dotboard | stepped (default: the board of calibration.active, which must then be set)' },
         { flag: '--camera-pair', description: 'Camera pair as "1,2" (default: from config)' },
         { flag: '--source', description: 'Calibration source directory' },
         { flag: '--dt', description: 'Time between frames (s)' },
@@ -336,7 +336,7 @@ export default function CLIReferencePage() {
       command: 'pivtools-cli self-calibrate',
       description: 'Stereo self-calibration to correct laser-sheet misalignment (Wieneke disparity minimisation)',
       options: [
-        { flag: '--board', description: 'Stereo model type: charuco or dotboard' },
+        { flag: '--board', description: 'Stereo model type: charuco or dotboard (default: the board of calibration.active, which must then be set)' },
         { flag: '--camera-pair', description: 'Camera pair as "1,2" (default: from config)' },
         { flag: '--source', description: 'Calibration source directory (stereo model location)' },
         { flag: '--base-path-idx', description: 'Index into config.base_paths for the particle images' },
@@ -357,7 +357,7 @@ export default function CLIReferencePage() {
       command: 'pivtools-cli global-frame',
       description: 'Bake the multi-camera global frame (datum + overlap from the calibration settings sidecar) into each model',
       options: [
-        { flag: '--board', description: 'Model type: charuco | dotboard | scale_factor' },
+        { flag: '--board', description: 'Model type: charuco | dotboard | scale_factor (default: the board of calibration.active, which must then be set)' },
         { flag: '--source', description: 'Calibration source directory (models live here)' },
         { flag: '--model-type', description: 'pinhole | polynomial | polynomial3d | scale_factor' },
       ],

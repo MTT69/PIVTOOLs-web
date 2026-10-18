@@ -562,6 +562,10 @@ export default function ImageConfigurationPage() {
                 <p className="text-gray-600 mb-3">
                   Set <code className="bg-gray-200 px-1 rounded">start_index: 0</code> if files begin at 0
                   (e.g. <code className="bg-gray-200 px-1 rounded">B00000.tif</code>). Default is 1.
+                  Validation reads the first frame number from all the matching files. When it differs
+                  from the start index it says so (&quot;Files start at 0 but the start index is 1 — switch
+                  to 0-based indexing&quot;), and when that is why the first or last frame is missing, a{' '}
+                  <strong>Switch to 0-based</strong> (or 1-based) button sets the start index for you.
                 </p>
                 <YamlDropdown
                   code={`images:
@@ -860,9 +864,9 @@ paths:
             <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
               <h4 className="text-lg font-semibold text-blue-800 mb-3">Common Issues</h4>
               <ul className="text-blue-700 space-y-1 text-sm">
-                <li>-- <strong>Files not found:</strong> Check source path and filename pattern (capitalisation, padding, underscores).</li>
+                <li>-- <strong>Files not found:</strong> Check source path and filename pattern (capitalisation, padding, underscores). The &quot;Did you mean&quot; suggestion uses the number that changes between files as the frame number and copies its zero padding exactly. When it cannot tell which number that is, it gives no suggestion and says why.</li>
                 <li>-- <strong>Wrong count:</strong> Verify num_images matches actual file count.</li>
-                <li>-- <strong>First file missing:</strong> Check start_index (0 vs 1).</li>
+                <li>-- <strong>First file missing:</strong> Check start_index (0 vs 1). The error adds the start-index hint and the switch button when the files start at the other value.</li>
                 <li>-- <strong>RAW formats:</strong> .raw/.cr2/.nef/.arw are read via rawpy, a core dependency -- no extra install needed.</li>
               </ul>
             </div>
