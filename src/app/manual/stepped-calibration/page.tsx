@@ -592,7 +592,6 @@ pivtools-cli statistics --source-endpoint stereo`}
   image_format: calib%05d.tif   # REQUIRED, no default
   image_type: standard          # REQUIRED
   n_views: 19
-  start_index: 1
 
 rig:
   camera_pair: [1, 2]

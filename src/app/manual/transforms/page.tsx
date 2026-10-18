@@ -161,7 +161,7 @@ export default function TransformsPage() {
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h4>
                 <FeatureList items={[
                   "Calibrated instantaneous, ensemble, or merged data",
-                  "Not applicable to statistics output or stereo (3C) fields",
+                  "Not applicable to statistics output; stereo (3C) fields are transformed from the CLI only",
                 ]} />
               </div>
 
@@ -299,6 +299,10 @@ pivtools-cli transform --camera 1
 
 # Transform merged data
 pivtools-cli transform --source-endpoint merged -o flip_lr
+
+# Transform stereo (3C) data in stereo_calibrated/.../Cam1_Cam2. One op list for the pair:
+# cameras with different pending transforms in config.yaml stop with an error.
+pivtools-cli transform --source-endpoint stereo -o flip_ud
 
 # Process specific paths only
 pivtools-cli transform -p 0,1`}

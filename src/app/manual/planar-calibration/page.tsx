@@ -385,7 +385,6 @@ image:
   image_format: calib%05d.tif   # REQUIRED, no default
   image_type: standard          # REQUIRED
   n_views: 19
-  start_index: 1
   zero_based_indexing: false
   use_camera_subfolders: true
   camera_subfolders: ["Cam1", "Cam2"]`}
@@ -1059,7 +1058,6 @@ image:
   image_format: calib%05d.tif # REQUIRED at read; no default
   image_type: standard        # REQUIRED. standard | cine | lavision_set | lavision_im7
   n_views: 19                 # optional; frame-count auto-detect is the fallback
-  start_index: 1
   zero_based_indexing: false
   use_camera_subfolders: true
   camera_subfolders: ["Cam1", "Cam2"]
