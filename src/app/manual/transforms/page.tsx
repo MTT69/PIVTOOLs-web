@@ -161,7 +161,7 @@ export default function TransformsPage() {
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h4>
                 <FeatureList items={[
                   "Calibrated instantaneous, ensemble, or merged data",
-                  "Not applicable to statistics output; stereo (3C) fields are transformed from the CLI only",
+                  "Not applicable to statistics output or stereo (3C) fields (not supported yet, GUI or CLI)",
                 ]} />
               </div>
 
@@ -300,10 +300,6 @@ pivtools-cli transform --camera 1
 # Transform merged data
 pivtools-cli transform --source-endpoint merged -o flip_lr
 
-# Transform stereo (3C) data in stereo_calibrated/.../Cam1_Cam2. One op list for the pair:
-# cameras with different pending transforms in config.yaml stop with an error.
-pivtools-cli transform --source-endpoint stereo -o flip_ud
-
 # Process specific paths only
 pivtools-cli transform -p 0,1`}
             />
@@ -332,7 +328,7 @@ pivtools-cli transform -p 0,1`}
               code={`transforms:
   base_path_idx: 0          # Which base_path (GUI only)
   type_name: instantaneous  # "instantaneous" or "ensemble"
-  source_endpoint: regular  # "regular", "merged", or "stereo"
+  source_endpoint: regular  # "regular" or "merged" ("stereo" is refused)
   cameras:
     1:
       operations:
@@ -358,7 +354,7 @@ pivtools-cli transform -p 0,1`}
                   {[
                     { param: 'base_path_idx', type: 'int', desc: 'Index into base_paths (0-indexed, GUI only)' },
                     { param: 'type_name', type: 'string', desc: '"instantaneous" or "ensemble"' },
-                    { param: 'source_endpoint', type: 'string', desc: '"regular" (per-camera), "merged", or "stereo"' },
+                    { param: 'source_endpoint', type: 'string', desc: '"regular" (per-camera) or "merged". "stereo" is refused: stereo transforms are not supported yet' },
                     { param: 'cameras.N.operations', type: 'list', desc: 'Ordered list of transforms for camera N' },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
