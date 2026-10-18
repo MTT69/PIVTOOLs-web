@@ -536,7 +536,9 @@ methods:
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <p className="text-gray-700 mb-4">
               Same as Stereo Dotboard: configure images, set camera pair and board parameters,
-              generate model, review quality metrics, and apply to vectors. Detections cache in{' '}
+              generate model, review quality metrics, and apply to vectors. World-frame clicks on
+              camera 1 are optional here: with none, the absolute corner ids give the board&apos;s
+              default frame. Results label each camera in the model&apos;s solve order. Detections cache in{' '}
               <code className="bg-gray-100 px-1 rounded text-sm">inputs.mat</code> with the same
               Re-detect override.
             </p>

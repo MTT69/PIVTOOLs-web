@@ -167,7 +167,7 @@ export default function PlanarCalibrationPage() {
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Enter board parameters: <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_cols</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_rows</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dot_spacing_mm</code> (dotboard) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">squares_h/v</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">square_size</code> (ChArUco). Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">rig.dt</code> to the time between laser pulses in seconds. It is required before a model can be generated and is never defaulted.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Click <strong>Detect One</strong> to verify detection on a single frame before running the full sequence. Detected dots/corners are overlaid in the viewer.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Generate Model</strong>. Screen on RMS reprojection error below <strong>0.5 px</strong>; a higher value means something is wrong, a lower one does not prove the parameters are determined (see <a href="/manual/calibration-quality#judging" className="underline">Calibration Quality</a>).</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Multi-camera setups with shared features also need Global Coordinates -- see the bottom of this page.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Set as Active is the only thing that changes the active method -- opening or editing a tab never does; the tab list marks the active one. A running Calibrate Vectors job keeps going if you switch tab and can be cancelled from its progress bar (frames already written stay on disk). Multi-camera setups with shared features also need Global Coordinates -- see the bottom of this page.</span></li>
             </ol>
           </motion.div>
 
@@ -302,7 +302,7 @@ export default function PlanarCalibrationPage() {
                   {[
                     { setting: "Calibration Sources", yaml: "calibration_sources", desc: "Direct paths to calibration image locations" },
                     { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib%05d.tif)" },
-                    { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process" },
+                    { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process. Leave blank to use every image found (auto-count)" },
                     { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset)" },
                     { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0" },
                     { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Append per-camera folders to the source path" },
@@ -662,9 +662,11 @@ methods:
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <p className="text-gray-700 mb-4">
               Same as Dotboard: configure images, set board parameters, generate model, review RMS,
-              apply to vectors, and set as active. For a single camera the origin/+X/+Y clicks
-              define the world frame exactly as on the dotboard tab (clicks snap to detected
-              corners). Detection itself needs no clicks -- the corner ids fix the grid.
+              apply to vectors, and set as active. World-frame clicks are <strong>optional</strong> for
+              ChArUco: the corner ids are absolute, so with no clicks the model uses the board&apos;s
+              default frame (origin at the lowest-index corner, axes along the board). To place the
+              origin elsewhere, click origin/+X/+Y on the datum frame as on the dotboard tab (clicks
+              snap to detected corners); Generate waits while a pick is only partly done.
             </p>
 
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
