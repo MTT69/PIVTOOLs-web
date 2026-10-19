@@ -213,9 +213,9 @@ export default function CLIReferencePage() {
         { flag: '--n-views', description: 'Number of calibration views to use' },
         { flag: '--image-format', description: 'Calibration image format override' },
         { flag: '--squares-h / --squares-v / --square-size / --marker-ratio / --aruco-dict / --min-corners', description: 'Board geometry overrides (square size in metres)' },
-        { flag: '--world-frame', description: '"default" or path to clicks JSON' },
+        { flag: '--world-frame', description: '"default" or path to clicks JSON. The JSON keeps origin_mm' },
         { flag: '--no-figures', description: 'Skip the archival proof figures saved beside the model' },
-        { flag: '--force', description: 'Recompute even if a model already exists' },
+        { flag: '--force', description: 'Re-detect even when the stored detections match. The model is always re-solved' },
       ],
       examples: [
         'pivtools-cli detect-charuco',
@@ -229,11 +229,12 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--camera-pair', description: 'Camera pair as "1,2" (default: from config)' },
         { flag: '--source', description: 'Calibration source directory' },
-        { flag: '--model-type', description: 'pinhole or polynomial' },
+        { flag: '--model-type', description: 'pinhole only. Any other value is refused' },
         { flag: '--distortion', description: 'standard | rational | tilted' },
         { flag: '--n-views', description: 'Number of calibration views to use' },
+        { flag: '--world-frame / --world-frame-cam2', description: 'Clicks JSON for camera 1 and camera 2. Both keep origin_mm. Stereo ChArUco needs no picks' },
         { flag: '--no-figures', description: 'Skip the archival proof figures' },
-        { flag: '--force', description: 'Recompute even if a model already exists' },
+        { flag: '--force', description: 'Re-detect even when the stored detections match. The model is always re-solved' },
       ],
       examples: [
         'pivtools-cli detect-stereo',
@@ -290,13 +291,13 @@ export default function CLIReferencePage() {
       description: 'Apply a mono model to vectors (pixels to m/s)',
       options: [
         { flag: '--board', description: 'Model type: charuco | dotboard | stepped | scale_factor (default: the board of calibration.active, which must then be set)' },
-        { flag: '--camera', description: 'Camera number (default: all)' },
+        { flag: '--camera', description: 'Camera number (default: all). Cannot be combined with --all-paths' },
         { flag: '--source', description: 'Calibration source directory' },
         { flag: '--dt', description: 'Time between frames (s)' },
         { flag: '--z-world', description: 'Light-sheet plane Z in mm (default 0.0, which is the calibration-board plane)' },
         { flag: '--tilt-x / --tilt-y', description: 'Sheet tilt in radians, not degrees. The plane is Z = z_world + X*tan(tilt_y) + Y*tan(tilt_x)' },
         { flag: '--uncalibrated-dir / --calibrated-dir', description: 'Explicit input/output vector directories (instead of --all-paths)' },
-        { flag: '--all-paths', description: 'Derive every base_path x camera from config (like the GUI)' },
+        { flag: '--all-paths', description: 'Derive every base_path x camera from config (like the GUI). With a stereo active method this applies the stereo model. For explicit directories use apply-stereo' },
         { flag: '--type-name', description: 'PIV result type for --all-paths (default: instantaneous)' },
         { flag: '--model-type', description: 'pinhole | polynomial | polynomial3d | scale_factor' },
       ],
@@ -477,6 +478,20 @@ export default function CLIReferencePage() {
                 either <code className="bg-yellow-100 px-1 rounded">--all-paths</code>, which derives every base path
                 from the config the way the GUI does, or an explicit input and output directory pair. There is no
                 default, so a bare invocation will not run.
+              </p>
+            </div>
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <p className="text-blue-800 text-sm">
+                <strong>Errors and removed keys.</strong> A failing command prints{' '}
+                <code className="bg-blue-100 px-1 rounded">error: &lt;message&gt;</code> and exits with status 1. The
+                traceback appears only under <code className="bg-blue-100 px-1 rounded">--debug</code> or{' '}
+                <code className="bg-blue-100 px-1 rounded">PIVTOOLS_DEBUG=1</code>. The{' '}
+                <code className="bg-blue-100 px-1 rounded">calibration.source</code> config key is no longer read. Use{' '}
+                <code className="bg-blue-100 px-1 rounded">calibration_sources</code> with{' '}
+                <code className="bg-blue-100 px-1 rounded">source_idx</code>. A config that still contains{' '}
+                <code className="bg-blue-100 px-1 rounded">images.time_resolved</code> or{' '}
+                <code className="bg-blue-100 px-1 rounded">images.pairing_mode</code> is refused, and the error names the
+                replacement keys.
               </p>
             </div>
             <div className="bg-gray-900 rounded-xl p-6 mb-8">

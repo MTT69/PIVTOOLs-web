@@ -162,12 +162,12 @@ export default function PlanarCalibrationPage() {
               <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults -- full reference below</span>
             </div>
             <ol className="space-y-2 text-gray-700">
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Point <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">calibration_sources</code> at the folder holding your calibration images. Per-camera subfolders are opt-in, not the default. Seed the settings sidecar with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli init-settings</code> or fill in the calibration tab.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Point <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">calibration_sources</code> at the folder holding your calibration images. With several cameras, each camera&apos;s images live in <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">Cam&lt;N&gt;/</code> under that folder. Seed the settings sidecar with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli init-settings</code> or fill in the calibration tab.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Pick a method by target type: <strong>Scale Factor</strong> if you have a known px/mm, <strong>Dotboard</strong> for circular dot grids, <strong>ChArUco</strong> for occlusion-tolerant targets, <strong>Polynomial</strong> as a camera model on top of a dotboard or ChArUco detection when a pinhole fit is not flexible enough.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Enter board parameters: <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_cols</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pattern_rows</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">dot_spacing_mm</code> (dotboard) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">squares_h/v</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">square_size</code> (ChArUco). Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">rig.dt</code> to the time between laser pulses in seconds. It is required before a model can be generated and is never defaulted.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Click <strong>Detect One</strong> to verify detection on a single frame before running the full sequence. Detected dots/corners are overlaid in the viewer.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Generate Model</strong>. Screen on RMS reprojection error below <strong>0.5 px</strong>; a higher value means something is wrong, a lower one does not prove the parameters are determined (see <a href="/manual/calibration-quality#judging" className="underline">Calibration Quality</a>).</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Set as Active is the only thing that changes the active method -- opening or editing a tab never does; the tab list marks the active one. A running Calibrate Vectors job keeps going if you switch tab and can be cancelled from its progress bar (frames already written stay on disk). The progress bar shows the dt it calibrated with and whether that came from the model or the request. Multi-camera setups with shared features also need Global Coordinates -- see the bottom of this page.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">6.</span><span>Click <strong>Calibrate Vectors</strong> then <strong>Set as Active</strong>. Set as Active is the only thing that changes the active method -- opening or editing a tab never does; the tab list marks the active one. A running Calibrate Vectors job keeps going if you switch tab and can be cancelled from its progress bar (frames already written stay on disk). The completed card shows the dt used, where it came from, and the output folders. A cancelled job names the folders holding partial frames. If stamping the calibration provenance onto the vectors fails, the job shows a warning and the vectors are kept. On a multi-camera planar rig the button reads &quot;Apply to this dataset (all N cameras)&quot; or &quot;Apply to all M datasets (all N cameras)&quot;, and the apply is refused, naming the camera, if any configured camera has no model. Multi-camera setups with shared features also need Global Coordinates -- see the bottom of this page.</span></li>
             </ol>
           </motion.div>
 
@@ -265,17 +265,22 @@ export default function PlanarCalibrationPage() {
               <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibration_sources</code> holds
               direct paths to the calibration image locations (the &quot;Calibration Images
               Location&quot; input on each tab). When{' '}
-              <code className="bg-gray-100 px-2 py-1 rounded text-sm">use_camera_subfolders</code> is
-              enabled, per-camera folders are appended to the source path. A single-camera setup
-              (camera count 1) never uses a calibration subfolder. Its images are read from the source
-              folder itself, the subfolder switch is hidden, and any leftover subfolder names from an
-              earlier multi-camera session are removed when the settings are saved. With several cameras
-              and the switch off, every camera&apos;s images sit in the one folder.
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">use_camera_subfolders</code> does not
+              apply to standard image formats. Calibration follows the same camera-subfolder rule as PIV
+              processing. With more than one camera, each camera&apos;s images live in{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">Cam&lt;N&gt;/</code> under the source
+              path, or in the folder named by the explicit{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">camera_subfolders</code> entry. A single
+              camera never uses a subfolder, and any leftover subfolder names from an earlier multi-camera
+              session are removed when the settings are saved. <code className="bg-gray-100 px-2 py-1 rounded text-sm">.set</code> and{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">.cine</code> containers never use subfolders, and{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">.im7</code> uses them only when{' '}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">use_camera_subfolders</code> is on.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-blue-50 rounded-lg p-4">
-                <h5 className="font-semibold text-blue-800 mb-2">use_camera_subfolders: false</h5>
+                <h5 className="font-semibold text-blue-800 mb-2">Single camera</h5>
                 <div className="text-xs text-blue-600 font-mono bg-white rounded p-2">
                   calibration_source/<br />
                   ├── calib00001.tif<br />
@@ -284,7 +289,7 @@ export default function PlanarCalibrationPage() {
                 </div>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
-                <h5 className="font-semibold text-green-800 mb-2">use_camera_subfolders: true</h5>
+                <h5 className="font-semibold text-green-800 mb-2">Several cameras</h5>
                 <div className="text-xs text-green-600 font-mono bg-white rounded p-2">
                   calibration_source/<br />
                   ├── Cam1/<br />
@@ -311,9 +316,9 @@ export default function PlanarCalibrationPage() {
                     { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib%05d.tif)" },
                     { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process. Leave blank to use every image found. The tab then shows the count and where it came from, e.g. \"auto: 19 (from files found)\" (or .set index, .cine header, saved detections)" },
                     { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset)" },
-                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set it in settings.yaml (the tabs have no switch for it)" },
-                    { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Append per-camera folders to the source path (multi-camera only; ignored and hidden for one camera)" },
-                    { setting: "Subfolder Names", yaml: "camera_subfolders", desc: "Custom folder names (default Cam1, Cam2, ...)" },
+                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set it in settings.yaml (the tabs have no switch for it). Refused for .set and .cine sources, whose entries are numbered by the reader; set First Frame Number back to 1" },
+                    { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Used only by .im7 (one camera per file in subfolders). Standard formats ignore it, and the subfolder rule above applies instead" },
+                    { setting: "Subfolder Names", yaml: "camera_subfolders", desc: "Explicit folder names for a multi-camera rig (default Cam1, Cam2, ...)" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.setting}</td>
@@ -330,6 +335,7 @@ export default function PlanarCalibrationPage() {
               <ul className="text-blue-700 text-sm space-y-1">
                 <li><strong>Did you mean:</strong> when the format matches no file, the suggestion is built from the files in the folder. The frame number is the one number that changes from file to file, and its zero padding is copied exactly (<code className="bg-blue-100 px-1 rounded">Cam1_00001.tif</code> suggests <code className="bg-blue-100 px-1 rounded">Cam1_%05d.tif</code>). If no single number can be identified, there is no suggestion and the message says why (&quot;could not tell which number is the frame index&quot;).</li>
                 <li><strong>Start index:</strong> files numbered from 0 under a 1-based setting (or the reverse) give &quot;Files start at 0 but the start index is 1 — switch to 0-based indexing&quot;. Set <code className="bg-blue-100 px-1 rounded">zero_based_indexing</code> in the settings sidecar to match.</li>
+                <li><strong>First-frame hint after success:</strong> the 0 versus 1 hint also shows after a successful validation, with a Switch button. Zero-based indexing is refused for <code className="bg-blue-100 px-1 rounded">.set</code> and <code className="bg-blue-100 px-1 rounded">.cine</code> sources, with a message to set First Frame Number back to 1.</li>
                 <li><strong>Every view is checked:</strong> with Number of Views blank, validation checks the whole range detection will read, not just the first file.</li>
                 <li><strong>Unreadable containers:</strong> a <code className="bg-blue-100 px-1 rounded">.set</code> or <code className="bg-blue-100 px-1 rounded">.cine</code> whose image count cannot be read fails validation with the file name and the reason.</li>
                 <li><strong>Unknown frame count:</strong> if the viewer cannot count the frames it still shows them, as <code className="bg-blue-100 px-1 rounded">N / ?</code> with the reason underneath.</li>
@@ -356,8 +362,8 @@ export default function PlanarCalibrationPage() {
               </div>
               <p className="text-purple-700 text-sm">
                 LaVision IM7 files can contain multiple cameras in a single file.
-                Set <code className="bg-purple-100 px-1 rounded">use_camera_subfolders: false</code> for
-                multi-camera IM7 containers. PIVTools extracts each camera frame automatically.
+                Leave <code className="bg-purple-100 px-1 rounded">use_camera_subfolders</code> off for
+                multi-camera IM7 containers, and turn it on only for one camera per file in subfolders. PIVTools extracts each camera frame automatically.
               </p>
             </div>
 
@@ -604,7 +610,8 @@ methods:
                 toggle. The datum and cross-camera ties are picked through the guided
                 &quot;Set Global Coordinates&quot; wizard -- see the{' '}
                 <a href="/manual/global-coordinates" className="underline font-medium">Global
-                Coordinates</a> page. A single camera is a mono solve in the same tab.
+                Coordinates</a> page. A single camera is a mono solve in the same tab. The joint panel has its own{' '}
+                <strong>Set as Active</strong> button, and its <strong>Calibrate Vectors</strong> data type is saved.
               </p>
             </div>
 
@@ -899,6 +906,14 @@ methods:
                 then press <strong>Detect Dots</strong> to rebuild it.
               </p>
             </div>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-700 text-sm">
+                <strong>Stale calibration files are refused.</strong> An <code className="bg-yellow-100 px-1 rounded">inputs.mat</code> sidecar
+                or model record that lacks a field current builds always write is refused with a message naming the file and the
+                field. Sidecars written before 2026-10-18 and joint models written before 2026-08-26 are affected. Delete the
+                file and re-detect or regenerate.
+              </p>
+            </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Tolerant Detection</h3>
             <p className="text-gray-700 mb-6">
@@ -968,7 +983,8 @@ pivtools-cli detect-charuco --model-type pinhole --distortion rational
 # Joint multi-camera solve (ChArUco headless; dotboard clicks come from the GUI wizard)
 pivtools-cli detect-joint --cameras 1,2,3
 
-# Dotboard detection is GUI-only -- it needs the world-frame clicks.`}
+# Dotboard detection is GUI-only -- it needs the world-frame clicks.
+# Detect commands always re-solve; a saved model is never reused.`}
             />
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Step 2: Apply Calibration</h3>
@@ -982,8 +998,11 @@ pivtools-cli apply-calibration --board dotboard --all-paths
 pivtools-cli apply-calibration --board charuco --all-paths
 pivtools-cli apply-calibration --board scale_factor --all-paths
 
-# Specific camera + data type
-pivtools-cli apply-calibration --camera 1 --type-name ensemble --all-paths
+# Ensemble data type
+pivtools-cli apply-calibration --type-name ensemble --all-paths
+
+# One camera needs explicit directories (--camera cannot be combined with --all-paths)
+pivtools-cli apply-calibration --camera 1 --uncalibrated-dir <dir> --calibrated-dir <dir>
 
 # All source paths
 pivtools-cli apply-calibration --all-paths`}
@@ -1002,7 +1021,7 @@ pivtools-cli apply-calibration --all-paths`}
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { flag: "--board", desc: "Board / method: charuco, dotboard, stepped, scale_factor", def: "Board of calibration.active (must be set)" },
-                    { flag: "--camera", desc: "Camera number", def: "All cameras" },
+                    { flag: "--camera", desc: "Camera number. Cannot be combined with --all-paths", def: "All cameras" },
                     { flag: "--source", desc: "Calibration source dir (where the models live)", def: "From config" },
                     { flag: "--type-name", desc: "Data type (instantaneous / ensemble)", def: "instantaneous" },
                     { flag: "--model-type", desc: "Which record to load when several exist: pinhole, polynomial, polynomial3d, scale_factor", def: "From model" },
@@ -1018,6 +1037,11 @@ pivtools-cli apply-calibration --all-paths`}
                 </tbody>
               </table>
             </div>
+
+            <p className="text-gray-700 mb-6">
+              Apply refuses rather than continuing silently when no vector files match, or when an
+              ensemble pass has no coordinates entry. The error says which.
+            </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Complete Workflow</h3>
             <CodeBlock
@@ -1045,7 +1069,6 @@ pivtools-cli apply-calibration --board dotboard --all-paths`}
 calibration:
   calibration_sources:
     - /data/experiment/calibration
-  source: ''                  # '' means use calibration_sources[source_idx]
   source_idx: 0
   active: dotboard            # REQUIRED. charuco | dotboard | scale_factor
                               # | stereo_charuco | stereo_dotboard | stereo_stepped
@@ -1059,8 +1082,8 @@ image:
   image_type: standard        # REQUIRED. standard | cine | lavision_set | lavision_im7
   n_views: 19                 # optional; frame-count auto-detect is the fallback
   zero_based_indexing: false
-  use_camera_subfolders: true
-  camera_subfolders: ["Cam1", "Cam2"]
+  use_camera_subfolders: false # .im7 only
+  camera_subfolders: []        # explicit names; empty means Cam1, Cam2, ...
 
 rig:
   camera: 1

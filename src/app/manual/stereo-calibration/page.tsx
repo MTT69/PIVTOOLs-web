@@ -301,9 +301,16 @@ export default function StereoCalibrationPage() {
             <h3 className="text-xl font-bold text-gray-900 mb-4">Directory Structure</h3>
             <p className="text-gray-700 mb-4">
               Each entry in <code className="bg-gray-100 px-1 rounded text-sm">calibration_sources</code> is a direct
-              path to a folder of calibration images. Per-camera subfolders are opt-in: set{' '}
-              <code className="bg-gray-100 px-1 rounded text-sm">image.use_camera_subfolders</code> in the settings
-              sidecar and name them in <code className="bg-gray-100 px-1 rounded text-sm">image.camera_subfolders</code>.
+              path to a folder of calibration images. Because a stereo pair has two cameras, each camera&apos;s images live in{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">Cam&lt;N&gt;/</code> under that folder, or in the folder
+              named by an explicit <code className="bg-gray-100 px-1 rounded text-sm">image.camera_subfolders</code> entry.
+              This is the same rule PIV processing uses, and{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">image.use_camera_subfolders</code> no longer applies to
+              standard formats. <code className="bg-gray-100 px-1 rounded text-sm">.set</code> and{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">.cine</code> containers never use subfolders, and{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">.im7</code> uses them only when that switch is on.
+              Zero-based indexing is refused for <code className="bg-gray-100 px-1 rounded text-sm">.set</code> and{' '}
+              <code className="bg-gray-100 px-1 rounded text-sm">.cine</code> sources. Set First Frame Number back to 1.
               There is no layout-ordering switch.
             </p>
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-6">
@@ -318,7 +325,7 @@ export default function StereoCalibrationPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-blue-50 rounded-lg p-4">
-                <h5 className="font-semibold text-blue-800 mb-2">use_camera_subfolders: true</h5>
+                <h5 className="font-semibold text-blue-800 mb-2">Camera subfolders (standard formats)</h5>
                 <div className="text-xs text-blue-600 font-mono bg-white rounded p-2">
                   &lt;calibration_source&gt;/<br />
                   ├── Cam1/<br />
@@ -328,7 +335,7 @@ export default function StereoCalibrationPage() {
                 </div>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
-                <h5 className="font-semibold text-green-800 mb-2">use_camera_subfolders: false</h5>
+                <h5 className="font-semibold text-green-800 mb-2">IM7 container, one file for both cameras</h5>
                 <div className="text-xs text-green-600 font-mono bg-white rounded p-2">
                   &lt;calibration_source&gt;/<br />
                   ├── calib_001.tif<br />
@@ -346,7 +353,7 @@ export default function StereoCalibrationPage() {
               </div>
               <p className="text-purple-700 text-sm">
                 LaVision IM7 files can contain both stereo cameras in a single file.
-                Set <code className="bg-purple-100 px-1 rounded">use_camera_subfolders: false</code> and
+                Leave <code className="bg-purple-100 px-1 rounded">use_camera_subfolders</code> off and
                 PIVTools will extract each camera frame automatically.
               </p>
             </div>
@@ -377,8 +384,8 @@ image:
   image_type: standard          # REQUIRED
   n_views: 15                   # calibration views, NOT images.num_images
   zero_based_indexing: false
-  use_camera_subfolders: true
-  camera_subfolders: ["Cam1", "Cam2"]`}
+  use_camera_subfolders: false  # .im7 only
+  camera_subfolders: []         # explicit names; empty means Cam1, Cam2`}
             />
           </Section>
 
@@ -437,10 +444,10 @@ image:
                 "Configure calibration images (format, count, subfolder)",
                 "Set camera pair (e.g. Camera 1 and Camera 2) and dot spacing",
                 "Browse images to verify both camera views show the target",
-                "Detect dots on the datum frame, then click origin / +X / +Y on camera 1 to define the world frame",
-                "Click \"Generate Model\" to compute stereo calibration",
+                "Detect dots on the datum frame, then pick origin, +X and +Y on camera 1 and the same three physical dots on camera 2 (six picks in sequence; the viewer switches to camera 2 after camera 1's +Y)",
+                "Click \"Generate Model\" (disabled until both cameras' picks are complete) to compute stereo calibration",
                 "Review stereo RMS error, shared-view count, relative angle, and baseline distance",
-                "Click \"Calibrate Vectors\" to apply calibration to PIV data; the progress bar shows the dt used and whether it came from the model or the request",
+                "Click \"Calibrate Vectors\" to apply calibration to PIV data; the completed card shows the dt used, where it came from, and the output folders. A cancelled job names the folders holding partial frames, and a provenance-stamp failure shows as a warning while the vectors are kept",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-soton-blue text-white text-sm flex items-center justify-center flex-shrink-0">
@@ -451,12 +458,29 @@ image:
               ))}
             </ol>
 
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-700 text-sm">
+                <strong>Picks are needed on both cameras.</strong> Dotboard grid indices have no
+                global identity, so camera 2&apos;s dots cannot be matched to camera 1&apos;s without its own picks.
+                Pick origin, +X and +Y of the same three physical dots on each camera. Stereo
+                ChArUco needs no picks.
+              </p>
+            </div>
+
             <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
               &lt;calibration_source&gt;/calibration/stereo_&lt;board&gt;_cam1_cam2/<br />
               ├── model/stereo_model_pinhole.mat<br />
               ├── model/inputs.mat<br />
               └── figures/
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+              <p className="text-yellow-700 text-sm">
+                <strong>Stale calibration files are refused.</strong> An <code className="bg-yellow-100 px-1 rounded">inputs.mat</code> sidecar
+                or model record that lacks a field current builds always write is refused with a message naming the file and the
+                field. Sidecars written before 2026-10-18 are affected. Delete the file and re-detect or regenerate.
+              </p>
             </div>
 
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400 mb-4">
@@ -548,8 +572,8 @@ methods:
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <p className="text-gray-700 mb-4">
               Same as Stereo Dotboard: configure images, set camera pair and board parameters,
-              generate model, review quality metrics, and apply to vectors. World-frame clicks on
-              camera 1 are optional here: with none, the absolute corner ids give the board&apos;s
+              generate model, review quality metrics, and apply to vectors. World-frame clicks are
+              optional here (stereo ChArUco needs no picks): with none, the absolute corner ids give the board&apos;s
               default frame. Results label each camera in the model&apos;s solve order. A frame that fails
               detection names the likely cause: the dictionary the markers were actually printed with, a
               squares count too small for the marker ids seen, or no ArUco markers at all. Detections cache in{' '}
@@ -1060,6 +1084,14 @@ pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
               </table>
             </div>
 
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-700 text-sm">
+                <strong>Apply refuses rather than continuing silently</strong> when the two cameras have different
+                vector frame sets, when no vector files match, or when an ensemble pass has no coordinates entry.
+                The error says which.
+              </p>
+            </div>
+
             <h3 className="text-xl font-bold text-gray-900 mb-3">Complete Workflow</h3>
             <CodeBlock
               title="Full Stereo PIV Workflow"
@@ -1089,7 +1121,6 @@ pivtools-cli statistics --source-endpoint stereo`}
 calibration:
   calibration_sources:
     - /data/experiment/calibration
-  source: ''
   source_idx: 0
   active: stereo_dotboard   # REQUIRED. stereo_dotboard | stereo_charuco | stereo_stepped
 
@@ -1102,8 +1133,8 @@ image:
   image_type: standard          # REQUIRED at read
   n_views: 15                   # calibration views (NOT images.num_images)
   zero_based_indexing: false
-  use_camera_subfolders: true
-  camera_subfolders: ["Cam1", "Cam2"]
+  use_camera_subfolders: false  # .im7 only
+  camera_subfolders: []         # explicit names; empty means Cam1, Cam2
 
 rig:
   camera_pair: [1, 2]
