@@ -321,6 +321,8 @@ export default function ImageConfigurationPage() {
                 <p className="text-gray-600 mb-4">
                   Images in camera subfolders (default: <code className="bg-gray-200 px-1 rounded">Cam1</code>, <code className="bg-gray-200 px-1 rounded">Cam2</code>, ...).
                   Override with <code className="bg-gray-200 px-1 rounded">camera_subfolders</code>.
+                  The same rule applies to PIV and to calibration images. <code className="bg-gray-200 px-1 rounded">.set</code> and{' '}
+                  <code className="bg-gray-200 px-1 rounded">.cine</code> containers never use subfolders.
                 </p>
                 <div className="text-sm text-gray-500 bg-white rounded p-3 font-mono">
                   source_path/<br />
@@ -342,6 +344,7 @@ export default function ImageConfigurationPage() {
               <p className="text-blue-700 mb-3">
                 IM7 files can store multiple cameras in one file (<code className="bg-blue-100 px-1 rounded">use_camera_subfolders: false</code>, default)
                 or one camera per file in subdirectories (<code className="bg-blue-100 px-1 rounded">use_camera_subfolders: true</code>).
+                This switch applies to <code className="bg-blue-100 px-1 rounded">.im7</code> only. Standard formats use the camera-count rule above.
               </p>
               <YamlDropdown
                 title="YAML Reference - IM7 Subfolders"
@@ -484,14 +487,15 @@ export default function ImageConfigurationPage() {
             {/* Backward compat note */}
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
               <p className="text-yellow-800 text-sm">
-                <strong>Backward compatibility:</strong> Old config keys (<code className="bg-yellow-100 px-1 rounded">time_resolved</code>,
-                <code className="bg-yellow-100 px-1 rounded mx-1">pairing_mode</code>,
-                <code className="bg-yellow-100 px-1 rounded">zero_based_indexing</code>) are automatically migrated
-                to the new stride-based model on load. New configs should use
-                <code className="bg-yellow-100 px-1 rounded mx-1">pairing_preset</code>,
+                <strong>Old pairing keys are refused.</strong> A config that still contains
+                <code className="bg-yellow-100 px-1 rounded mx-1">images.time_resolved</code> or
+                <code className="bg-yellow-100 px-1 rounded mx-1">images.pairing_mode</code> fails to load, and the error names
+                the replacement keys
                 <code className="bg-yellow-100 px-1 rounded mx-1">start_index</code>,
                 <code className="bg-yellow-100 px-1 rounded mx-1">frame_stride</code>, and
                 <code className="bg-yellow-100 px-1 rounded mx-1">pair_stride</code>.
+                Remove the old keys, or regenerate the file with
+                <code className="bg-yellow-100 px-1 rounded mx-1">pivtools-cli init</code>.
               </p>
             </div>
           </Section>
@@ -562,6 +566,10 @@ export default function ImageConfigurationPage() {
                 <p className="text-gray-600 mb-3">
                   Set <code className="bg-gray-200 px-1 rounded">start_index: 0</code> if files begin at 0
                   (e.g. <code className="bg-gray-200 px-1 rounded">B00000.tif</code>). Default is 1.
+                  Validation reads the first frame number from all the matching files. When it differs
+                  from the start index it says so (&quot;Files start at 0 but the start index is 1 — switch
+                  to 0-based indexing&quot;), and when that is why the first or last frame is missing, a{' '}
+                  <strong>Switch to 0-based</strong> (or 1-based) button sets the start index for you.
                 </p>
                 <YamlDropdown
                   code={`images:
@@ -860,9 +868,10 @@ paths:
             <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
               <h4 className="text-lg font-semibold text-blue-800 mb-3">Common Issues</h4>
               <ul className="text-blue-700 space-y-1 text-sm">
-                <li>-- <strong>Files not found:</strong> Check source path and filename pattern (capitalisation, padding, underscores).</li>
-                <li>-- <strong>Wrong count:</strong> Verify num_images matches actual file count.</li>
-                <li>-- <strong>First file missing:</strong> Check start_index (0 vs 1).</li>
+                <li>-- <strong>Files not found:</strong> Check source path and filename pattern (capitalisation, padding, underscores). The &quot;Did you mean&quot; suggestion uses the number that changes between files as the frame number and copies its zero padding exactly. When it cannot tell which number that is, it gives no suggestion and says why.</li>
+                <li>-- <strong>Wrong count:</strong> Verify num_images matches actual file count. Number of Image Files cannot be saved blank.</li>
+                <li>-- <strong>CINE type with a non-cine file:</strong> the error names the mismatch between the image type and the file.</li>
+                <li>-- <strong>First file missing:</strong> Check start_index (0 vs 1). The error adds the start-index hint and the switch button when the files start at the other value. The hint and its Switch button also show after a successful validation.</li>
                 <li>-- <strong>RAW formats:</strong> .raw/.cr2/.nef/.arw are read via rawpy, a core dependency -- no extra install needed.</li>
               </ul>
             </div>

@@ -463,13 +463,13 @@ methods:
             <ol className="space-y-2 mb-6">
               {[
                 "Set board parameters: dot spacing, step height, board thickness, dt",
-                "Configure calibration images: format, count, source path, camera subfolders",
+                "Configure calibration images: format, count, source path (camera images live in Cam<N>/ or the explicit subfolder entry). With the count blank, both cameras must hold the same number of views (views pair by index); unequal counts are reported and block detection",
                 "Set camera pair (e.g. Camera 1 and Camera 2)",
                 "Browse to the datum frame and click three fiducial points per camera (origin, X-axis, Y-axis)",
                 "Navigate to each non-datum pose and click-to-label one dot per camera",
                 "Once all poses show verified labels, click \"Generate Model\"",
                 "Review per-camera RMS error, relative angle, and baseline distance (there is no joint stereo RMS on this path: the pose is composed, not refitted)",
-                "Click \"Calibrate Vectors\" to apply stereo calibration to PIV data",
+                "Click \"Calibrate Vectors\" to apply stereo calibration to PIV data; the progress bar shows the dt used and where it came from",
                 "Click \"Set as Active\" to make stereo_stepped the active calibration method",
               ].map((step, idx) => (
                 <li key={idx} className="flex items-center gap-3">
@@ -509,7 +509,7 @@ methods:
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Output Directory</h3>
             <div className="text-xs text-gray-600 font-mono bg-gray-50 rounded p-3 mb-4">
-&lt;calibration_source&gt;/calibration/stereo_cam1_cam2/<br />
+&lt;calibration_source&gt;/calibration/stereo_stepped_cam1_cam2/<br />
               ├── model/stereo_model_pinhole.mat<br />
               ├── model/inputs.mat&nbsp;&nbsp;&nbsp;&nbsp;# your fiducial clicks and pose labels<br />
               └── figures/<br />
@@ -580,7 +580,6 @@ pivtools-cli statistics --source-endpoint stereo`}
               code={`calibration:
   calibration_sources:
     - /data/experiment/calibration
-  source: ''            # '' means use calibration_sources[source_idx]
   source_idx: 0
   active: stereo_stepped`}
             />
@@ -592,7 +591,6 @@ pivtools-cli statistics --source-endpoint stereo`}
   image_format: calib%05d.tif   # REQUIRED, no default
   image_type: standard          # REQUIRED
   n_views: 19
-  start_index: 1
 
 rig:
   camera_pair: [1, 2]
