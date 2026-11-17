@@ -584,6 +584,10 @@ pivtools-cli apply-calibration --board charuco --all-paths`}</CodeBlock>
               Click any command to expand options and examples.
               PIV and post-processing commands support <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--active-paths / -p</code> for
               batch path selection; calibration commands instead use <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--source</code> / <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--all-paths</code>.
+              Indices count from 0. An index the config does not have, or one that is not a whole number, stops the
+              command with exit code 1 and a message naming the index and how many datasets the config has, before
+              anything is processed. <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">paths.active_paths</code> in
+              the config is checked the same way.
             </p>
 
             <div className="space-y-3">
