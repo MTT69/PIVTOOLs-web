@@ -272,6 +272,12 @@ export default function MaskingPage() {
               <p className="text-yellow-700 text-sm">
                 <strong>Per-camera masks:</strong> Each camera has its own mask file. In stereo setups, create separate masks for Cam1 and Cam2. Switch cameras with the Camera dropdown; the correct mask loads automatically.
               </p>
+              <p className="text-yellow-700 text-sm mt-2">
+                <strong>Size:</strong> A mask is never stretched to fit. A mask whose size is not its camera&apos;s image
+                size is refused by name, so redraw it on that camera&apos;s images. A camera turned by 90&deg; has W&times;H
+                images, so a mask drawn before the rotation no longer fits. With masking on, a missing or unreadable
+                mask file is refused rather than run unmasked.
+              </p>
             </div>
           </Section>
 

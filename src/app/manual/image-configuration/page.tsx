@@ -413,8 +413,7 @@ export default function ImageConfigurationPage() {
                 <div className="bg-white rounded p-3">
                   <p className="font-medium text-gray-900 mb-1">Pair count:</p>
                   <p className="font-mono text-gray-600">
-                    fs == 0: num_images<br />
-                    fs &gt; 0: (num_images - 1 - fs) / ps + 1
+                    (num_images - 1 - fs) // ps + 1
                   </p>
                 </div>
                 <div className="bg-white rounded p-3">
@@ -425,6 +424,11 @@ export default function ImageConfigurationPage() {
                   </p>
                 </div>
               </div>
+              <p className="text-gray-600 text-sm mt-4">
+                The formula holds for pre-paired entries too, so pre-paired with pair_stride 2 over 10 entries processes
+                5 pairs. Impossible strides are refused by name. These are a negative frame_stride, a pair_stride below
+                1, and frame_stride 0 on a .cine.
+              </p>
             </div>
 
             {/* A/B Format example */}
@@ -568,8 +572,10 @@ export default function ImageConfigurationPage() {
 
             <p className="text-gray-700 leading-relaxed mb-8">
               A TIFF holds one image. A multi-page TIFF is refused with its page count, so save each image as its own
-              file. A colour TIFF (contiguous or planar) is converted to grayscale. Camera RAW files (.raw, .cr2, .nef,
-              .arw) are not read. Convert them to 16-bit TIFF.
+              file. A colour TIFF (contiguous or planar) is converted to grayscale. A PNG or JPEG is read at its own bit
+              depth, so a 16-bit colour PNG keeps its full depth, and colour is converted to grey with the same rule as
+              TIFF. A gray+alpha PNG is refused by name, so save it as gray without alpha. Camera RAW files (.raw, .cr2,
+              .nef, .arw) are not read. Convert them to 16-bit TIFF.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -577,7 +583,9 @@ export default function ImageConfigurationPage() {
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Start Index</h4>
                 <p className="text-gray-600 mb-3">
                   Set <code className="bg-gray-200 px-1 rounded">start_index: 0</code> if files begin at 0
-                  (e.g. <code className="bg-gray-200 px-1 rounded">B00000.tif</code>). Default is 1.
+                  (e.g. <code className="bg-gray-200 px-1 rounded">B00000.tif</code>). Default is 1. A .set numbers its
+                  entries and a .cine its frames from 1, so start_index 0 is refused for them by name. For these,
+                  start_index is the first entry or frame to process.
                 </p>
                 <YamlDropdown
                   code={`images:
@@ -657,7 +665,9 @@ export default function ImageConfigurationPage() {
               They are never guessed from <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">Frame0</code>,{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">Frame1</code> ... file names, so a folder without
               StreamSet.xml is refused. Copy the complete folder. Zlib, LZ4 and IMX compressed streams are decoded, and
-              DaVis 11.4 recordings that store a camera&apos;s A and B frames in one stream file are read. If the folder
+              DaVis 11.4 recordings that store a camera&apos;s A and B frames in one stream file are read. A stream&apos;s
+              index header word 14 (planes per frame) must be 0, the only value real recordings carry, and any other
+              value is refused by name. If the folder
               holds <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.im7</code> files rather than streams, the
               recording is in .im7 layout, and the message tells you to set{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">image_type: lavision_im7</code> and point the
@@ -768,6 +778,7 @@ export default function ImageConfigurationPage() {
             <FeatureList
               items={[
                 "Pack types 0 (uncompressed), 1 (DaVis token stream, multi-frame files included), 2 (zlib) and 20 (LZ4) are read. Header version 1, which DaVis writes for multi-frame LZ4 output such as Subtract sliding minimum, is read for pack type 20.",
+                "A camera .im7 holds one plane per frame (header size_z 1). A file with more planes is DaVis processing output and is refused by name.",
                 "Pack type 3 (fixed 12-bit packed) is refused. Re-export from DaVis uncompressed or with lossless compression.",
                 "A version-1 file stores a DaVis mask per frame. PIVTOOLs does not apply it, and a file with any masked pixel is refused. Export the images from DaVis without the mask and use the PIVTOOLs mask (Masking page).",
                 "A version-0 file can also carry a DaVis mask. It is not applied, and the full image is read.",
@@ -779,7 +790,9 @@ export default function ImageConfigurationPage() {
               code={`images:
   image_type: cine
   num_images: 1200     # Total frames in the file
-  pairing_preset: time_resolved  # or skip_frames
+  pairing_preset: time_resolved  # or skip_frames (pair_stride 2)
+  frame_stride: 1      # required; the preset alone leaves 0, which is refused
+  pair_stride: 1
   image_format:
     - Camera%d.cine    # %d = camera number
 
@@ -803,7 +816,9 @@ paths:
               code={`images:
   image_type: lavision_set
   num_images: 100
-  pairing_preset: pre_paired   # or time_resolved
+  pairing_preset: pre_paired   # time_resolved needs frame_stride: 1
+  frame_stride: 0
+  pair_stride: 1
   image_format:
     - experiment.set
 
@@ -830,7 +845,8 @@ paths:
               folder and, optionally, a results folder. The CLI equivalent is{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">pivtools-cli init --from-run &lt;run folder&gt;</code>{' '}
               (<a href="/manual/cli-reference#commands" className="underline">CLI reference</a>). Every value comes from
-              the run&apos;s own files through the reader, and nothing is written unless the run pairs by trigger.
+              the run&apos;s own files through the reader, and nothing is written unless the run pairs by trigger. A run
+              with a dropped frame is refused, so the import fails and writes nothing.
             </p>
             <FeatureList
               items={[
@@ -844,10 +860,19 @@ paths:
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Pairing by trigger</h3>
             <p className="text-gray-700 leading-relaxed mb-4">
-              A camera can drop frames, and two cameras rarely drop the same ones, so a file position is not a pair.
-              PIVTOOLs pairs the cameras by trigger number, and a pair is processed only when every camera holds both of
-              its frames. Incomplete pairs are skipped, and validation counts them per camera, for example{' '}
-              <em>412 pair(s) aligned by trigger on every camera; 3 skipped as incomplete (Camera2 lacks a frame of 3).</em>
+              PIVTOOLs pairs the cameras by trigger number and never drops a pair. Every selected camera must hold every
+              trigger of the run. A run in which any camera lost a frame or a pair is refused with reason{' '}
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">dropped</code>, naming each camera and the run
+              triggers it lacks (counted from 0), and the message ends <em>Re-record the run.</em> A clean run validates
+              with, for example, <em>412 pair(s) aligned by trigger on every camera.</em>
+            </p>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              A lost frame often has a specific cause, and the specific reason is given instead of{' '}
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">dropped</code>. In order these are{' '}
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">camera_offset</code>,{' '}
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">ab_phase</code>,{' '}
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">tr_interval</code> and{' '}
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">run_file_count</code>.
             </p>
             <FeatureList
               items={[
@@ -856,7 +881,7 @@ paths:
                 "In a time-resolved run the two frames of each pair must be their trigger interval apart. A software-triggered run with a late tick fails this. Software triggering is for setup, focus and calibration, so record measurements with the DAQ trigger.",
                 "Pairs are aligned over the cameras selected for processing and the active source paths only. A camera that is not selected does not block the others, and when it would refuse the run, validation adds a note naming it. A selected camera the run did not record is refused.",
                 "start_index must be 1 and num_loops must be 1. To process several runs, list each as a source path. The active runs must align the same number of pairs, otherwise use separate configs.",
-                "num_images is a cap, not a count each camera must reach, so a run whose cameras dropped different numbers of frames imports and validates. The pair count is the aligned pairs, at most as many as num_images frames of a clean run give, so a smaller num_images processes the first aligned pairs and validation notes the cap.",
+                "num_images is a cap on the pairs processed, not a count each camera must reach. The pair count is the aligned pairs, at most as many as num_images frames give, so a smaller num_images processes the first pairs and validation notes the cap.",
               ]}
             />
 
@@ -874,7 +899,7 @@ paths:
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">In the GUI</h3>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Validation shows each camera&apos;s size, the trigger alignment, the skipped pairs and any notes. A run
+              Validation shows each camera&apos;s size, the trigger alignment and any notes. A run
               that cannot be paired shows the reader&apos;s message on Run PIV in place of the pair count, and the Run
               button is disabled (it reads <em>Cannot pair run</em>). Every refusal is listed under{' '}
               <a href="#refusals" className="underline">Refusals</a>.
@@ -929,6 +954,12 @@ paths:
               Downstream code sees a single unified array. For example, 3 loops of 40 pairs each
               produces a 120-pair dask array. The GUI image viewer resolves global pair numbers back
               to the correct loop and local pair index automatically.
+            </p>
+
+            <p className="text-gray-700 mb-6">
+              Validate Files, and the CLI check before every run, read each loop&apos;s first and last pair from that
+              loop&apos;s own folder or file. An error names the loop that failed, for example{' '}
+              <em>Loop 1 (experiment_1): last pair (40) could not be read.</em>
             </p>
 
             <div className="overflow-x-auto mb-6">
@@ -1054,6 +1085,7 @@ paths:
                     { fmt: ".set", what: "The folder holds no image data", msg: "a DaVis project or calibration node, not an image recording", fix: "Point at the recording .set." },
                     { fmt: ".set", what: "A Photron MRAW or GRAW, or cine, stream", msg: "a Photron MRAW stream / a Vision Research cine stream", fix: "Export from DaVis as .im7 or TIFF. Read an original .cine with image_type cine." },
                     { fmt: ".set", what: "A stream file missing, truncated, split over several data files, or with a header value no real recording carries", msg: "names the file, the field and the value", fix: "Copy the complete folder. If it is complete, send us the recording." },
+                    { fmt: ".set", what: "Index header word 14 (planes per frame) not 0", msg: "index header word 14 (planes per frame) is N; PIVTOOLs reads only 0", fix: "Point at the camera recording. If it is one, send it to us." },
                     { fmt: ".set", what: "Camera count differs from the camera labels", msg: "holds N cameras by its own camera labels", fix: "Set the camera count to N (validation offers it)." },
                     { fmt: ".set", what: "No labels, and no unique split of the streams by shape", msg: "cannot split into N cameras / the mapping is ambiguous. Camera counts that fit: ...", fix: "Set a camera count that fits." },
                     { fmt: ".set", what: "Camera labels on some streams only, or changing between images", msg: "Which camera those streams belong to is unknown", fix: "Send us the recording." },
@@ -1066,13 +1098,16 @@ paths:
                     { fmt: ".set", what: "DaVis flagged the recording SetIsSuspicious (a warning, not a refusal)", msg: "DaVis marked this recording as suspicious", fix: "Check its images before processing." },
                     { fmt: ".im7", what: "Pack type 3", msg: "pack_type 3 (fixed 12-bit packed) is not read", fix: "Export uncompressed or with lossless compression (pack type 0, 1, 2 or 20)." },
                     { fmt: ".im7", what: "A header version other than 0 or 1, or version 1 without pack type 20", msg: ".im7 header version N is not read", fix: "Export again from DaVis, or send us the file." },
+                    { fmt: ".im7", what: "More than one plane per frame (header size_z not 1)", msg: "header size_z (planes per frame) is N; a camera image has 1 plane per frame", fix: "Use the recorded images, not DaVis processing output such as dewarped float images." },
                     { fmt: ".im7", what: "A version-1 file with masked pixels", msg: "carries a DaVis mask with N of M pixels masked", fix: "Export without the DaVis mask and use the PIVTOOLs mask." },
                     { fmt: "TIFF", what: "More than one page", msg: "is a multi-page TIFF with N pages", fix: "Save each image as its own TIFF." },
                     { fmt: "TIFF", what: "A volumetric page", msg: "has TIFF page axes ...", fix: "Save 2-D images." },
+                    { fmt: "PNG", what: "A gray+alpha PNG", msg: "is a gray+alpha PNG (colour type 4)", fix: "Save it as gray, without alpha." },
                     { fmt: "RAW", what: ".raw, .cr2, .nef or .arw", msg: "Camera RAW support was removed from PIVTOOLs", fix: "Convert to 16-bit TIFF and point image_format at those." },
                     { fmt: ".pivraw", what: "A camera counts from another trigger (camera_offset)", msg: "its frame ids count from a different trigger", fix: "Re-record the run." },
                     { fmt: ".pivraw", what: "A/B order flipped (ab_phase)", msg: "each file pair is B of one trigger and A of the next", fix: "Re-record the run." },
                     { fmt: ".pivraw", what: "Time-resolved frames not their trigger interval apart (tr_interval)", msg: "frames X ms apart, expected Y ms. For a software-triggered run: record measurements with the DAQ trigger", fix: "Re-record with the DAQ trigger." },
+                    { fmt: ".pivraw", what: "A camera lost a frame or a pair (dropped)", msg: "frames were dropped during the run: CameraN lacks run trigger(s) ... Re-record the run.", fix: "Re-record the run. Pairs are never dropped." },
                     { fmt: ".pivraw", what: "A camera holds no frames (no_frames)", msg: "holds no frames, so no pair is complete on every camera", fix: "Check that camera, then re-record." },
                     { fmt: ".pivraw", what: "No pair complete on every camera (no_complete_pair)", msg: "no PIV pair is complete on every camera", fix: "Re-record the run." },
                     { fmt: ".pivraw", what: "Cameras disagree on mode or trigger rate (cameras_disagree)", msg: "not one recording", fix: "Re-record the run." },
