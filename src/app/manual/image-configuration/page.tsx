@@ -572,9 +572,9 @@ export default function ImageConfigurationPage() {
 
             <p className="text-gray-700 leading-relaxed mb-8">
               A TIFF holds one image. A multi-page TIFF is refused with its page count, so save each image as its own
-              file. A colour TIFF (contiguous or planar) is converted to grayscale. A PNG or JPEG is read at its own bit
-              depth, so a 16-bit colour PNG keeps its full depth, and colour is converted to grey with the same rule as
-              TIFF. A gray+alpha PNG is refused by name, so save it as gray without alpha. Camera RAW files (.raw, .cr2,
+              file. A colour TIFF (contiguous or planar) is converted to grayscale with the BT.601 weights,
+              0.299 R + 0.587 G + 0.114 B. A PNG or JPEG is read at its own bit depth, so a 16-bit colour PNG keeps its
+              full depth, and colour is converted to grey with the same weights. A gray+alpha PNG is refused by name, so save it as gray without alpha. Camera RAW files (.raw, .cr2,
               .nef, .arw) are not read. Convert them to 16-bit TIFF.
             </p>
 
@@ -1103,6 +1103,9 @@ paths:
                     { fmt: "TIFF", what: "More than one page", msg: "is a multi-page TIFF with N pages", fix: "Save each image as its own TIFF." },
                     { fmt: "TIFF", what: "A volumetric page", msg: "has TIFF page axes ...", fix: "Save 2-D images." },
                     { fmt: "PNG", what: "A gray+alpha PNG", msg: "is a gray+alpha PNG (colour type 4)", fix: "Save it as gray, without alpha." },
+                    { fmt: "Mask", what: "A mask not its camera's image size", msg: "is H x W pixels (height x width), but camera N's images are H x W. A mask is never stretched to fit", fix: "Redraw the mask on this camera's images in the Masking tab. Swapped height and width mean the camera is now rotated." },
+                    { fmt: "Mask", what: "Masking on, and the mask file missing or unreadable", msg: "has no mask file at ... / could not be read", fix: "Draw and save the mask in the Masking tab, or turn masking off." },
+                    { fmt: "Mask", what: "Masking on, and masking.mode not file or rectangular", msg: "is not a masking mode", fix: "Set masking.mode to 'file' or 'rectangular', or turn masking off." },
                     { fmt: "RAW", what: ".raw, .cr2, .nef or .arw", msg: "Camera RAW support was removed from PIVTOOLs", fix: "Convert to 16-bit TIFF and point image_format at those." },
                     { fmt: ".pivraw", what: "A camera counts from another trigger (camera_offset)", msg: "its frame ids count from a different trigger", fix: "Re-record the run." },
                     { fmt: ".pivraw", what: "A/B order flipped (ab_phase)", msg: "each file pair is B of one trigger and A of the next", fix: "Re-record the run." },

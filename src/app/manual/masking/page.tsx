@@ -276,7 +276,9 @@ export default function MaskingPage() {
                 <strong>Size:</strong> A mask is never stretched to fit. A mask whose size is not its camera&apos;s image
                 size is refused by name, so redraw it on that camera&apos;s images. A camera turned by 90&deg; has W&times;H
                 images, so a mask drawn before the rotation no longer fits. With masking on, a missing or unreadable
-                mask file is refused rather than run unmasked.
+                mask file, or a <code>masking.mode</code> other than <code>file</code> or <code>rectangular</code>, is
+                refused rather than run unmasked. When a saved mask no longer fits, the mask editor says so above the
+                image and starts an empty mask.
               </p>
             </div>
           </Section>
