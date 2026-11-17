@@ -356,8 +356,8 @@ export default function PlanarCalibrationPage() {
               <ul className="text-yellow-800 text-sm space-y-1">
                 <li>-- <strong>PIVTOOLS Acquisition:</strong> each calibration TIFF it saves carries a note
                   (<code className="bg-yellow-100 px-1 rounded">%05d.tif.json</code>) of what was applied. Its
-                  view rotation, dark subtraction (yes or no), pixel rule and camera serial must match the PIV images:
-                  a .pivraw run, or a TIFF export from the app (one <code className="bg-yellow-100 px-1 rounded">image_note.json</code> per
+                  view rotation, dark subtraction (yes or no), pixel rule and camera serial must match the PIV images,
+                  whether a .pivraw run or a TIFF export from the app (one <code className="bg-yellow-100 px-1 rounded">image_note.json</code> per
                   camera folder). Which dark was used is not compared, because a calibration is taken at its own
                   exposure with its own dark.</li>
                 <li>-- <strong>DaVis against DaVis:</strong> a .set calibration against .set PIV images compares each
@@ -365,7 +365,7 @@ export default function PlanarCalibrationPage() {
                 <li>-- <strong>Plain against plain</strong> (images that record nothing, such as TIFF or .im7) applies
                   as before.</li>
                 <li>-- <strong>DaVis against plain, either way</strong> (DaVis&apos;s own Properties/Calibration .im7
-                  images with .set PIV images, for example) applies with a warning: <em>The calibration (&lt;kind&gt;)
+                  images with .set PIV images, for example) applies with the warning <em>The calibration (&lt;kind&gt;)
                   and the PIV images (&lt;kind&gt;) carry no shared record of rotation or dark, so their pixel frames
                   could not be compared.</em> The CLI prints it as{' '}
                   <code className="bg-yellow-100 px-1 rounded">[calibration] WARNING: ...</code>; the GUI shows it
@@ -377,7 +377,7 @@ export default function PlanarCalibrationPage() {
                 .pivraw is not a calibration image type, and a settings file naming it is refused. Point the
                 calibration source at the TIFFs the app saves (<code className="bg-yellow-100 px-1 rounded">&lt;project&gt;/calibration/Cam&lt;k&gt;/%05d.tif</code>,
                 image type standard). To recalibrate at a new exposure in the app, take a new dark at that exposure or
-                clear the dark first: a stale dark blocks the capture.
+                clear the dark first, because a stale dark blocks the capture.
               </p>
             </div>
 

@@ -247,11 +247,11 @@ export default function ImageConfigurationPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { type: "Standard", yaml: "standard", desc: "Individual image files (.tif, .png, .jpg). One image per file. Camera RAW (.raw, .cr2, .nef, .arw) is not read: convert to 16-bit TIFF." },
+                    { type: "Standard", yaml: "standard", desc: "Individual image files (.tif, .png, .jpg). One image per file. Camera RAW (.raw, .cr2, .nef, .arw) is not read. Convert it to 16-bit TIFF." },
                     { type: "Phantom CINE", yaml: "cine", desc: "High-speed camera container. One .cine file per camera, all frames inside." },
                     { type: "LaVision SET", yaml: "lavision_set", desc: "Single .set file with all cameras and timesteps." },
                     { type: "LaVision IM7", yaml: "lavision_im7", desc: "One .im7 file per timestep. May contain multiple cameras." },
-                    { type: "PIVTOOLS Acquisition run", yaml: "pivraw", desc: "A run folder recorded by PIVTOOLS Acquisition: one Camera<k>.pivraw per camera, paired by trigger. See .pivraw runs below." },
+                    { type: "PIVTOOLS Acquisition run", yaml: "pivraw", desc: "A run folder recorded by PIVTOOLS Acquisition, with one Camera<k>.pivraw per camera, paired by trigger. See .pivraw runs below." },
                   ].map((item, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-6 py-3 text-sm font-medium text-gray-900">{item.type}</td>
@@ -567,10 +567,9 @@ export default function ImageConfigurationPage() {
             </div>
 
             <p className="text-gray-700 leading-relaxed mb-8">
-              A TIFF holds one image. A multi-page TIFF is refused with its page count: save each image as its own
-              file. Colour is decided by the TIFF&apos;s samples per pixel, and a colour TIFF (contiguous or planar) is
-              converted to grayscale. Camera RAW files (.raw, .cr2, .nef, .arw) are not read, because the RAW library
-              did not return linear sensor counts. Convert them to 16-bit TIFF.
+              A TIFF holds one image. A multi-page TIFF is refused with its page count, so save each image as its own
+              file. A colour TIFF (contiguous or planar) is converted to grayscale. Camera RAW files (.raw, .cr2, .nef,
+              .arw) are not read. Convert them to 16-bit TIFF.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -649,18 +648,18 @@ export default function ImageConfigurationPage() {
             <h3 className="text-xl font-bold text-gray-900 mb-4">.set recordings</h3>
             <p className="text-gray-700 leading-relaxed mb-4">
               A <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code> is a small file plus a
-              companion folder of the same name holding the image streams. <strong>Both must be copied together</strong>:
-              a .set on its own cannot be read. A DaVis <em>result</em> set (processed vectors) has no companion folder
+              companion folder of the same name holding the image streams. <strong>Both must be copied together</strong>,
+              because a .set on its own cannot be read. A DaVis <em>result</em> set (processed vectors) has no companion folder
               and holds no images.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               The streams are found only through the folder&apos;s <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">StreamSet.xml</code>.
               They are never guessed from <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">Frame0</code>,{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">Frame1</code> ... file names, so a folder without
-              StreamSet.xml is refused: copy the complete folder. Zlib, LZ4 and IMX compressed streams are decoded, and
+              StreamSet.xml is refused. Copy the complete folder. Zlib, LZ4 and IMX compressed streams are decoded, and
               DaVis 11.4 recordings that store a camera&apos;s A and B frames in one stream file are read. If the folder
               holds <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.im7</code> files rather than streams, the
-              recording is in .im7 layout: the message tells you to set{' '}
+              recording is in .im7 layout, and the message tells you to set{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">image_type: lavision_im7</code> and point the
               source path at that folder.
             </p>
@@ -677,7 +676,7 @@ export default function ImageConfigurationPage() {
             </p>
             <FeatureList
               items={[
-                "If the camera count differs from the labels, validation offers the labels' count. For A/B pairing the double-frame cameras are pre-selected; for time-resolved processing, every camera.",
+                "If the camera count differs from the labels, validation offers the labels' count. The cameras are pre-selected from the labels, the double-frame ones for A/B pairing and every camera for time-resolved processing, and you can change the selection.",
                 "A single-frame camera (a PLIF camera, say) can be processed time-resolved. It has no A/B pairs, so selecting it for A/B pairing is refused, naming the camera.",
                 "DaVis 11.4 can write the labels on only the first part of a recording. Validation reports how many images carry them (for example 264 of 500 images), and every labelled image must agree.",
                 "Without labels (older recordings), cameras are matched to streams by image shape. A count with exactly one fitting split is used; an ambiguous count is refused, listing the counts that fit.",
@@ -731,8 +730,7 @@ export default function ImageConfigurationPage() {
                 <h4 className="text-lg font-semibold text-blue-800">If your recording is RGB 24</h4>
               </div>
               <p className="text-blue-700">
-                Re-export it from DaVis as <strong>Raw 16 bit</strong>. RGB 24 is refused because its channel order cannot
-                be read from the recording, and a wrong guess gives a plausible but wrong image instead of an error.
+                Re-export it from DaVis as <strong>Raw 16 bit</strong>.
               </p>
             </div>
 
@@ -740,29 +738,29 @@ export default function ImageConfigurationPage() {
             <p className="text-gray-700 leading-relaxed mb-4">
               A recording can declare per-camera corrections that DaVis applies when it opens the images. PIVTOOLs
               applies the same ones in the same order, so the intensities and orientation you process match what DaVis
-              shows. There is nothing to configure: a correction is applied only when the recording declares it, and
+              shows. There is nothing to configure. A correction is applied only when the recording declares it, and
               recordings without one are read unchanged. Ten are applied, in LaVision&apos;s fixed order whatever order
               the recording lists them in:
             </p>
             <ol className="list-decimal pl-6 space-y-2 text-gray-700 mb-4">
-              <li><strong>Intensity correction 1</strong>: its correction image is subtracted and a 300-count pedestal
-                added, as DaVis does.</li>
+              <li><strong>Intensity correction 1</strong> (the sCMOS correction) subtracts its correction image and adds
+                300 counts. These sCMOS images therefore carry a 300-count offset, as in DaVis.</li>
               <li><strong>Dark image subtraction</strong>, then <strong>Background subtraction</strong>. Each step is
                 clipped to 0..65535 counts, so a pixel never goes negative.</li>
-              <li>At most one geometry: <strong>Rotation by 180</strong>, <strong>Vertical mirroring</strong>,{' '}
+              <li>One geometry at most, from <strong>Rotation by 180</strong>, <strong>Vertical mirroring</strong>,{' '}
                 <strong>Horizontal mirroring</strong>, <strong>Clockwise</strong> or <strong>Counterclockwise rotation
                 by 90</strong>, or either 90&deg; rotation plus vertical mirror. A 90&deg; rotation swaps the frame&apos;s
                 width and height, and the camera is processed at its rotated size.</li>
             </ol>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Copy the companion folder complete: a declared correction image that is missing is an error, not a silent
-              skip. A camera that declares two geometries, or one correction twice, is refused. So are{' '}
+              Copy the companion folder complete, because a declared correction image that is missing is an error, not
+              a silent skip. A camera that declares two geometries, or one correction twice, is refused. So are{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">white-image-correction</code>,{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">add-offset</code> and{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">image-intensity-correction-2</code>, by name,
-              when that camera is read: their effect has not been measured. A transformer id PIVTOOLs does not know
-              blocks only its camera when the recording carries camera labels, and the whole recording when it does not
-              (cameras are then matched by shape, and the unknown correction&apos;s shape is unknown). Results produced
+              when that camera is read, because their effect has not been measured. A transformer id PIVTOOLs does not
+              know blocks only its camera when the recording carries camera labels, and the whole recording when it does
+              not. Results produced
               before August 2026 did not apply dark subtraction, so re-run rather than compare against them.
             </p>
 
@@ -771,8 +769,8 @@ export default function ImageConfigurationPage() {
               items={[
                 "Pack types 0 (uncompressed), 1 (DaVis token stream, multi-frame files included), 2 (zlib) and 20 (LZ4) are read. Header version 1, which DaVis writes for multi-frame LZ4 output such as Subtract sliding minimum, is read for pack type 20.",
                 "Pack type 3 (fixed 12-bit packed) is refused. Re-export from DaVis uncompressed or with lossless compression.",
-                "A version-1 file stores a DaVis mask per frame. PIVTOOLs checks it and does not apply it: a file with any masked pixel is refused. Export the images from DaVis without the mask and use the PIVTOOLs mask (Masking page).",
-                "A version-0 file can also carry a DaVis mask. It is not applied: the full image is read.",
+                "A version-1 file stores a DaVis mask per frame. PIVTOOLs does not apply it, and a file with any masked pixel is refused. Export the images from DaVis without the mask and use the PIVTOOLs mask (Masking page).",
+                "A version-0 file can also carry a DaVis mask. It is not applied, and the full image is read.",
               ]}
             />
 
@@ -818,7 +816,7 @@ paths:
           {/* PIVTOOLS Acquisition runs */}
           <Section title=".pivraw Runs" icon={<Camera size={32} />} id="pivraw">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              PIVTOOLS Acquisition records each run to its own folder: one{' '}
+              PIVTOOLS Acquisition records each run to its own folder, holding one{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">Camera&lt;k&gt;.pivraw</code> per camera
               (with its <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.json</code> sidecar and{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.idx</code> frame index) and a{' '}
@@ -836,9 +834,9 @@ paths:
             </p>
             <FeatureList
               items={[
-                "config.yaml: the run folder as source path; results in <project>/results/<run name> (the folder above the run is the project) unless you give a results folder; one camera per Camera<k>.pivraw file; start_index 1, num_loops 1; num_images the largest frame count of any camera.",
-                "Pairing: skip_frames (frame_stride 1, pair_stride 2) for a double-frame run, so A pairs with B of each trigger; time_resolved for a time-resolved run.",
-                "Calibration source <project>/calibration, where PIVTOOLS Acquisition saves calibration images (for a one-camera rig, its calibration/Cam<k> folder). rig.dt is written to that source's calibration/settings.yaml: the run's dt_s for double frame, frame_stride x dt_s for time-resolved. A new settings.yaml also gets the app's image layout (%05d.tif, standard).",
+                "config.yaml takes the run folder as its source path, one camera per Camera<k>.pivraw file, start_index 1, num_loops 1, and num_images the largest frame count of any camera. Results go to <project>/results/<run name>, the project being the folder above the run, unless you give a results folder.",
+                "The pairing is skip_frames (frame_stride 1, pair_stride 2) for a double-frame run, so A pairs with B of each trigger, and time_resolved for a time-resolved run.",
+                "The calibration source is <project>/calibration, where PIVTOOLS Acquisition saves calibration images (its calibration/Cam<k> folder for a one-camera rig). rig.dt goes into that source's calibration/settings.yaml, as the run's dt_s for double frame and frame_stride x dt_s for time-resolved. A new settings.yaml also gets the app's image layout (%05d.tif, standard).",
                 "An existing config.yaml, and a settings.yaml holding a different rig.dt, are listed together. The GUI asks before replacing them; the CLI refuses unless you add --force, which replaces all of them. The new config starts from the defaults, so PIV, filter and mask settings made in that workspace are not kept.",
                 "Recalibrating in PIVTOOLS Acquisition with the archive option moves the calibration folder, settings.yaml and its rig.dt included, to calibrationHistory/. Import the run again afterwards to write rig.dt into the new settings.",
               ]}
@@ -847,15 +845,15 @@ paths:
             <h3 className="text-xl font-bold text-gray-900 mb-4">Pairing by trigger</h3>
             <p className="text-gray-700 leading-relaxed mb-4">
               A camera can drop frames, and two cameras rarely drop the same ones, so a file position is not a pair.
-              PIVTOOLs pairs the cameras by trigger number: a pair is processed only when every camera holds both of its
-              frames. Incomplete pairs are skipped, and validation counts them per camera, for example{' '}
+              PIVTOOLs pairs the cameras by trigger number, and a pair is processed only when every camera holds both of
+              its frames. Incomplete pairs are skipped, and validation counts them per camera, for example{' '}
               <em>412 pair(s) aligned by trigger on every camera; 3 skipped as incomplete (Camera2 lacks a frame of 3).</em>
             </p>
             <FeatureList
               items={[
                 "Cameras are checked against each other in host time. A camera whose frames arrive more than a quarter of a trigger period from the first camera's has counted from a different trigger (a lost first frame, or an ignored trigger), and the run is refused.",
-                "Double frame: each camera's A/B order is checked on the camera's own clock. If A to B is longer than B to the next A, the first frame was lost and every file pair is B of one trigger with A of the next, so the run is refused. When the two intervals are within 20% of each other the order cannot be proven: validation adds a note and the pairs are read as recorded.",
-                "Time-resolved: the two frames of each pair must be their trigger interval apart. A software-triggered run with a late tick fails this. Software triggering is for setup, focus and calibration: record measurements with the DAQ trigger.",
+                "In a double-frame run each camera's A/B order is checked on the camera's own clock. If A to B is longer than B to the next A, the first frame was lost and every file pair is B of one trigger with A of the next, so the run is refused. When the order cannot be proven, validation adds a note and the pairs are read as recorded.",
+                "In a time-resolved run the two frames of each pair must be their trigger interval apart. A software-triggered run with a late tick fails this. Software triggering is for setup, focus and calibration, so record measurements with the DAQ trigger.",
                 "start_index must be 1 and num_loops must be 1. To process several runs, list each as a source path; they must align the same number of pairs, otherwise use separate configs.",
                 "num_images caps the frames read per camera. The pair count is the aligned pairs, at most as many as num_images frames of a clean run give, so a smaller num_images processes the first part of the run.",
               ]}
@@ -960,7 +958,7 @@ paths:
             <p className="text-gray-700 mb-4">
               Multi-loop works with standard files (separate folders), .set files (separate .set files),
               .cine (separate folders), and .im7 (separate folders). A .pivraw run is paired by trigger on its
-              own, so it needs <code className="bg-gray-100 px-1 rounded text-sm">num_loops: 1</code>: list several
+              own, so it needs <code className="bg-gray-100 px-1 rounded text-sm">num_loops: 1</code>. List several
               runs as source paths instead.
               Batch size is automatically capped at the per-loop pair count to prevent cross-loop batches.
             </p>
@@ -1035,7 +1033,7 @@ paths:
           <Section title="Refusals" icon={<Info size={32} />} id="refusals">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               The readers refuse rather than guess. Each refusal names the file and what is wrong, so the fix is in the
-              message. The gist and the fix for each:
+              message. The table gives the gist of each message and its fix.
             </p>
             <div className="overflow-x-auto mb-6">
               <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
@@ -1049,7 +1047,7 @@ paths:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { fmt: ".set", what: "No companion folder", msg: "has no companion data folder", fix: "Copy the folder of the same name with the .set. A DaVis result set (vectors) holds no images: point at the recording." },
+                    { fmt: ".set", what: "No companion folder", msg: "has no companion data folder", fix: "Copy the folder of the same name with the .set. A DaVis result set (vectors) holds no images, so point at the recording." },
                     { fmt: ".set", what: "The folder holds .im7 files, not streams", msg: "This recording is in DaVis .im7 layout", fix: "Set image_type to lavision_im7 and point the source path at the folder." },
                     { fmt: ".set", what: "No StreamSet.xml, or it declares no image stream", msg: "the stream-to-camera mapping comes only from ... StreamSet.xml and is not guessed from file names", fix: "Copy the complete companion folder, or re-export from DaVis." },
                     { fmt: ".set", what: "The folder holds no image data", msg: "a DaVis project or calibration node, not an image recording", fix: "Point at the recording .set." },
@@ -1061,7 +1059,7 @@ paths:
                     { fmt: ".set", what: "A single-frame camera selected for A/B pairs", msg: "is a single-frame camera, so it has no A/B pairs", fix: "Deselect it in the PIV camera selection, or process it time-resolved." },
                     { fmt: ".set", what: "Two geometries on one camera, or one correction declared twice", msg: "declares two geometric transformers / declares ... twice", fix: "Correct the camera's corrections in DaVis and export again." },
                     { fmt: ".set", what: "white-image-correction, add-offset or image-intensity-correction-2", msg: "a DaVis transformer whose effect PIVTOOLs has no measurement of", fix: "Deselect that camera; the others read. Send us a sample recording." },
-                    { fmt: ".set", what: "A transformer id PIVTOOLs does not know", msg: "not one of the 13 DaVis transformer ids PIVTOOLs knows", fix: "With camera labels only that camera is blocked: deselect it. Send us a sample recording." },
+                    { fmt: ".set", what: "A transformer id PIVTOOLs does not know", msg: "not one of the 13 DaVis transformer ids PIVTOOLs knows", fix: "With camera labels only that camera is blocked, so deselect it. Send us a sample recording." },
                     { fmt: ".set", what: "A declared correction image missing, or not the sensor's size", msg: "is missing from ... / does not belong to this recording", fix: "Copy the complete companion folder." },
                     { fmt: ".set", what: "RGB 24, or an unknown pixel encoding", msg: "is a recognised DaVis encoding but is not implemented / Unknown .set pixel encoding", fix: "Re-export from DaVis as Raw 16 bit." },
                     { fmt: ".set", what: "DaVis flagged the recording SetIsSuspicious (a warning, not a refusal)", msg: "DaVis marked this recording as suspicious", fix: "Check its images before processing." },
@@ -1079,7 +1077,7 @@ paths:
                     { fmt: ".pivraw", what: "Cameras disagree on mode or trigger rate (cameras_disagree)", msg: "not one recording", fix: "Re-record the run." },
                     { fmt: ".pivraw", what: "dropped_pairs disagrees with missing_indices", msg: "The sidecar is stale or edited", fix: "Use the files as the recorder wrote them." },
                     { fmt: ".pivraw", what: "run.yaml missing, or written by an older app (no dark key)", msg: "cannot read the run description / a stale run.yaml", fix: "Copy the complete run folder; re-record an old run with the current PIVTOOLS Acquisition." },
-                    { fmt: ".pivraw", what: "A camera with no slot in run.yaml", msg: "records no view_rotation for CameraN", fix: "The camera file is not from this run: copy the run folder as recorded." },
+                    { fmt: ".pivraw", what: "A camera with no slot in run.yaml", msg: "records no view_rotation for CameraN", fix: "The camera file is not from this run. Copy the run folder as recorded." },
                     { fmt: ".pivraw", what: "The in-run dark missing, or from another camera", msg: "the in-run dark ... does not match camera N: camera_serial ...", fix: "Copy the run folder as recorded, or re-record." },
                     { fmt: ".pivraw", what: "The cameras record different dt_s (run import)", msg: "the cameras record different dt_s", fix: "Re-record the run." },
                     { fmt: ".pivraw", what: "start_index is not 1", msg: "numbers its pairs from 1, so it must be 1", fix: "Set start_index to 1." },

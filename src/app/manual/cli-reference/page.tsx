@@ -158,8 +158,8 @@ export default function CLIReferencePage() {
       description: 'Create default config.yaml in current directory, or one for a PIVTOOLS Acquisition run',
       options: [
         { flag: '--force', short: '-f', description: 'Overwrite existing config.yaml. With --from-run, also replace a different rig.dt in the calibration settings' },
-        { flag: '--from-run RUN_FOLDER', description: "Write config.yaml for a .pivraw run folder: its cameras, the pairing of its mode (skip_frames double frame, time_resolved time-resolved), num_images, and calibration source <project>/calibration (its Cam<k> folder for one camera). Writes rig.dt (dt_s double frame, frame_stride x dt_s time-resolved) into that source's calibration/settings.yaml. Nothing is written unless the run pairs by trigger. An existing config.yaml and a different stored rig.dt are listed together and refused without --force" },
-        { flag: '--base-path', description: 'With --from-run: where PIV results go (default <project>/results/<run name>, the project being the folder above the run)' },
+        { flag: '--from-run RUN_FOLDER', description: "Write config.yaml for a .pivraw run folder, with its cameras, the pairing of its mode (skip_frames double frame, time_resolved time-resolved), num_images, and calibration source <project>/calibration (its Cam<k> folder for one camera). Writes rig.dt (dt_s double frame, frame_stride x dt_s time-resolved) into that source's calibration/settings.yaml. Nothing is written unless the run pairs by trigger. An existing config.yaml and a different stored rig.dt are listed together and refused without --force" },
+        { flag: '--base-path', description: 'Where PIV results go (default <project>/results/<run name>, the project being the folder above the run). Only with --from-run, and refused without it' },
       ],
       examples: [
         'pivtools-cli init',
