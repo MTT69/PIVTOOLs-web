@@ -347,8 +347,8 @@ export default function PlanarCalibrationPage() {
                 <strong className="text-yellow-800">Calibration must see the PIV images&apos; pixels</strong>
               </div>
               <p className="text-yellow-800 text-sm mb-2">
-                A calibration maps pixels to the world, so it holds only for PIV images in the same pixel frame:
-                the same rotation and the same dark handling. Applying a calibration, and stereo self-calibration,
+                A calibration maps pixels to the world, so it holds only for PIV images in the same pixel frame,
+                with the same rotation and the same dark handling. Applying a calibration, and stereo self-calibration,
                 check this before any job starts. A refusal names the camera, the image, the field and both values.
                 The CLI prints it as <code className="bg-yellow-100 px-1 rounded">error: ...</code> and exits 1; the
                 GUI shows it and starts no job.
@@ -361,18 +361,29 @@ export default function PlanarCalibrationPage() {
                   camera folder). Which dark was used is not compared, because a calibration is taken at its own
                   exposure with its own dark.</li>
                 <li>-- <strong>DaVis against DaVis:</strong> a .set calibration against .set PIV images compares each
-                  camera&apos;s geometry (rotation or mirroring).</li>
+                  camera&apos;s geometry (rotation or mirroring). When both recordings carry camera labels, camera k of
+                  the calibration must be the same camera (<code className="bg-yellow-100 px-1 rounded">Acq.Camera.ID</code>)
+                  as camera k of the PIV recording, so swapped cameras are refused. When either has no labels, camera k
+                  is taken as camera k, with a warning saying so.</li>
                 <li>-- <strong>Plain against plain</strong> (images that record nothing, such as TIFF or .im7) applies
                   as before.</li>
                 <li>-- <strong>DaVis against plain, either way</strong> (DaVis&apos;s own Properties/Calibration .im7
                   images with .set PIV images, for example) applies with the warning <em>The calibration (&lt;kind&gt;)
                   and the PIV images (&lt;kind&gt;) carry no shared record of rotation or dark, so their pixel frames
-                  could not be compared.</em> The CLI prints it as{' '}
-                  <code className="bg-yellow-100 px-1 rounded">[calibration] WARNING: ...</code>; the GUI shows it
-                  beside the result.</li>
-                <li>-- <strong>Every other pairing</strong> (app calibration TIFFs against a .set recording, say) is
-                  refused.</li>
+                  could not be compared.</em></li>
+                <li>-- <strong>A model made without calibration images</strong> (a scale factor with the image toggle
+                  off) applies to plain images as before. Against a .pivraw run, a TIFF export from the app or a DaVis
+                  recording, it applies with the same <em>could not be compared</em> warning.</li>
+                <li>-- <strong>Every other pairing</strong> is refused. Examples are app calibration TIFFs against a .set
+                  recording, and plain TIFF calibration images against a .pivraw run.</li>
               </ul>
+              <p className="text-yellow-800 text-sm mt-2">
+                A .set calibration recording without camera labels is split into cameras with the PIV config&apos;s
+                camera count, and the apply warns <em>The calibration recording &lt;name&gt;.set carries no camera
+                labels, so it was split into cameras with the PIV config&apos;s camera count (&lt;N&gt;).</em> The CLI
+                prints each warning as <code className="bg-yellow-100 px-1 rounded">[calibration] WARNING: ...</code>,
+                and the GUI shows it beside the result.
+              </p>
               <p className="text-yellow-800 text-sm mt-2">
                 .pivraw is not a calibration image type, and a settings file naming it is refused. Point the
                 calibration source at the TIFFs the app saves (<code className="bg-yellow-100 px-1 rounded">&lt;project&gt;/calibration/Cam&lt;k&gt;/%05d.tif</code>,

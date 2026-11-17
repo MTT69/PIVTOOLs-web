@@ -854,8 +854,9 @@ paths:
                 "Cameras are checked against each other in host time. A camera whose frames arrive more than a quarter of a trigger period from the first camera's has counted from a different trigger (a lost first frame, or an ignored trigger), and the run is refused.",
                 "In a double-frame run each camera's A/B order is checked on the camera's own clock. If A to B is longer than B to the next A, the first frame was lost and every file pair is B of one trigger with A of the next, so the run is refused. When the order cannot be proven, validation adds a note and the pairs are read as recorded.",
                 "In a time-resolved run the two frames of each pair must be their trigger interval apart. A software-triggered run with a late tick fails this. Software triggering is for setup, focus and calibration, so record measurements with the DAQ trigger.",
-                "start_index must be 1 and num_loops must be 1. To process several runs, list each as a source path; they must align the same number of pairs, otherwise use separate configs.",
-                "num_images caps the frames read per camera. The pair count is the aligned pairs, at most as many as num_images frames of a clean run give, so a smaller num_images processes the first part of the run.",
+                "Pairs are aligned over the cameras selected for processing and the active source paths only. A camera that is not selected does not block the others, and when it would refuse the run, validation adds a note naming it. A selected camera the run did not record is refused.",
+                "start_index must be 1 and num_loops must be 1. To process several runs, list each as a source path. The active runs must align the same number of pairs, otherwise use separate configs.",
+                "num_images is a cap, not a count each camera must reach, so a run whose cameras dropped different numbers of frames imports and validates. The pair count is the aligned pairs, at most as many as num_images frames of a clean run give, so a smaller num_images processes the first aligned pairs and validation notes the cap.",
               ]}
             />
 
@@ -883,7 +884,7 @@ paths:
               title="YAML Reference - .pivraw (double frame)"
               code={`images:
   image_type: pivraw
-  num_images: 1000             # frames read per camera, at most
+  num_images: 1000             # a cap, not a per-camera count
   pairing_preset: skip_frames  # A + B of each trigger
   start_index: 1               # must be 1
   frame_stride: 1
@@ -1075,6 +1076,8 @@ paths:
                     { fmt: ".pivraw", what: "A camera holds no frames (no_frames)", msg: "holds no frames, so no pair is complete on every camera", fix: "Check that camera, then re-record." },
                     { fmt: ".pivraw", what: "No pair complete on every camera (no_complete_pair)", msg: "no PIV pair is complete on every camera", fix: "Re-record the run." },
                     { fmt: ".pivraw", what: "Cameras disagree on mode or trigger rate (cameras_disagree)", msg: "not one recording", fix: "Re-record the run." },
+                    { fmt: ".pivraw", what: "run.yaml asks for fewer triggers than the cameras recorded (run_file_count)", msg: "this run.yaml is stale or belongs to another run", fix: "Put the run's own run.yaml back beside its Camera<k>.pivraw files, or re-record." },
+                    { fmt: ".pivraw", what: "A selected camera the run did not record", msg: "is selected for processing, but the run holds cameras ...", fix: "Select cameras the run recorded." },
                     { fmt: ".pivraw", what: "dropped_pairs disagrees with missing_indices", msg: "The sidecar is stale or edited", fix: "Use the files as the recorder wrote them." },
                     { fmt: ".pivraw", what: "run.yaml missing, or written by an older app (no dark key)", msg: "cannot read the run description / a stale run.yaml", fix: "Copy the complete run folder; re-record an old run with the current PIVTOOLS Acquisition." },
                     { fmt: ".pivraw", what: "A camera with no slot in run.yaml", msg: "records no view_rotation for CameraN", fix: "The camera file is not from this run. Copy the run folder as recorded." },
@@ -1083,7 +1086,7 @@ paths:
                     { fmt: ".pivraw", what: "start_index is not 1", msg: "numbers its pairs from 1, so it must be 1", fix: "Set start_index to 1." },
                     { fmt: ".pivraw", what: "num_loops is not 1", msg: "loops are not supported", fix: "List the runs as source paths." },
                     { fmt: ".pivraw", what: "A double-frame run paired other than A with B", msg: "use the skip_frames pairing preset", fix: "Set the skip_frames preset (frame_stride 1, pair_stride 2)." },
-                    { fmt: ".pivraw", what: "Runs in one config align different pair counts", msg: "must hold the same number of aligned pairs", fix: "Process the runs in separate configs." },
+                    { fmt: ".pivraw", what: "Active runs in one config align different pair counts", msg: "must hold the same number of aligned pairs", fix: "Process the runs in separate configs." },
                   ].map((row, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm font-mono text-soton-blue whitespace-nowrap">{row.fmt}</td>
