@@ -291,7 +291,9 @@ export default function StereoCalibrationPage() {
           <Section title="Calibration Image Setup" icon={<Camera size={32} />} id="image-setup">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Stereo calibration requires synchronised images from both cameras at each target position.
-              Image settings are shared with planar calibration.
+              Image settings are shared with planar calibration. Applying a stereo calibration, and stereo
+              self-calibration, first check that the calibration images and the PIV images share a pixel frame
+              (see <a href="/manual/planar-calibration#frame-match" className="underline">planar calibration</a>).
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Directory Structure</h3>

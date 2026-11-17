@@ -301,7 +301,7 @@ export default function PlanarCalibrationPage() {
                     { setting: "Calibration Sources", yaml: "calibration_sources", desc: "Direct paths to calibration image locations" },
                     { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib%05d.tif)" },
                     { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process" },
-                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset)" },
+                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset). pivraw is not a calibration image type" },
                     { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0" },
                     { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Append per-camera folders to the source path" },
                     { setting: "Subfolder Names", yaml: "camera_subfolders", desc: "Custom folder names (default Cam1, Cam2, ...)" },
@@ -339,6 +339,32 @@ export default function PlanarCalibrationPage() {
                 Set <code className="bg-purple-100 px-1 rounded">use_camera_subfolders: false</code> for
                 multi-camera IM7 containers. PIVTools extracts each camera frame automatically.
               </p>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4" id="frame-match">
+              <div className="flex items-center gap-2 mb-1">
+                <Info className="text-yellow-700" size={18} />
+                <strong className="text-yellow-800">Calibration must see the PIV images&apos; pixels</strong>
+              </div>
+              <p className="text-yellow-800 text-sm mb-2">
+                A calibration maps pixels to the world, so it holds only for PIV images in the same pixel frame:
+                the same rotation and the same dark handling. Applying a calibration (and stereo self-calibration)
+                checks this before any job starts, and refuses a mismatch by name.
+              </p>
+              <ul className="text-yellow-800 text-sm space-y-1">
+                <li>-- <strong>PIVTOOLS Acquisition:</strong> each calibration image it saves carries a note
+                  (<code className="bg-yellow-100 px-1 rounded">%05d.tif.json</code>) of what was applied. Its
+                  view rotation, dark subtraction, pixel rule and camera serial must match the PIV run (a .pivraw
+                  run, or TIFFs the app exported from one). Calibrate from the TIFFs the app saves: .pivraw is not a
+                  calibration image type.</li>
+                <li>-- <strong>DaVis against DaVis:</strong> a .set calibration against .set PIV images compares each
+                  camera&apos;s declared geometry (rotation or mirroring).</li>
+                <li>-- <strong>A .set against images that record nothing</strong> (DaVis .im7 calibration images
+                  against a .set PIV recording, or the reverse) is applied with a visible warning that the pixel frames
+                  could not be compared.</li>
+                <li>-- <strong>Any other mix</strong> (app calibration images against a .set recording, say) is
+                  refused, because the frames cannot be shown to match.</li>
+              </ul>
             </div>
 
             <div className="bg-green-50 border-l-4 border-green-400 p-4">
