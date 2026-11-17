@@ -348,23 +348,37 @@ export default function PlanarCalibrationPage() {
               </div>
               <p className="text-yellow-800 text-sm mb-2">
                 A calibration maps pixels to the world, so it holds only for PIV images in the same pixel frame:
-                the same rotation and the same dark handling. Applying a calibration (and stereo self-calibration)
-                checks this before any job starts, and refuses a mismatch by name.
+                the same rotation and the same dark handling. Applying a calibration, and stereo self-calibration,
+                check this before any job starts. A refusal names the camera, the image, the field and both values.
+                The CLI prints it as <code className="bg-yellow-100 px-1 rounded">error: ...</code> and exits 1; the
+                GUI shows it and starts no job.
               </p>
               <ul className="text-yellow-800 text-sm space-y-1">
-                <li>-- <strong>PIVTOOLS Acquisition:</strong> each calibration image it saves carries a note
+                <li>-- <strong>PIVTOOLS Acquisition:</strong> each calibration TIFF it saves carries a note
                   (<code className="bg-yellow-100 px-1 rounded">%05d.tif.json</code>) of what was applied. Its
-                  view rotation, dark subtraction, pixel rule and camera serial must match the PIV run (a .pivraw
-                  run, or TIFFs the app exported from one). Calibrate from the TIFFs the app saves: .pivraw is not a
-                  calibration image type.</li>
+                  view rotation, dark subtraction (yes or no), pixel rule and camera serial must match the PIV images:
+                  a .pivraw run, or a TIFF export from the app (one <code className="bg-yellow-100 px-1 rounded">image_note.json</code> per
+                  camera folder). Which dark was used is not compared, because a calibration is taken at its own
+                  exposure with its own dark.</li>
                 <li>-- <strong>DaVis against DaVis:</strong> a .set calibration against .set PIV images compares each
-                  camera&apos;s declared geometry (rotation or mirroring).</li>
-                <li>-- <strong>A .set against images that record nothing</strong> (DaVis .im7 calibration images
-                  against a .set PIV recording, or the reverse) is applied with a visible warning that the pixel frames
-                  could not be compared.</li>
-                <li>-- <strong>Any other mix</strong> (app calibration images against a .set recording, say) is
-                  refused, because the frames cannot be shown to match.</li>
+                  camera&apos;s geometry (rotation or mirroring).</li>
+                <li>-- <strong>Plain against plain</strong> (images that record nothing, such as TIFF or .im7) applies
+                  as before.</li>
+                <li>-- <strong>DaVis against plain, either way</strong> (DaVis&apos;s own Properties/Calibration .im7
+                  images with .set PIV images, for example) applies with a warning: <em>The calibration (&lt;kind&gt;)
+                  and the PIV images (&lt;kind&gt;) carry no shared record of rotation or dark, so their pixel frames
+                  could not be compared.</em> The CLI prints it as{' '}
+                  <code className="bg-yellow-100 px-1 rounded">[calibration] WARNING: ...</code>; the GUI shows it
+                  beside the result.</li>
+                <li>-- <strong>Every other pairing</strong> (app calibration TIFFs against a .set recording, say) is
+                  refused.</li>
               </ul>
+              <p className="text-yellow-800 text-sm mt-2">
+                .pivraw is not a calibration image type, and a settings file naming it is refused. Point the
+                calibration source at the TIFFs the app saves (<code className="bg-yellow-100 px-1 rounded">&lt;project&gt;/calibration/Cam&lt;k&gt;/%05d.tif</code>,
+                image type standard). To recalibrate at a new exposure in the app, take a new dark at that exposure or
+                clear the dark first: a stale dark blocks the capture.
+              </p>
             </div>
 
             <div className="bg-green-50 border-l-4 border-green-400 p-4">
