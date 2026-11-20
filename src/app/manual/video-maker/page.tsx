@@ -290,6 +290,8 @@ pivtools-cli video -p 0,1`}
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Variables are auto-detected from the first frame file. Statistics variables
               (vorticity, stresses, gamma) require the statistics module to have been run first.
+              If that file cannot be read, no variables are offered and the error, naming the
+              file, is shown under the variable selector.
             </p>
 
             <div className="overflow-x-auto mb-8">
