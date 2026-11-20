@@ -161,7 +161,7 @@ export default function TransformsPage() {
                 <h4 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h4>
                 <FeatureList items={[
                   "Calibrated instantaneous, ensemble, or merged data",
-                  "Not applicable to statistics output or stereo (3C) fields (not supported yet, GUI or CLI)",
+                  "Not applicable to statistics output, uncalibrated data or stereo (3C) fields (not supported yet). The viewer disables Transforms on uncalibrated and stereo views and says why",
                 ]} />
               </div>
 
