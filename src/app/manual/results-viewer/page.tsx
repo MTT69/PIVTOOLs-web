@@ -170,7 +170,8 @@ export default function ResultsViewerPage() {
                     { source: "Uncalibrated Ensemble", view: true, transform: false, merge: false, stats: false },
                     { source: "Merged Instantaneous", view: true, transform: true, merge: false, stats: true },
                     { source: "Merged Ensemble", view: true, transform: true, merge: false, stats: false },
-                    { source: "Stereo Instantaneous", view: true, transform: false, merge: false, stats: true },
+                    { source: "Stereo Instantaneous", view: true, transform: true, merge: false, stats: true },
+                    { source: "Stereo Ensemble", view: true, transform: true, merge: false, stats: false },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm text-gray-900 font-medium">{row.source}</td>
@@ -237,7 +238,7 @@ export default function ResultsViewerPage() {
                     { control: "Colormap", desc: "default, viridis, plasma, inferno, magma, cividis, jet, gray, and more" },
                     { control: "Lower / Upper Limit", desc: "Manual colour bounds. Leave blank for automatic scaling per frame." },
                     { control: "Auto-Calculate", desc: "Sets the limits to the 5th/95th percentiles of the selected variable in the pass the image draws, read from that variable's own files. That is the selected Run / Pass, or, in a file where it is empty, the next non-empty pass, exactly as the image does. Other passes, which sit on other grids, are not included, and the limits are recomputed when you change pass. A file with no non-empty pass from the selected one on is an error. Frame data (inst:) and per-frame statistics (inst_stat:) sample up to 50 files. Mean statistics (mean:) read mean_stats.mat and ensemble results (ens:) read ensemble_result.mat. Disabled for correlation-quality figures, which have no colour range. A failure, such as an unreadable file, is shown under the limit controls and names the file." },
-                    { control: "Frame Slider", desc: "Drag to any frame. Arrow buttons step +/-1. Play/Pause animates through frames as fast as they load (capped at ~3 FPS)." },
+                    { control: "Frame Slider", desc: "Drag to any frame. Arrow buttons step +/-1. Play/Pause animates through frames as fast as they load (capped at ~3 FPS). Hidden for ensemble and statistics views, which hold one field rather than a frame sequence." },
                     { control: "Run / Pass", desc: "Select which multi-pass PIV run to display (highest = most refined)." },
                     { control: "Axis Limits", desc: "X min/max, Y min/max. Blank = auto from coordinate data." },
                     { control: "X / Y Offset", desc: "Shift displayed coordinates without modifying data." },
