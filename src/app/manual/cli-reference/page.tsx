@@ -155,15 +155,19 @@ export default function CLIReferencePage() {
   const commands: CommandCardProps[] = [
     {
       command: 'pivtools-cli init',
-      description: 'Create default config.yaml in current directory',
+      description: 'Create default config.yaml in current directory, or one for a PIVTOOLS Acquisition run',
       options: [
-        { flag: '--force', short: '-f', description: 'Overwrite existing config.yaml' },
+        { flag: '--force', short: '-f', description: 'Overwrite existing config.yaml. With --from-run, also replace a different rig.dt in the calibration settings' },
+        { flag: '--from-run RUN_FOLDER', description: "Write config.yaml for a .pivraw run folder, with its cameras, the pairing of its mode (skip_frames double frame, time_resolved time-resolved), num_images, and calibration source <project>/calibration (its Cam<k> folder for one camera). Writes rig.dt (dt_s double frame, frame_stride x dt_s time-resolved) into that source's calibration/settings.yaml. Nothing is written unless the run pairs by trigger. An existing config.yaml and a different stored rig.dt are listed together and refused without --force" },
+        { flag: '--base-path', description: 'Where PIV results go (default <project>/results/<run name>, the project being the folder above the run). Only with --from-run, and refused without it' },
       ],
       examples: [
         'pivtools-cli init',
         'pivtools-cli init --force',
+        'pivtools-cli init --from-run /data/project/run_001',
+        'pivtools-cli init --from-run /data/project/run_001 --base-path /scratch/run_001 --force',
       ],
-      link: '/manual/quick-start#cli',
+      link: '/manual/image-configuration#pivraw',
     },
     {
       command: 'pivtools-cli init-settings',
@@ -545,6 +549,19 @@ pivtools-cli video -v mag                   # Create video`}</CodeBlock>
               </div>
 
               <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">Run from PIVTOOLS Acquisition</h3>
+                <CodeBlock>{`cd /data/project                            # A workspace folder of your choice
+pivtools-cli init --from-run /data/project/run_001   # config.yaml + rig.dt from the run
+pivtools-cli instantaneous                  # Pairs every camera by trigger
+pivtools-cli apply-calibration --board charuco --all-paths`}</CodeBlock>
+                <p className="text-sm text-gray-600 mt-3">
+                  Recalibrating in PIVTOOLS Acquisition with the archive option moves the calibration
+                  settings.yaml, rig.dt included, to calibrationHistory/. Run the import again afterwards. See{' '}
+                  <Link href="/manual/image-configuration#pivraw" className="text-soton-blue underline">.pivraw runs</Link>.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Stereo PIV</h3>
                 <CodeBlock>{`pivtools-cli detect-stereo                   # Stereo camera model (ChArUco)
 pivtools-cli instantaneous                   # PIV for both cameras
@@ -582,6 +599,10 @@ pivtools-cli apply-calibration --board charuco --all-paths`}</CodeBlock>
               Click any command to expand options and examples.
               PIV and post-processing commands support <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--active-paths / -p</code> for
               batch path selection; calibration commands instead use <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--source</code> / <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--all-paths</code>.
+              Indices count from 0. An index the config does not have, or one that is not a whole number, stops the
+              command with exit code 1 and a message naming the index and how many datasets the config has, before
+              anything is processed. <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">paths.active_paths</code> in
+              the config is checked the same way.
             </p>
 
             <div className="space-y-3">
@@ -670,9 +691,17 @@ pivtools-cli apply-calibration --board charuco --all-paths`}</CodeBlock>
 
           {/* Help */}
           <Section title="Getting Help" icon={<Terminal size={28} />} id="help">
+            <p className="text-gray-700 mb-4">
+              A command that fails exits non-zero, the PIV commands included, so scripts and batch schedulers see the
+              failure. A refusal (a missing key or file, a run that cannot be paired) prints{' '}
+              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">error: &lt;message&gt;</code> and exits with status 1.{' '}
+              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--debug</code> (before the command) or{' '}
+              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">PIVTOOLS_DEBUG=1</code> shows the full traceback.
+            </p>
             <CodeBlock>{`pivtools-cli --help                    # All commands
 pivtools-cli instantaneous --help      # Command-specific help
-pivtools-cli video --help`}</CodeBlock>
+pivtools-cli video --help
+pivtools-cli --debug instantaneous     # Full traceback on error`}</CodeBlock>
           </Section>
 
           {/* Next Steps */}

@@ -315,7 +315,7 @@ export default function PlanarCalibrationPage() {
                     { setting: "Calibration Sources", yaml: "calibration_sources", desc: "Direct paths to calibration image locations" },
                     { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib%05d.tif)" },
                     { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process. Leave blank to use every image found. The tab then shows the count and where it came from, e.g. \"auto: 19 (from files found)\" (or .set index, .cine header, saved detections)" },
-                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset)" },
+                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset). pivraw is not a calibration image type" },
                     { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set it in settings.yaml (the tabs have no switch for it). Refused for .set and .cine sources, whose entries are numbered by the reader; set First Frame Number back to 1" },
                     { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Used only by .im7 (one camera per file in subfolders). Standard formats ignore it, and the subfolder rule above applies instead" },
                     { setting: "Subfolder Names", yaml: "camera_subfolders", desc: "Explicit folder names for a multi-camera rig (default Cam1, Cam2, ...)" },
@@ -364,6 +364,57 @@ export default function PlanarCalibrationPage() {
                 LaVision IM7 files can contain multiple cameras in a single file.
                 Leave <code className="bg-purple-100 px-1 rounded">use_camera_subfolders</code> off for
                 multi-camera IM7 containers, and turn it on only for one camera per file in subfolders. PIVTools extracts each camera frame automatically.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4" id="frame-match">
+              <div className="flex items-center gap-2 mb-1">
+                <Info className="text-yellow-700" size={18} />
+                <strong className="text-yellow-800">Calibration must see the PIV images&apos; pixels</strong>
+              </div>
+              <p className="text-yellow-800 text-sm mb-2">
+                A calibration maps pixels to the world, so it holds only for PIV images in the same pixel frame,
+                with the same rotation and the same dark handling. Applying a calibration, and stereo self-calibration,
+                check this before any job starts. A refusal names the camera, the image, the field and both values.
+                The CLI prints it as <code className="bg-yellow-100 px-1 rounded">error: ...</code> and exits 1; the
+                GUI shows it and starts no job.
+              </p>
+              <ul className="text-yellow-800 text-sm space-y-1">
+                <li>-- <strong>PIVTOOLS Acquisition:</strong> each calibration TIFF it saves carries a note
+                  (<code className="bg-yellow-100 px-1 rounded">%05d.tif.json</code>) of what was applied. Its
+                  view rotation, dark subtraction (yes or no), pixel rule and camera serial must match the PIV images,
+                  whether a .pivraw run or a TIFF export from the app (one <code className="bg-yellow-100 px-1 rounded">image_note.json</code> per
+                  camera folder). Which dark was used is not compared, because a calibration is taken at its own
+                  exposure with its own dark.</li>
+                <li>-- <strong>DaVis against DaVis:</strong> a .set calibration against .set PIV images compares each
+                  camera&apos;s geometry (rotation or mirroring). When both recordings carry camera labels, camera k of
+                  the calibration must be the same camera (<code className="bg-yellow-100 px-1 rounded">Acq.Camera.ID</code>)
+                  as camera k of the PIV recording, so swapped cameras are refused. When either has no labels, camera k
+                  is taken as camera k, with a warning saying so.</li>
+                <li>-- <strong>Plain against plain</strong> (images that record nothing, such as TIFF or .im7) applies
+                  as before.</li>
+                <li>-- <strong>DaVis against plain, either way</strong> (DaVis&apos;s own Properties/Calibration .im7
+                  images with .set PIV images, for example) applies with the warning <em>The calibration (&lt;kind&gt;)
+                  and the PIV images (&lt;kind&gt;) carry no shared record of rotation or dark, so their pixel frames
+                  could not be compared.</em></li>
+                <li>-- <strong>A model made without calibration images</strong> (a scale factor with the image toggle
+                  off) applies to plain images as before. Against a .pivraw run, a TIFF export from the app or a DaVis
+                  recording, it applies with the same <em>could not be compared</em> warning.</li>
+                <li>-- <strong>Every other pairing</strong> is refused. Examples are app calibration TIFFs against a .set
+                  recording, and plain TIFF calibration images against a .pivraw run.</li>
+              </ul>
+              <p className="text-yellow-800 text-sm mt-2">
+                A .set calibration recording without camera labels is split into cameras with the PIV config&apos;s
+                camera count, and the apply warns <em>The calibration recording &lt;name&gt;.set carries no camera
+                labels, so it was split into cameras with the PIV config&apos;s camera count (&lt;N&gt;).</em> The CLI
+                prints each warning as <code className="bg-yellow-100 px-1 rounded">[calibration] WARNING: ...</code>,
+                and the GUI shows it beside the result.
+              </p>
+              <p className="text-yellow-800 text-sm mt-2">
+                .pivraw is not a calibration image type, and a settings file naming it is refused. Point the
+                calibration source at the TIFFs the app saves (<code className="bg-yellow-100 px-1 rounded">&lt;project&gt;/calibration/Cam&lt;k&gt;/%05d.tif</code>,
+                image type standard). To recalibrate at a new exposure in the app, take a new dark at that exposure or
+                clear the dark first, because a stale dark blocks the capture.
               </p>
             </div>
 

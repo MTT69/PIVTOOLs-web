@@ -794,7 +794,7 @@ ensemble_piv:
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Workflow</h4>
               <ol className="list-decimal list-inside text-gray-600 space-y-2">
                 <li>Check the datasets to include. Same PIV settings apply to all selected paths.</li>
-                <li>Click <strong>Run PIV</strong>. If output already exists, a confirmation dialog asks to clear and recompute.</li>
+                <li>Click <strong>Run PIV</strong>. If output already exists, a confirmation dialog asks to clear and recompute. With masking on, Run first checks every camera&apos;s mask on every selected dataset, and refuses before starting if one is missing, unreadable or not its camera&apos;s image size. The message names the camera and the mask file. The Masking tab shows the same check for the camera on screen. Run also refuses a pairing the images cannot be read with, and a dataset selection that names a dataset the config does not have.</li>
                 <li>Monitor progress via the progress bar (instantaneous) or console logs (both modes). The bar spans every selected dataset, and with more than one selected a line beneath names the dataset currently running.</li>
                 <li>Cancel gracefully if needed. Partial results may be saved.</li>
               </ol>
