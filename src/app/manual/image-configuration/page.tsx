@@ -158,9 +158,8 @@ export default function ImageConfigurationPage() {
               <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults -- full reference below</span>
             </div>
             <ol className="space-y-2 text-gray-700">
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">0.</span><span>Recorded with PIVTOOLS Acquisition? Click <strong>Import acquisition run</strong> on Setup (or run <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli init --from-run &lt;run folder&gt;</code>), then go to step 5. See <a href="#pivraw" className="underline">.pivraw runs</a>.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Add one or more <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">source_paths</code> (raw images) with matching <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">base_paths</code> (outputs).</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_type</code> (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">standard</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">cine</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_im7</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_set</code>, or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivraw</code>) and <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_format</code> (e.g. <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">B%05d.tif</code>).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_type</code> (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">standard</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">cine</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_im7</code>, or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_set</code>) and <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_format</code> (e.g. <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">B%05d.tif</code>).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">num_images</code> to frame pairs <em>per acquisition loop</em> (not total files across loops).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Pick a <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pairing_preset</code> from the table below -- most users want <strong>A/B Format</strong> (separate <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_A</code>/<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_B</code> files) or <strong>Time Resolved</strong> (overlapping consecutive frames).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Save. Validation runs automatically: green = ready to process, yellow/red = check the filename pattern, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">start_index</code>, and count.</span></li>
@@ -251,7 +250,6 @@ export default function ImageConfigurationPage() {
                     { type: "Phantom CINE", yaml: "cine", desc: "High-speed camera container. One .cine file per camera, all frames inside." },
                     { type: "LaVision SET", yaml: "lavision_set", desc: "Single .set file with all cameras and timesteps." },
                     { type: "LaVision IM7", yaml: "lavision_im7", desc: "One .im7 file per timestep. May contain multiple cameras." },
-                    { type: "PIVTOOLS Acquisition run", yaml: "pivraw", desc: "A run folder recorded by PIVTOOLS Acquisition, with one Camera<k>.pivraw per camera, paired by trigger. See .pivraw runs below." },
                   ].map((item, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-6 py-3 text-sm font-medium text-gray-900">{item.type}</td>
@@ -266,7 +264,7 @@ export default function ImageConfigurationPage() {
             <YamlDropdown
               title="YAML Reference - Image Type"
               code={`images:
-  image_type: standard    # standard | cine | lavision_set | lavision_im7 | pivraw`}
+  image_type: standard    # standard | cine | lavision_set | lavision_im7`}
             />
 
             <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mt-6">
@@ -564,8 +562,7 @@ export default function ImageConfigurationPage() {
                 { ext: ".png", desc: "PNG" },
                 { ext: ".jpg/.jpeg", desc: "JPEG" },
                 { ext: ".cine", desc: "Phantom Video" },
-                { ext: ".im7/.set", desc: "LaVision" },
-                { ext: ".pivraw", desc: "PIVTOOLS Acquisition" }
+                { ext: ".im7/.set", desc: "LaVision" }
               ].map((item, index) => (
                 <div key={index} className="bg-gray-50 rounded-lg p-3 text-center">
                   <code className="text-soton-blue font-mono font-semibold">{item.ext}</code>
@@ -650,12 +647,6 @@ export default function ImageConfigurationPage() {
                     <td className="px-4 py-3 text-sm text-gray-600">Single file with all cameras and timesteps</td>
                     <td className="px-4 py-3 text-sm font-mono text-gray-600">experiment.set</td>
                     <td className="px-4 py-3 text-sm text-gray-600">source_path points to the .set file itself. Copy its companion folder with it</td>
-                  </tr>
-                  <tr className="bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">.pivraw</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">One run folder, one file per camera, all frames inside</td>
-                    <td className="px-4 py-3 text-sm font-mono text-gray-600">Camera%d.pivraw</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">source_path is the run folder. Paired by trigger, see <a href="#pivraw" className="underline">.pivraw runs</a></td>
                   </tr>
                 </tbody>
               </table>
@@ -836,104 +827,6 @@ paths:
             />
           </Section>
 
-          {/* PIVTOOLS Acquisition runs */}
-          <Section title=".pivraw Runs" icon={<Camera size={32} />} id="pivraw">
-            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              PIVTOOLS Acquisition records each run to its own folder, holding one{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">Camera&lt;k&gt;.pivraw</code> per camera
-              (with its <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.json</code> sidecar and{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.idx</code> frame index) and a{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">run.yaml</code> describing the run. The source
-              path is the run folder, and the image type is <strong>PIVTOOLs acquisition run (.pivraw)</strong>.
-            </p>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Import a run</h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              Let PIVTOOLs write the config. On the Setup tab, <strong>Import acquisition run</strong> takes the run
-              folder and, optionally, a results folder. The CLI equivalent is{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">pivtools-cli init --from-run &lt;run folder&gt;</code>{' '}
-              (<a href="/manual/cli-reference#commands" className="underline">CLI reference</a>). Every value comes from
-              the run&apos;s own files through the reader, and nothing is written unless the run pairs by trigger. A run
-              with a dropped frame is refused, so the import fails and writes nothing.
-            </p>
-            <FeatureList
-              items={[
-                "config.yaml takes the run folder as its source path, one camera per Camera<k>.pivraw file, start_index 1, num_loops 1, and num_images the largest frame count of any camera. Results go to <project>/results/<run name>, the project being the folder above the run, unless you give a results folder.",
-                "The pairing is skip_frames (frame_stride 1, pair_stride 2) for a double-frame run, so A pairs with B of each trigger, and time_resolved for a time-resolved run.",
-                "The calibration source is <project>/calibration, where PIVTOOLS Acquisition saves calibration images (its calibration/Cam<k> folder for a one-camera rig). rig.dt goes into that source's calibration/settings.yaml, as the run's dt_s for double frame and frame_stride x dt_s for time-resolved. A new settings.yaml also gets the app's image layout (%05d.tif, standard).",
-                "An existing config.yaml, and a settings.yaml holding a different rig.dt, are listed together. The GUI asks before replacing them; the CLI refuses unless you add --force, which replaces all of them. The new config starts from the defaults, so PIV, filter and mask settings made in that workspace are not kept.",
-                "Recalibrating in PIVTOOLS Acquisition with the archive option moves the calibration folder, settings.yaml and its rig.dt included, to calibrationHistory/. Import the run again afterwards to write rig.dt into the new settings.",
-              ]}
-            />
-
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Pairing by trigger</h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              PIVTOOLs pairs the cameras by trigger number and never drops a pair. Every selected camera must hold every
-              trigger of the run. A run in which any camera lost a frame or a pair is refused with reason{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">dropped</code>, naming each camera and the run
-              triggers it lacks (counted from 0), and the message ends <em>Re-record the run.</em> A clean run validates
-              with, for example, <em>412 pair(s) aligned by trigger on every camera.</em>
-            </p>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              A lost frame often has a specific cause, and the specific reason is given instead of{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">dropped</code>. In order these are{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">camera_offset</code>,{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">ab_phase</code>,{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">tr_interval</code> and{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">run_file_count</code>.
-            </p>
-            <FeatureList
-              items={[
-                "Cameras are checked against each other in host time. A camera whose frames arrive more than a quarter of a trigger period from the first camera's has counted from a different trigger (a lost first frame, or an ignored trigger), and the run is refused.",
-                "In a double-frame run each camera's A/B order is checked on the camera's own clock. If A to B is longer than B to the next A, the first frame was lost and every file pair is B of one trigger with A of the next, so the run is refused. When the order cannot be proven, validation adds a note and the pairs are read as recorded.",
-                "In a time-resolved run the two frames of each pair must be their trigger interval apart. A software-triggered run with a late tick fails this. Software triggering is for setup, focus and calibration, so record measurements with the DAQ trigger.",
-                "Pairs are aligned over the cameras selected for processing and the active source paths only. A camera that is not selected does not block the others, and when it would refuse the run, validation adds a note naming it. A selected camera the run did not record is refused.",
-                "start_index must be 1 and num_loops must be 1. To process several runs, list each as a source path. The active runs must align the same number of pairs, otherwise use separate configs.",
-                "num_images is a cap on the pairs processed, not a count each camera must reach. The pair count is the aligned pairs, at most as many as num_images frames give, so a smaller num_images processes the first pairs and validation notes the cap.",
-              ]}
-            />
-
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Dark and rotation</h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              Images arrive as DaVis would give them. When run.yaml names the in-run dark (the{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">dark/</code> folder the app copies into the
-              run), it is subtracted per sensor pixel, floored at zero, with the dark frame of the same A/B role and
-              before a colour sensor&apos;s 2x2 sum. Then the camera&apos;s{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">view_rotation</code> from run.yaml is applied;
-              a 90&deg; view swaps width and height. A run recorded with{' '}
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">dark: null</code> is read as raw counts, and
-              validation notes it. A dark from another camera (a different serial, size, pixel format or mode) is refused.
-            </p>
-
-            <h3 className="text-xl font-bold text-gray-900 mb-4">In the GUI</h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              Validation shows each camera&apos;s size, the trigger alignment and any notes. A run
-              that cannot be paired shows the reader&apos;s message on Run PIV in place of the pair count, and the Run
-              button is disabled (it reads <em>Cannot pair run</em>). Every refusal is listed under{' '}
-              <a href="#refusals" className="underline">Refusals</a>.
-            </p>
-
-            <YamlDropdown
-              title="YAML Reference - .pivraw (double frame)"
-              code={`images:
-  image_type: pivraw
-  num_images: 1000             # a cap, not a per-camera count
-  pairing_preset: skip_frames  # A + B of each trigger
-  start_index: 1               # must be 1
-  frame_stride: 1
-  pair_stride: 2
-  num_loops: 1                 # must be 1
-  image_format:
-    - Camera%d.pivraw          # %d = camera number
-
-paths:
-  source_paths:
-    - /data/project/run_001    # the run folder
-  base_paths:
-    - /data/project/results/run_001`}
-            />
-          </Section>
-
           {/* Multi-Loop Acquisition Section */}
           <Section title="Multi-Loop Acquisition" icon={<Layers size={32} />} id="multi-loop">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
@@ -994,12 +887,10 @@ paths:
               </table>
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Works With Every Image Type but .pivraw</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Works With Every Image Type</h3>
             <p className="text-gray-700 mb-4">
               Multi-loop works with standard files (separate folders), .set files (separate .set files),
-              .cine (separate folders), and .im7 (separate folders). A .pivraw run is paired by trigger on its
-              own, so it needs <code className="bg-gray-100 px-1 rounded text-sm">num_loops: 1</code>. List several
-              runs as source paths instead.
+              .cine (separate folders), and .im7 (separate folders).
               Batch size is automatically capped at the per-loop pair count to prevent cross-loop batches.
             </p>
 
@@ -1119,24 +1010,6 @@ paths:
                     { fmt: "Datasets", what: "A dataset index the config does not have, or not a whole number (Run PIV, --active-paths, paths.active_paths, calibration apply)", msg: "Dataset N in <the selection> is out of range: this config has M datasets (paths.source_paths), numbered 0 to M-1", fix: "Select datasets the config has. Indices count from 0." },
                     { fmt: "Datasets", what: "A selection with no dataset in it", msg: "selects no dataset ... Select at least one", fix: "Tick at least one dataset, or remove an empty paths.active_paths." },
                     { fmt: "RAW", what: ".raw, .cr2, .nef or .arw", msg: "Camera RAW support was removed from PIVTOOLs", fix: "Convert to 16-bit TIFF and point image_format at those." },
-                    { fmt: ".pivraw", what: "A camera counts from another trigger (camera_offset)", msg: "its frame ids count from a different trigger", fix: "Re-record the run." },
-                    { fmt: ".pivraw", what: "A/B order flipped (ab_phase)", msg: "each file pair is B of one trigger and A of the next", fix: "Re-record the run." },
-                    { fmt: ".pivraw", what: "Time-resolved frames not their trigger interval apart (tr_interval)", msg: "frames X ms apart, expected Y ms. For a software-triggered run: record measurements with the DAQ trigger", fix: "Re-record with the DAQ trigger." },
-                    { fmt: ".pivraw", what: "A camera lost a frame or a pair (dropped)", msg: "frames were dropped during the run: CameraN lacks run trigger(s) ... Re-record the run.", fix: "Re-record the run. Pairs are never dropped." },
-                    { fmt: ".pivraw", what: "A camera holds no frames (no_frames)", msg: "holds no frames, so no pair is complete on every camera", fix: "Check that camera, then re-record." },
-                    { fmt: ".pivraw", what: "No pair complete on every camera (no_complete_pair)", msg: "no PIV pair is complete on every camera", fix: "Re-record the run." },
-                    { fmt: ".pivraw", what: "Cameras disagree on mode or trigger rate (cameras_disagree)", msg: "not one recording", fix: "Re-record the run." },
-                    { fmt: ".pivraw", what: "run.yaml asks for fewer triggers than the cameras recorded (run_file_count)", msg: "this run.yaml is stale or belongs to another run", fix: "Put the run's own run.yaml back beside its Camera<k>.pivraw files, or re-record." },
-                    { fmt: ".pivraw", what: "A selected camera the run did not record", msg: "is selected for processing, but the run holds cameras ...", fix: "Select cameras the run recorded." },
-                    { fmt: ".pivraw", what: "dropped_pairs disagrees with missing_indices", msg: "The sidecar is stale or edited", fix: "Use the files as the recorder wrote them." },
-                    { fmt: ".pivraw", what: "run.yaml missing, or written by an older app (no dark key)", msg: "cannot read the run description / a stale run.yaml", fix: "Copy the complete run folder; re-record an old run with the current PIVTOOLS Acquisition." },
-                    { fmt: ".pivraw", what: "A camera with no slot in run.yaml", msg: "records no view_rotation for CameraN", fix: "The camera file is not from this run. Copy the run folder as recorded." },
-                    { fmt: ".pivraw", what: "The in-run dark missing, or from another camera", msg: "the in-run dark ... does not match camera N: camera_serial ...", fix: "Copy the run folder as recorded, or re-record." },
-                    { fmt: ".pivraw", what: "The cameras record different dt_s (run import)", msg: "the cameras record different dt_s", fix: "Re-record the run." },
-                    { fmt: ".pivraw", what: "start_index is not 1", msg: "numbers its pairs from 1, so it must be 1", fix: "Set start_index to 1." },
-                    { fmt: ".pivraw", what: "num_loops is not 1", msg: "loops are not supported", fix: "List the runs as source paths." },
-                    { fmt: ".pivraw", what: "A double-frame run paired other than A with B", msg: "use the skip_frames pairing preset", fix: "Set the skip_frames preset (frame_stride 1, pair_stride 2)." },
-                    { fmt: ".pivraw", what: "Active runs in one config align different pair counts", msg: "must hold the same number of aligned pairs", fix: "Process the runs in separate configs." },
                   ].map((row, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 text-sm font-mono text-soton-blue whitespace-nowrap">{row.fmt}</td>
@@ -1189,7 +1062,7 @@ paths:
                     { gui: "Source Path", yaml: "paths.source_paths[]", desc: "Input directories" },
                     { gui: "Base Path", yaml: "paths.base_paths[]", desc: "Output directories" },
                     { gui: "Active Paths", yaml: "paths.active_paths[]", desc: "Indices to process (0-based)" },
-                    { gui: "Image Type", yaml: "images.image_type", desc: "standard | cine | lavision_im7 | lavision_set | pivraw" },
+                    { gui: "Image Type", yaml: "images.image_type", desc: "standard | cine | lavision_im7 | lavision_set" },
                     { gui: "Number of Images", yaml: "images.num_images", desc: "Total image files or container entries" },
                     { gui: "Camera Count", yaml: "paths.camera_count", desc: "Total cameras" },
                     { gui: "Pairing Preset", yaml: "images.pairing_preset", desc: "ab_format | pre_paired | time_resolved | skip_frames | custom" },

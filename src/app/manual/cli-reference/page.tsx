@@ -155,19 +155,14 @@ export default function CLIReferencePage() {
   const commands: CommandCardProps[] = [
     {
       command: 'pivtools-cli init',
-      description: 'Create default config.yaml in current directory, or one for a PIVTOOLS Acquisition run',
+      description: 'Create default config.yaml in current directory',
       options: [
-        { flag: '--force', short: '-f', description: 'Overwrite existing config.yaml. With --from-run, also replace a different rig.dt in the calibration settings' },
-        { flag: '--from-run RUN_FOLDER', description: "Write config.yaml for a .pivraw run folder, with its cameras, the pairing of its mode (skip_frames double frame, time_resolved time-resolved), num_images, and calibration source <project>/calibration (its Cam<k> folder for one camera). Writes rig.dt (dt_s double frame, frame_stride x dt_s time-resolved) into that source's calibration/settings.yaml. Nothing is written unless the run pairs by trigger. An existing config.yaml and a different stored rig.dt are listed together and refused without --force" },
-        { flag: '--base-path', description: 'Where PIV results go (default <project>/results/<run name>, the project being the folder above the run). Only with --from-run, and refused without it' },
+        { flag: '--force', short: '-f', description: 'Overwrite existing config.yaml' },
       ],
       examples: [
         'pivtools-cli init',
         'pivtools-cli init --force',
-        'pivtools-cli init --from-run /data/project/run_001',
-        'pivtools-cli init --from-run /data/project/run_001 --base-path /scratch/run_001 --force',
       ],
-      link: '/manual/image-configuration#pivraw',
     },
     {
       command: 'pivtools-cli init-settings',
@@ -546,19 +541,6 @@ pivtools-cli transform -o flip_ud           # Geometric transform (optional)
 pivtools-cli merge                          # Merge cameras (if multi-camera)
 pivtools-cli statistics                     # Mean, TKE, vorticity, etc.
 pivtools-cli video -v mag                   # Create video`}</CodeBlock>
-              </div>
-
-              <div className="bg-white rounded-xl border border-gray-200 p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Run from PIVTOOLS Acquisition</h3>
-                <CodeBlock>{`cd /data/project                            # A workspace folder of your choice
-pivtools-cli init --from-run /data/project/run_001   # config.yaml + rig.dt from the run
-pivtools-cli instantaneous                  # Pairs every camera by trigger
-pivtools-cli apply-calibration --board charuco --all-paths`}</CodeBlock>
-                <p className="text-sm text-gray-600 mt-3">
-                  Recalibrating in PIVTOOLS Acquisition with the archive option moves the calibration
-                  settings.yaml, rig.dt included, to calibrationHistory/. Run the import again afterwards. See{' '}
-                  <Link href="/manual/image-configuration#pivraw" className="text-soton-blue underline">.pivraw runs</Link>.
-                </p>
               </div>
 
               <div className="bg-white rounded-xl border border-gray-200 p-4">
