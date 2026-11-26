@@ -103,7 +103,7 @@ export default function MaskingPage() {
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Define regions to exclude from PIV processing. A vector whose window centre lies under the mask is masked
-              (zero, code -1). Every other window is correlated without its masked pixels; one with more than a quarter
+              (zero, code -1). Every other window is correlated without its masked pixels; one with more than 25 %
               of its pixels masked or outside the frame is dropped (code 7) and infilled. The mask still zeroes its
               pixels before any preprocessing filter runs.
             </p>
