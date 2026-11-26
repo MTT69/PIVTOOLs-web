@@ -271,6 +271,12 @@ batches:
                 </tbody>
               </table>
             </div>
+            <p className="text-gray-600 text-sm mt-4">
+              A filter whose <code className="bg-gray-100 px-1 rounded font-mono text-xs">type</code> is not one of
+              these (or <code className="bg-gray-100 px-1 rounded font-mono text-xs">time</code> and{' '}
+              <code className="bg-gray-100 px-1 rounded font-mono text-xs">pod</code>) is refused when the config is read,
+              naming the entry and the allowed types. It is never skipped silently.
+            </p>
           </Section>
 
           {/* GUI Usage */}

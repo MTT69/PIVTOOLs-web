@@ -102,7 +102,10 @@ export default function MaskingPage() {
               Image <span className="text-soton-gold">Masking</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Define regions to exclude from PIV processing. Masked regions produce zero-valued vectors in output fields.
+              Define regions to exclude from PIV processing. A vector whose window centre lies under the mask is masked
+              (zero, code -1). Every other window is correlated without its masked pixels; one with more than a quarter
+              of its pixels masked or outside the frame is dropped (code 7) and infilled. The mask still zeroes its
+              pixels before any preprocessing filter runs.
             </p>
           </motion.div>
 
@@ -307,7 +310,6 @@ export default function MaskingPage() {
   enabled: true                      # Toggle masking for PIV
   mode: file                         # 'file' (polygon) or 'rectangular' (pixel border)
   mask_file_pattern: mask_Cam%d.mat  # %d = camera number
-  mask_threshold: 0.01               # Fraction of window that must be masked
   rectangular:
     top: 0
     bottom: 0
@@ -330,7 +332,6 @@ export default function MaskingPage() {
                     { gui: "Masking Mode", yaml: "masking.mode", values: "'file' or 'rectangular'" },
                     { gui: "Top / Bottom / Left / Right", yaml: "masking.rectangular.*", values: "integer >= 0 (pixels); top + bottom below the image height, left + right below the width" },
                     { gui: "Mask file pattern", yaml: "masking.mask_file_pattern", values: "String with %d for camera" },
-                    { gui: "Mask threshold", yaml: "masking.mask_threshold", values: "float (default 0.01)" },
                   ].map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-6 py-4 text-sm text-gray-900">{row.gui}</td>

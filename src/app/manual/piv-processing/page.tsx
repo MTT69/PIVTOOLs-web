@@ -607,6 +607,11 @@ ensemble_piv:
                 </tbody>
               </table>
             </div>
+            <p className="text-gray-600 text-sm mb-6">
+              A method whose <code className="bg-gray-100 px-1 rounded font-mono text-xs">type</code> is not one of these
+              four is refused when the config is read, before any output folder is touched, even when outlier detection is
+              disabled.
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <CodeBlock code={`outlier_detection:
@@ -695,6 +700,7 @@ ensemble_piv:
                     { code: '3', stage: 'Post-fit validation', desc: 'Displacement exceeds 3/4 window rule (peak too far from centre)' },
                     { code: '5', stage: 'Post-fit validation', desc: 'Negative sigma / variance values (unphysical fit)' },
                     { code: '6', stage: 'Displacement check', desc: 'Displacement exceeds 3/4 window rule (checked in accumulator)' },
+                    { code: '7', stage: 'Pre-fitting', desc: 'Too little data: over a quarter of the window outside the frame or under the mask, or a stored correlation lag with no valid pixel pair. Dropped and infilled' },
                     { code: '10', stage: 'Outlier detection', desc: 'Velocity outlier: fit succeeded but flagged by median-based displacement outlier detection' },
                     { code: '11', stage: 'Outlier detection', desc: 'Stress outlier: fit succeeded but flagged by stress field median test or Cauchy-Schwarz realizability violation (ensemble only)' },
                   ].map((row, idx) => (
@@ -728,21 +734,26 @@ ensemble_piv:
             <p className="text-gray-700 text-sm mb-4">
               Instantaneous PIV writes <code className="bg-gray-100 px-1 rounded font-mono text-xs">nan_reason</code> in the{' '}
               <code className="bg-gray-100 px-1 rounded font-mono text-xs">full</code> save mode with its own taxonomy.
-              Shared meanings keep the same numbers (-1 masked, 0 valid, 1 peak-fit failure, 10 outlier on the
-              primary peak). Code <strong>6</strong> is a large displacement in both pipelines but is decided
-              differently: in instantaneous it is the search-reach flag described below, in ensemble a displacement
+              Shared meanings keep the same numbers (-1 masked, 0 valid, 1 peak-fit failure, 7 too little data,
+              10 outlier on the primary peak). Code <strong>6</strong> is a large displacement in both pipelines but is decided
+              differently: in instantaneous it is a fitted residual beyond a quarter window after the first pass (described below), in ensemble a displacement
               beyond 3/4 of the window. Instantaneous-only codes are <strong>9</strong> unclassified
               (in the NaN mask but no stage claimed it), <strong>12</strong> outlier on a substituted secondary peak,
               and <strong>13</strong> chosen peak magnitude NaN (peaks exhausted).
             </p>
             <p className="text-gray-700 text-sm mb-4">
-              The peak search covers integer lags from &minus;N/4 to +N/4 of the window size N on each axis.
-              Code <strong>6</strong> marks a window whose correlation plane holds a taller peak anywhere outside that
-              reach: the true displacement is probably beyond it, so the vector in reach would be wrong. On passes after
-              the first, code 6 also marks a fitted residual larger than a quarter window. On the first pass, Run logs the
-              flagged fraction of each pair and warns when it exceeds 2 % of the pair&apos;s unmasked windows; the run
-              continues. A warning means the first window is too small for the flow: use a first window
-              N &ge; 4 &times; (largest displacement + 1 px). Instantaneous windows under 5 px on an axis are refused.
+              The peak search covers integer lags from &minus;N/4 to +N/4 of the window size N on each axis, on every
+              pass. A displacement beyond that reach is not found and is not flagged, so choose a first window
+              N &ge; 4 &times; (largest displacement + 1 px). On passes after the first, the predictor has already
+              removed most of the displacement, so code <strong>6</strong> marks a fitted residual larger than a quarter
+              window. Instantaneous windows under 5 px on an axis are refused.
+            </p>
+            <p className="text-gray-700 text-sm mb-4">
+              Image samples the warp takes from outside the frame, and pixels under the mask, have no data: they are
+              left out of both windows and the window mean, not read as zeros, and each correlation lag is normalised by
+              its own count of valid pixel pairs. A window with more than a quarter of its pixels missing is dropped as
+              code <strong>7</strong> and infilled like any other invalid vector. Windows with no missing pixel are
+              correlated exactly as before.
             </p>
           </Section>
 
@@ -767,7 +778,8 @@ ensemble_piv:
               <ul className="list-disc list-inside text-gray-600 space-y-2">
                 <li>Every output folder (one dataset, one camera, one mode) holds a <code className="bg-gray-100 px-1 rounded font-mono text-sm">run_manifest.json</code>. It says <strong>running</strong> from before the first result file, <strong>complete</strong> once the folder is finished, and <strong>failed</strong> with the error.</li>
                 <li>A run into a folder that already holds results is refused before anything is written, naming the folder. Clear it with the Run PIV dialog or <code className="bg-gray-100 px-1 rounded font-mono text-sm">--overwrite</code>. When a processing setting changed since that folder was written, the refusal names it, as <code className="bg-gray-100 px-1 rounded font-mono text-sm">key: old -&gt; new</code>.</li>
-                <li>An ensemble resume (<code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> &gt; 0) needs a running or failed folder written with identical processing settings, and <code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> at most one more than the passes it saved. An empty folder, or one written before run manifests existed, cannot be resumed.</li>
+                <li>An ensemble resume (<code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> &gt; 0) needs a running or failed folder written with identical processing settings, and <code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> at most one more than the passes it saved. An empty folder, or one written before run manifests existed, cannot be resumed. The resume also needs the PIVTOOLs version that started the run: on a different version Run PIV asks whether to continue, and the CLI refuses unless given <code className="bg-gray-100 px-1 rounded font-mono text-sm">--allow-code-change</code>. The check compares the installed package version, which changes only at a release; an uninstalled source checkout has no version and always counts as a change. Every pass in <code className="bg-gray-100 px-1 rounded font-mono text-sm">ensemble_result.mat</code> must hold its <code className="bg-gray-100 px-1 rounded font-mono text-sm">window_size</code>; an older file without it is refused, so re-run from pass 1.</li>
+                <li>Option names (window types, warp kernels, infill and outlier methods, filter types, the image type and the other named processing choices) are accepted in any capitalisation; <code className="bg-gray-100 px-1 rounded font-mono text-sm">Gaussian</code> and <code className="bg-gray-100 px-1 rounded font-mono text-sm">gaussian</code> are the same.</li>
                 <li>When one dataset fails, it is marked failed, the others still finish, and the run exits non-zero naming every failure. Run PIV shows <em>Failed</em> with the error line and lists the failed datasets.</li>
                 <li>A run stops with an error that names the pair and the image file when a frame is constant (every pixel the same value, or no finite pixel), when a pair has no valid vector in a pass (instantaneous) or a pass has no valid vector (ensemble; the message counts the vectors each rejection reason removed), when an ensemble batch fails or a pass sums a different number of pairs than the run has, and when a Dask worker dies (often out of memory). A worker death during an ensemble run is reported within 5 minutes.</li>
                 <li>The vector viewer, statistics, calibration apply and the video maker refuse a folder whose run is running or failed, and say so. Folders written before run manifests existed are still read. The Run PIV live preview reads the folder while it is being written.</li>

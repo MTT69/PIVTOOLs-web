@@ -197,11 +197,13 @@ export default function CLIReferencePage() {
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
         { flag: '--camera', short: '-c', description: 'Camera number to process (default: all from config)' },
         { flag: '--overwrite', description: 'Clear every output folder this run writes before starting. Refused together with resume_from_pass > 0, since a resume needs the folder it would clear' },
+        { flag: '--allow-code-change', description: 'Resume (resume_from_pass > 0) a folder that a different PIVTOOLs version started. Without it such a resume is refused, because the earlier and later passes would come from different code' },
       ],
       examples: [
         'pivtools-cli ensemble',
         'pivtools-cli ensemble -p 0',
         'pivtools-cli ensemble --overwrite',
+        'pivtools-cli ensemble --allow-code-change',
       ],
       link: '/manual/piv-processing#cli',
     },
