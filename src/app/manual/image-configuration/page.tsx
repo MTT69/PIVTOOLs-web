@@ -932,6 +932,11 @@ paths:
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Validation runs automatically when you save changes. It checks that first/last frames exist and are readable for each camera.
             </p>
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              The run itself checks more. Before processing starts, a CLI run or a Run PIV job checks every frame file
+              of every active source path, camera and loop by name. If any are missing, it refuses and names the first
+              missing files with their pair and camera, so a gap in the middle of a sequence cannot pass unnoticed.
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {[

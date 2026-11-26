@@ -95,7 +95,6 @@ const manualSections: ManualSection[] = [
       { title: 'Camera Selection', href: '/manual/piv-processing#camera-selection' },
       { title: 'Peak Finding', href: '/manual/piv-processing#peak-finding' },
       { title: 'Predictor & Peak Settings', href: '/manual/piv-processing#predictor-peak' },
-      { title: 'Boundary Conditions', href: '/manual/piv-processing#boundary-conditions' },
       { title: 'Correlation & Fitting', href: '/manual/piv-processing#correlation-fitting' },
       { title: 'Ensemble Options', href: '/manual/piv-processing#ensemble-options' },
       { title: 'Performance Settings', href: '/manual/piv-processing#performance' },

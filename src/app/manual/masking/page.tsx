@@ -281,6 +281,13 @@ export default function MaskingPage() {
                 refuse the camera on screen, with the reason. When a saved mask no longer fits, the mask editor says so
                 above the image and starts an empty mask. A save the backend refuses is shown as not saved.
               </p>
+              <p className="text-yellow-700 text-sm mt-2">
+                <strong>Margins:</strong> In <code>rectangular</code> mode, each of <code>top</code>, <code>bottom</code>,{' '}
+                <code>left</code> and <code>right</code> must be a whole number of pixels, 0 or more. Margins that
+                together cover a camera&apos;s full height or width leave nothing to process. A missing side, a
+                fractional or negative margin, or margins that cover the image are refused before the run starts, in
+                the CLI and in Run PIV.
+              </p>
             </div>
           </Section>
 
@@ -321,7 +328,7 @@ export default function MaskingPage() {
                   {[
                     { gui: "Apply Mask for PIV", yaml: "masking.enabled", values: "true / false" },
                     { gui: "Masking Mode", yaml: "masking.mode", values: "'file' or 'rectangular'" },
-                    { gui: "Top / Bottom / Left / Right", yaml: "masking.rectangular.*", values: "integer >= 0 (pixels)" },
+                    { gui: "Top / Bottom / Left / Right", yaml: "masking.rectangular.*", values: "integer >= 0 (pixels); top + bottom below the image height, left + right below the width" },
                     { gui: "Mask file pattern", yaml: "masking.mask_file_pattern", values: "String with %d for camera" },
                     { gui: "Mask threshold", yaml: "masking.mask_threshold", values: "float (default 0.01)" },
                   ].map((row, index) => (

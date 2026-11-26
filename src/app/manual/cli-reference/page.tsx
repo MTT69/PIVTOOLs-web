@@ -181,10 +181,12 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices (e.g., "0,1,2")' },
         { flag: '--camera', short: '-c', description: 'Camera number to process (default: all from config)' },
+        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting (the GUI overwrite dialog does the same). Without it, a run into a folder that already holds results is refused before anything is written' },
       ],
       examples: [
         'pivtools-cli instantaneous',
         'pivtools-cli instantaneous -p 0,1',
+        'pivtools-cli instantaneous --overwrite',
       ],
       link: '/manual/piv-processing#cli',
     },
@@ -194,10 +196,12 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
         { flag: '--camera', short: '-c', description: 'Camera number to process (default: all from config)' },
+        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting. Refused together with resume_from_pass > 0, since a resume needs the folder it would clear' },
       ],
       examples: [
         'pivtools-cli ensemble',
         'pivtools-cli ensemble -p 0',
+        'pivtools-cli ensemble --overwrite',
       ],
       link: '/manual/piv-processing#cli',
     },

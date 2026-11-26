@@ -355,10 +355,11 @@ instantaneous_piv:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { setting: "predictor_smoothing", default: "true / false", mode: "Inst / Ens", desc: "Gaussian-smooth the predictor between passes. Recommended for instantaneous (reduces single-pair noise). For ensemble, smoothing can destroy real gradients -- leave disabled unless data is very noisy." },
-                    { setting: "image_warp_interpolation", default: "cubic", mode: "Both", desc: "Interpolation kernel for image warping during predictor deformation. cubic = bicubic (4\u00d74 stencil), lanczos = Lanczos-3 (6\u00d76 stencil, slightly sharper)." },
+                    { setting: "image_warp_interpolation", default: "lanczos4", mode: "Both", desc: "Interpolation kernel for image warping during predictor deformation. lanczos4 = normalised Lanczos-4 (8\u00d78 stencil): warp bias at or below 0.003 px for 2\u20135 px particles, about 4\u20137 % more run time than cubic. lanczos3 = normalised Lanczos-3 (6\u00d76). cubic = Keys bicubic (4\u00d74): biases vectors by 0.04\u20130.09 px for 3\u201310 px particles. Any other name is refused when the config is read; the old name lanczos is now lanczos3." },
                     { setting: "secondary_peak", default: "false", mode: "Instantaneous", desc: "Extract the second-highest correlation peak per window. Useful for reverse flow or multiple particle populations." },
                     { setting: "num_peaks", default: "1", mode: "Instantaneous", desc: "Number of correlation peaks to detect per window. Usually 1; increase for multi-peak analysis." },
-                    { setting: "save_mode", default: "minimal", mode: "Instantaneous", desc: "Output fields per vector file. 'minimal' saves ux, uy, b_mask only (fastest). 'full' saves all 11 fields including peak height, sigma, stresses." },
+                    { setting: "window_type", default: "gaussian (inst.) / square (ens.)", mode: "Both", desc: "Taper applied to each interrogation window before correlation: square or gaussian. Any other name (including the removed blackman and gaussiantop) is refused when the config is read. No GUI control; set it in YAML." },
+                    { setting: "save_mode", default: "minimal", mode: "Instantaneous", desc: "Output fields per vector file. 'minimal' saves ux, uy, b_mask only (fastest). 'full' adds nan_mask, nan_reason, peak_mag, peak_ratio, peak_choice, window centres, n_windows, window_size and predictor_field (13 fields)." },
                     { setting: "save_compression", default: "false", mode: "Instantaneous", desc: "Enable ZLIB compression on .mat output files. Slower writes but smaller file size." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -378,61 +379,11 @@ instantaneous_piv:
   num_peaks: 1
   save_mode: minimal
   save_compression: false
-  image_warp_interpolation: cubic
+  image_warp_interpolation: lanczos4
 
 ensemble_piv:
   predictor_smoothing: false
-  image_warp_interpolation: cubic`} title="config.yaml" />
-          </Section>
-
-          {/* Boundary Conditions */}
-          <Section title="Boundary Conditions" icon={<Crosshair size={32} />} id="boundary-conditions">
-            <div className="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6">
-              <p className="text-purple-700 text-sm">
-                <strong>Ensemble only.</strong> Overrides edge-replicated predictor padding near walls with prescribed velocity values.
-              </p>
-            </div>
-
-            <p className="text-gray-700 text-lg mb-6">
-              In wall-bounded flows, the predictor field near boundaries can be corrupted by edge replication. Boundary conditions let you prescribe known velocities (e.g., no-slip: ux=0, uy=0) at specific wall positions.
-            </p>
-
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm text-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Field</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Description</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { field: "y_position", type: "int (px)", desc: "Row position of the wall in the image" },
-                    { field: "ux", type: "float (px/frame)", desc: "Prescribed horizontal displacement at the wall" },
-                    { field: "uy", type: "float (px/frame)", desc: "Prescribed vertical displacement at the wall" },
-                    { field: "edge", type: "'bottom' | 'top'", desc: "Which image edge the wall is near" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 font-mono text-purple-600">{row.field}</td>
-                      <td className="px-4 py-3 text-gray-600">{row.type}</td>
-                      <td className="px-4 py-3 text-gray-600">{row.desc}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <CodeBlock code={`ensemble_piv:
-  predictor_boundary_conditions:
-  - y_position: 10
-    ux: 0
-    uy: 0
-    edge: bottom
-  - y_position: 950
-    ux: 0
-    uy: 0
-    edge: top`} title="config.yaml -- no-slip walls at top and bottom" />
+  image_warp_interpolation: lanczos4`} title="config.yaml" />
           </Section>
 
           {/* Correlation & Fitting */}
@@ -519,7 +470,7 @@ ensemble_piv:
                     { setting: "gradient_correction", default: "false", desc: "Reynolds stress gradient correction near walls" },
                     { setting: "store_planes", default: "false", desc: "Save AA, BB, AB correlation planes to disk (large files)" },
                     { setting: "save_diagnostics", default: "false", desc: "Warped-image diagnostics under filters/, plus a per-window fit_diagnostics_pass_N.mat holding gain, N0, cost_per_pt, n_valid, iter, conv and status (with b4x/b4y when a quartic shape is active). Each file also records the settings that produced it: pass_idx, n_pairs, bg_method, per_pair_normalization, gain_normalised, kspace_shape and kspace_floor." },
-                    { setting: "resume_from_pass", default: "0", desc: "Resume from pass N (1-based). 0 = fresh start. Requires existing ensemble_result.mat." },
+                    { setting: "resume_from_pass", default: "0", desc: "Resume from pass N (1-based). 0 = fresh start. Requires an existing ensemble_result.mat that holds the uncorrected stresses (UU/VV/UV_stress_uncorrected), so the gradient correction is applied once. An older file without them is refused with the missing field named; rerun from pass 1." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-purple-600">{row.setting}</td>
@@ -695,7 +646,7 @@ ensemble_piv:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { method: "nearest", params: "(none)", desc: "Nearest valid vector via distance transform. Fastest, robust for clustered gaps." },
-                    { method: "biharmonic", params: "(none)", desc: "PDE-based smooth interpolation. High quality." },
+                    { method: "harmonic", params: "(none)", desc: "Harmonic least-squares inpainting. Filled values stay within the range of their neighbours, so it is robust to noisy donors. Default for final_pass." },
                     { method: "knn", params: "n_neighbors: 32, weights: 'distance'", desc: "Distance-weighted regression. Sparse data." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -713,7 +664,7 @@ ensemble_piv:
     method: nearest           # no parameters needed
   final_pass:
     enabled: true
-    method: biharmonic        # no parameters needed`} title="config.yaml" />
+    method: harmonic          # no parameters needed`} title="config.yaml" />
           </Section>
 
           {/* NaN Reason Codes */}
@@ -777,10 +728,21 @@ ensemble_piv:
             <p className="text-gray-700 text-sm mb-4">
               Instantaneous PIV writes <code className="bg-gray-100 px-1 rounded font-mono text-xs">nan_reason</code> in the{' '}
               <code className="bg-gray-100 px-1 rounded font-mono text-xs">full</code> save mode with its own taxonomy.
-              Shared meanings keep the same numbers (-1 masked, 0 valid, 1 peak-fit failure, 6 large-displacement
-              rejection, 10 outlier on the primary peak). Instantaneous-only codes are <strong>9</strong> unclassified
+              Shared meanings keep the same numbers (-1 masked, 0 valid, 1 peak-fit failure, 10 outlier on the
+              primary peak). Code <strong>6</strong> is a large displacement in both pipelines but is decided
+              differently: in instantaneous it is the search-reach flag described below, in ensemble a displacement
+              beyond 3/4 of the window. Instantaneous-only codes are <strong>9</strong> unclassified
               (in the NaN mask but no stage claimed it), <strong>12</strong> outlier on a substituted secondary peak,
               and <strong>13</strong> chosen peak magnitude NaN (peaks exhausted).
+            </p>
+            <p className="text-gray-700 text-sm mb-4">
+              The peak search covers integer lags from &minus;N/4 to +N/4 of the window size N on each axis.
+              Code <strong>6</strong> marks a window whose correlation plane holds a taller peak anywhere outside that
+              reach: the true displacement is probably beyond it, so the vector in reach would be wrong. On passes after
+              the first, code 6 also marks a fitted residual larger than a quarter window. On the first pass, Run logs the
+              flagged fraction of each pair and warns when it exceeds 2 % of the pair&apos;s unmasked windows; the run
+              continues. A warning means the first window is too small for the flow: use a first window
+              N &ge; 4 &times; (largest displacement + 1 px). Instantaneous windows under 5 px on an axis are refused.
             </p>
           </Section>
 
@@ -796,8 +758,21 @@ ensemble_piv:
                 <li>Check the datasets to include. Same PIV settings apply to all selected paths.</li>
                 <li>Click <strong>Run PIV</strong>. If output already exists, a confirmation dialog asks to clear and recompute. With masking on, Run first checks every camera&apos;s mask on every selected dataset, and refuses before starting if one is missing, unreadable or not its camera&apos;s image size. The message names the camera and the mask file. The Masking tab shows the same check for the camera on screen. Run also refuses a pairing the images cannot be read with, and a dataset selection that names a dataset the config does not have.</li>
                 <li>Monitor progress via the progress bar (instantaneous) or console logs (both modes). The bar spans every selected dataset, and with more than one selected a line beneath names the dataset currently running.</li>
-                <li>Cancel gracefully if needed. Partial results may be saved.</li>
+                <li>Cancel gracefully if needed. Partial results may be saved, and the folder is then not a finished run (see below).</li>
               </ol>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Run state and failed runs</h4>
+              <ul className="list-disc list-inside text-gray-600 space-y-2">
+                <li>Every output folder (one dataset, one camera, one mode) holds a <code className="bg-gray-100 px-1 rounded font-mono text-sm">run_manifest.json</code>. It says <strong>running</strong> from before the first result file, <strong>complete</strong> once the folder is finished, and <strong>failed</strong> with the error.</li>
+                <li>A run into a folder that already holds results is refused before anything is written, naming the folder. Clear it with the Run PIV dialog or <code className="bg-gray-100 px-1 rounded font-mono text-sm">--overwrite</code>. When a processing setting changed since that folder was written, the refusal names it, as <code className="bg-gray-100 px-1 rounded font-mono text-sm">key: old -&gt; new</code>.</li>
+                <li>An ensemble resume (<code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> &gt; 0) needs a running or failed folder written with identical processing settings, and <code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> at most one more than the passes it saved. An empty folder, or one written before run manifests existed, cannot be resumed.</li>
+                <li>When one dataset fails, it is marked failed, the others still finish, and the run exits non-zero naming every failure. Run PIV shows <em>Failed</em> with the error line and lists the failed datasets.</li>
+                <li>A run stops with an error that names the pair and the image file when a frame is constant (every pixel the same value, or no finite pixel), when a pair has no valid vector in a pass (instantaneous) or a pass has no valid vector (ensemble; the message counts the vectors each rejection reason removed), when an ensemble batch fails or a pass sums a different number of pairs than the run has, and when a Dask worker dies (often out of memory). A worker death during an ensemble run is reported within 5 minutes.</li>
+                <li>The vector viewer, statistics, calibration apply and the video maker refuse a folder whose run is running or failed, and say so. Folders written before run manifests existed are still read. The Run PIV live preview reads the folder while it is being written.</li>
+                <li><code className="bg-gray-100 px-1 rounded font-mono text-sm">ensemble_piv.window_size</code> and <code className="bg-gray-100 px-1 rounded font-mono text-sm">ensemble_piv.overlap</code> are required for ensemble; the instantaneous values are never used in their place.</li>
+              </ul>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -850,11 +825,10 @@ processing:
                     { path: 'ensemble_piv.background_subtraction_method', inst: '-', ens: 'Y', desc: 'correlation, image, window_mean, correlation+window_mean or image+window_mean' },
                     { path: 'ensemble_piv.gradient_correction', inst: '-', ens: 'Y', desc: 'Reynolds stress gradient correction' },
                     { path: 'ensemble_piv.persist_images', inst: '-', ens: 'Y', desc: 'Keep filtered images in worker RAM (default false)' },
-                    { path: 'ensemble_piv.image_warp_interpolation', inst: '-', ens: 'Y', desc: 'Image warp kernel: cubic or lanczos' },
-                    { path: 'instantaneous_piv.image_warp_interpolation', inst: 'Y', ens: '-', desc: 'Image warp kernel: cubic or lanczos (default cubic)' },
-                    { path: 'instantaneous_piv.save_mode', inst: 'Y', ens: '-', desc: 'minimal (3 fields) or full (11 fields)' },
+                    { path: 'ensemble_piv.image_warp_interpolation', inst: '-', ens: 'Y', desc: 'Image warp kernel: cubic, lanczos3 or lanczos4 (default lanczos4)' },
+                    { path: 'instantaneous_piv.image_warp_interpolation', inst: 'Y', ens: '-', desc: 'Image warp kernel: cubic, lanczos3 or lanczos4 (default lanczos4)' },
+                    { path: 'instantaneous_piv.save_mode', inst: 'Y', ens: '-', desc: 'minimal (3 fields) or full (13 fields)' },
                     { path: 'instantaneous_piv.save_compression', inst: 'Y', ens: '-', desc: 'ZLIB compression on .mat files (default false)' },
-                    { path: 'ensemble_piv.predictor_boundary_conditions', inst: '-', ens: 'Y', desc: 'Wall boundary conditions array' },
                     { path: 'ensemble_piv.sum_fitting_window_enabled', inst: '-', ens: 'Y', desc: 'Crop summed plane before fitting (default true)' },
                     { path: 'ensemble_piv.sum_fitting_window', inst: '-', ens: 'Y', desc: '[H, W] crop size (default [32, 32]; falls back to sum_window)' },
                     { path: 'ensemble_piv.store_planes', inst: '-', ens: 'Y', desc: 'Save correlation planes' },
@@ -918,7 +892,7 @@ instantaneous_piv:
   predictor_smoothing: true
   secondary_peak: false
   num_peaks: 1
-  image_warp_interpolation: cubic
+  image_warp_interpolation: lanczos4
   save_mode: minimal
   save_compression: false
 
@@ -952,8 +926,7 @@ ensemble_piv:
   gradient_correction: false
   persist_images: false
   predictor_smoothing: false
-  image_warp_interpolation: cubic
-  predictor_boundary_conditions: []
+  image_warp_interpolation: lanczos4
   sum_fitting_window_enabled: true
   sum_fitting_window:
   - 32
@@ -986,7 +959,7 @@ infilling:
     parameters: {}
   final_pass:
     enabled: true
-    method: biharmonic
+    method: harmonic
     parameters: {}
 
 ensemble_infilling:
@@ -995,7 +968,7 @@ ensemble_infilling:
     parameters: {}
   final_pass:
     enabled: true
-    method: biharmonic
+    method: harmonic
     parameters: {}`}
             />
           </Section>
