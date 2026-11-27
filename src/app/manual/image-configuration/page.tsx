@@ -218,7 +218,7 @@ export default function ImageConfigurationPage() {
                 "A folder's contents are grouped as Folders, LaVision recordings, Images and Other files. A run of numbered images is one row, showing its first and last file, its count and its pattern.",
                 "The gold button names what you will use: Use this folder, Use this recording or Use these images. Double-click opens a folder.",
                 "Files the box cannot take are greyed. An output folder box takes folders only.",
-                "An empty box opens Browse at Home. A folder that cannot be listed says why in the pane.",
+                "An empty box opens Browse at Home. A box holding a file opens its folder with the file's run or recording selected. A folder that cannot be listed says why in the pane.",
               ]}
             />
 
@@ -230,12 +230,12 @@ export default function ImageConfigurationPage() {
               inside it, picks the <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code>; opening the
               data folder in Browse lands on the folder above it with the recording selected. A{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code> without a data folder of image
-              streams is not a recording (a DaVis project or result file): it is listed greyed as{' '}
-              <em>DaVis project file</em> under Other files and cannot be picked. Typed into the box, it fills
-              nothing and the line says why: &quot;The image settings were not changed: Properties.set is not a
-              recording: no data folder Properties/ beside it. It is a DaVis project file, or a recording whose data
-              folder was not copied with it.&quot; A folder without frames reads &quot;its folder camera1/ holds no
-              frame streams (StreamSet.xml or *-0.ims)&quot; instead.
+              streams is not a recording (a DaVis project or result file). It is listed greyed under Other files
+              with why, for example <em>DaVis project file: no data folder Properties/ beside it</em> or{' '}
+              <em>DaVis project file: its folder camera1/ holds no frame streams (StreamSet.xml or *-0.ims)</em>,
+              and cannot be picked. Typed into the box, it fills nothing and the line says why: &quot;The image
+              settings were not changed: Properties.set is not a recording: no data folder Properties/ beside it. It
+              is a DaVis project file, or a recording whose data folder was not copied with it.&quot;
             </p>
 
             {/* Batch Processing */}
@@ -279,8 +279,8 @@ export default function ImageConfigurationPage() {
                 "Undo puts every filled setting back as it was before the fill. The path you picked stays. The line and its Undo go once you edit any of the filled settings.",
                 "A folder holding one recording takes it. A folder holding several shows \"N recordings here. Pick one:\" with the recordings listed under the box, and nothing changes until you pick one.",
                 "A setting the files cannot tell is left as it was, and the line ends with \"not set:\" and the reason.",
-                "When nothing usable is found (an empty folder, a .set that is not a recording, a folder holding two image types), the settings are left as they were, the line reads \"The image settings were not changed:\" and the reason (here and on the calibration tabs), and validation shows its message and fix buttons as before.",
-                "A folder holding two image types fills nothing, however few files of the second type there are, and the line gives each type's count: \"The image settings were not changed: D:/data/run1 holds image files of 2 types (3 .im7 files, 1 .tif file), so the image type cannot be told. Pick a folder holding one type.\"",
+                "When nothing usable is found (an empty folder, a .set that is not a recording, a folder whose images carry two extensions), the settings are left as they were, the line reads \"The image settings were not changed:\" and the reason (here and on the calibration tabs), and validation shows its message and fix buttons as before.",
+                "A folder whose images carry two extensions fills nothing, however few files carry the second, because a filename pattern names one extension (.tif and .png are two, so are .tif and .tiff; letter case is not). The line gives each extension's count: \"The image settings were not changed: D:/data/run1 holds image files with 2 extensions (3 .im7 files, 1 .tif file), so which files to read cannot be told. Pick a folder whose images share one extension.\"",
                 "Only the first source fills the settings, because every source shares them. A later source is only compared: if it differs, a warning names each difference, for example \"Source 2 differs from the image settings, which come from source 1: image type ... here, ... in Setup. Nothing was changed.\" The cameras to process are your choice, so they are not compared.",
                 "A fill that cannot be saved shows why under the box, with no summary and no Undo.",
               ]}
