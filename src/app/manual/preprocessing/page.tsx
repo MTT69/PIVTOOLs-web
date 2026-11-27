@@ -278,7 +278,7 @@ batches:
               these (or <code className="bg-gray-100 px-1 rounded font-mono text-xs">time</code> and{' '}
               <code className="bg-gray-100 px-1 rounded font-mono text-xs">pod</code>) is refused when the config is read,
               naming the entry and the allowed types. It is never skipped silently. Each entry carries every parameter
-              its type lists above, and only those; a missing one is refused with its default as the hint.
+              its type lists above, and only those; a missing one is refused, and the hint gives the value a fresh config has.
             </p>
           </Section>
 

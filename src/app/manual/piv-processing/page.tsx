@@ -484,7 +484,7 @@ ensemble_piv:
 
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
               <p className="text-blue-700 text-sm">
-                <strong>Two defaults changed.</strong> <code className="bg-blue-100 px-1 rounded">kspace_floor</code> is now <code className="bg-blue-100 px-1 rounded">coloured</code> rather than flat, and <code className="bg-blue-100 px-1 rounded">envelope_divide</code> is now off where the divide previously always happened. Both change your numbers, and both can be switched back to reproduce an older run. The other recent additions (<code className="bg-blue-100 px-1 rounded">window_mean</code>, <code className="bg-blue-100 px-1 rounded">per_pair_normalization</code>, <code className="bg-blue-100 px-1 rounded">predictor_rounding</code>, <code className="bg-blue-100 px-1 rounded">kspace_shape</code>) all default to the legacy or off behaviour. A config written before these keys existed is refused until they are added; the refusal gives each key with its default.
+                <strong>Two defaults changed.</strong> <code className="bg-blue-100 px-1 rounded">kspace_floor</code> is now <code className="bg-blue-100 px-1 rounded">coloured</code> rather than flat, and <code className="bg-blue-100 px-1 rounded">envelope_divide</code> is now off where the divide previously always happened. Both change your numbers, and both can be switched back to reproduce an older run. The other recent additions (<code className="bg-blue-100 px-1 rounded">window_mean</code>, <code className="bg-blue-100 px-1 rounded">per_pair_normalization</code>, <code className="bg-blue-100 px-1 rounded">predictor_rounding</code>, <code className="bg-blue-100 px-1 rounded">kspace_shape</code>) all default to the legacy or off behaviour. A config written before these keys existed is refused until they are added; the refusal gives each key with the value a fresh config has.
               </p>
             </div>
 
@@ -617,8 +617,8 @@ ensemble_piv:
             <p className="text-gray-600 text-sm mb-6">
               A method whose <code className="bg-gray-100 px-1 rounded font-mono text-xs">type</code> is not one of these
               four is refused when the config is read, before any output folder is touched, even when outlier detection is
-              disabled. Each test carries every parameter of its type, and only those: a missing one is refused with its
-              default as the hint.
+              disabled. Each test carries every parameter of its type, and only those: a missing one is refused, and the hint
+              gives the value a fresh config has.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

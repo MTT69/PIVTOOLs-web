@@ -706,7 +706,7 @@ pivtools-cli apply-calibration --board charuco --all-paths`}</CodeBlock>
             <div className="mb-6">
               <CodeBlock title="pivtools-cli instantaneous">{`config.yaml was refused: 2 problems.
   outlier_detection.methods[0].treshold: unknown key (did you mean 'threshold'?)
-  outlier_detection.methods[0].threshold: required key is missing (add 'threshold: 0.2', the default)
+  outlier_detection.methods[0].threshold: required key is missing (add 'threshold: 0.2', the value a fresh config has)
 How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#config-refused`}</CodeBlock>
             </div>
             <p className="text-gray-700 mb-6">
@@ -728,14 +728,14 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#conf
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { msg: "unknown key (did you mean 'threshold'?)", cause: 'A misspelt key', fix: 'Rename it to the key in the hint.' },
-                    { msg: 'unknown key (allowed here: ...)', cause: 'A key that does not exist there, or one that was renamed', fix: 'Delete it, or move its value to the right key from the list.' },
-                    { msg: "required key is missing (add 'size: 10', the default)", cause: 'A key the file never had, often from an older version', fix: "Add the line the hint gives, or copy the key from a fresh config (pivtools-cli init in an empty folder)." },
-                    { msg: 'was removed (...) or is not one of ... (removed: ...)', cause: 'A key or value that no longer exists', fix: 'Write the replacement the hint names, or delete the key.' },
-                    { msg: 'must be true or false, got str ... (quoted in YAML? ...)', cause: 'A quoted number or true/false', fix: "Remove the quotes: debug: false, omp_threads: 4." },
-                    { msg: 'unknown key under an outlier, infill or filter entry', cause: "A parameter left over from the entry's previous method", fix: 'Delete it. Each method lists its parameters on the PIV Processing and Preprocessing pages.' },
-                    { msg: 'calibration.<key>: unknown key (calibration settings live in ...)', cause: 'Calibration settings written in config.yaml', fix: 'Move the value into <source>/calibration/settings.yaml and delete it here.' },
-                    { msg: 'line N, column M: not valid YAML', cause: 'A syntax error, such as a missing colon or bad indentation', fix: 'Fix the line. The parser reports where it stopped, which is often the line after the mistake.' },
+                    { msg: "outlier_detection.methods[0].treshold: unknown key (did you mean 'threshold'?)", cause: 'A misspelt key', fix: 'Rename it to the key in the hint.' },
+                    { msg: 'batches.batch_size: unknown key (allowed here: size)', cause: 'A key that does not exist there, or one that was renamed', fix: 'Delete it, or move its value to the right key from the list.' },
+                    { msg: "batches.size: required key is missing (add 'size: 10', the value a fresh config has)", cause: 'A key the file never had, often from an older version', fix: 'Add the line the hint gives. For a named option the hint lists the allowed values. Or copy the key from a fresh config (pivtools-cli init in an empty folder).' },
+                    { msg: "statistics.enabled_methods.reynolds_stress: was removed (renamed 'mean_stresses')", cause: 'A key or value that no longer exists', fix: 'Write the replacement the hint names, or delete the key.' },
+                    { msg: "processing.omp_threads: must be a whole number, got str '4' (quoted in YAML? write it without quotes)", cause: 'A quoted number or true/false', fix: 'Remove the quotes: omp_threads: 4, debug: false.' },
+                    { msg: "infilling.mid_pass.parameters.n_neighbors: unknown key ('nearest' takes no parameters; delete it)", cause: "A parameter left over from the entry's previous method", fix: 'Delete it. Each method lists its parameters on the PIV Processing and Preprocessing pages.' },
+                    { msg: 'calibration.dt: unknown key (calibration settings live in the per-source settings sidecar, <source>/calibration/settings.yaml; config.yaml holds only calibration_sources, source_idx and active, so delete this key)', cause: 'Calibration settings written in config.yaml', fix: 'Move the value into <source>/calibration/settings.yaml and delete it here.' },
+                    { msg: 'C:\\data\\experiment\\config.yaml: line 14, column 15: not valid YAML: mapping values are not allowed here', cause: 'A syntax error, such as a missing colon or bad indentation', fix: 'Fix the line. The parser reports where it stopped, which is often the line after the mistake.' },
                   ].map((row, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-xs text-red-700">{row.msg}</td>
@@ -762,8 +762,8 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#conf
               <CodeBlock title="A config from an older version">{`config.yaml was refused: 7 problems.
   processing.debug: must be true or false, got str 'false' (quoted in YAML? write it without quotes)
   outlier_detection.methods[0].treshold: unknown key (did you mean 'threshold'?)
-  outlier_detection.methods[0].threshold: required key is missing (add 'threshold: 0.2', the default)
-  infilling.mid_pass.parameters.n_neighbors: unknown key (allowed here: )
+  outlier_detection.methods[0].threshold: required key is missing (add 'threshold: 0.2', the value a fresh config has)
+  infilling.mid_pass.parameters.n_neighbors: unknown key ('nearest' takes no parameters; delete it)
   infilling.final_pass.method: 'biharmonic' is not one of nearest, harmonic, knn, griddata_linear, rbf_local (removed: it amplified donor noise and its unbounded fill gave negative Reynolds stresses in the ensemble final pass; 'harmonic' is the final-pass default)
   statistics.enabled_methods.reynolds_stress: was removed (renamed 'mean_stresses')
   calibration.dt: unknown key (calibration settings live in the per-source settings sidecar, <source>/calibration/settings.yaml; config.yaml holds only calibration_sources, source_idx and active, so delete this key)
