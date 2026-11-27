@@ -1079,7 +1079,7 @@ pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
                     { flag: "--dt", desc: "Time between frames (seconds)", def: "From model / config" },
                     { flag: "--all-paths", desc: "Derive every base_path from config (like the GUI)", def: "off" },
                     { flag: "--type-name", desc: "PIV result type for --all-paths: instantaneous or ensemble", def: "instantaneous" },
-                    { flag: "--interpolator", desc: "Resample kernel: cubic or lanczos", def: "lanczos" },
+                    { flag: "--interpolator", desc: "Resample kernel: linear, cubic or lanczos. Required when the source has no settings.yaml", def: "rig.interpolator in settings.yaml" },
                     { flag: "--model-type", desc: "Which stereo record to load when several exist in the model dir", def: "pinhole" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -1097,6 +1097,15 @@ pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
                 <strong>Apply refuses rather than continuing silently</strong> when the two cameras have different
                 vector frame sets, when no vector files match, or when an ensemble pass has no coordinates entry.
                 The error says which.
+              </p>
+              <p className="text-yellow-700 text-sm mt-2">
+                A source with no settings.yaml is refused unless <code className="bg-yellow-100 px-1 rounded">--interpolator</code> is
+                given, since the resample kernel is read from <code className="bg-yellow-100 px-1 rounded">rig.interpolator</code>:
+                &quot;apply-stereo: No calibration settings for source &apos;D:\data\calib&apos; (expected
+                D:\data\calib\calibration\settings.yaml). ... Or pass --interpolator linear|cubic|lanczos.&quot;
+                <code className="bg-yellow-100 px-1 rounded">apply-calibration --all-paths</code> with a stereo active method
+                is refused the same way, but takes no <code className="bg-yellow-100 px-1 rounded">--interpolator</code>: create
+                the settings.yaml, or run apply-stereo.
               </p>
             </div>
 
@@ -1149,7 +1158,7 @@ rig:
   camera_pair: [1, 2]
   dt: 0.0006                    # must be set before generating a model; never defaulted
   datum_frame: 1                # 1-based
-  interpolator: lanczos         # cubic | lanczos
+  interpolator: lanczos         # linear | cubic | lanczos
   piv_type: instantaneous
 
 fit:
