@@ -232,7 +232,8 @@ export default function ImageConfigurationPage() {
           {/* Image Type Selection */}
           <Section title="Image Type Selection" icon={<Database size={32} />} id="image-type">
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
-              Select the format matching your image files. Auto-detected from file extension if not set explicitly.
+              Select the format matching your image files. <code className="bg-gray-100 px-1 rounded">images.image_type</code> is
+              required in config.yaml.
             </p>
 
             <div className="overflow-x-auto mb-8">
@@ -520,13 +521,10 @@ export default function ImageConfigurationPage() {
 
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
               <p className="text-blue-800 text-sm">
-                <strong><code className="bg-blue-100 px-1 rounded">image_format</code> is always a list.</strong> A bare
-                string is coerced into a one-entry list on load, so
-                <code className="bg-blue-100 px-1 rounded">image_format: [&quot;cine&quot;]</code> and
-                <code className="bg-blue-100 px-1 rounded">image_format: cine</code> behave identically. Write it as a
-                list if you are generating config files programmatically. An empty list falls back to the built-in
-                defaults, which use <code className="bg-blue-100 px-1 rounded">.tiff</code> rather than
-                <code className="bg-blue-100 px-1 rounded">.tif</code>.
+                <strong><code className="bg-blue-100 px-1 rounded">image_format</code> is always a list.</strong> Write
+                <code className="bg-blue-100 px-1 rounded">image_format: [&quot;cine&quot;]</code>, not
+                <code className="bg-blue-100 px-1 rounded">image_format: cine</code>. A bare string or an empty list is
+                refused when the config is read.
               </p>
             </div>
 
@@ -1013,7 +1011,7 @@ paths:
                     { fmt: "Mask", what: "Masking on, and the mask file missing or unreadable", msg: "has no mask file at ... / could not be read", fix: "Draw and save the mask in the Masking tab, or turn masking off." },
                     { fmt: "Mask", what: "Masking on, and masking.mode not file or rectangular", msg: "is not a masking mode", fix: "Set masking.mode to 'file' or 'rectangular', or turn masking off." },
                     { fmt: "Datasets", what: "A dataset index the config does not have, or not a whole number (Run PIV, --active-paths, paths.active_paths, calibration apply)", msg: "Dataset N in <the selection> is out of range: this config has M datasets (paths.source_paths), numbered 0 to M-1", fix: "Select datasets the config has. Indices count from 0." },
-                    { fmt: "Datasets", what: "A selection with no dataset in it", msg: "selects no dataset ... Select at least one", fix: "Tick at least one dataset, or remove an empty paths.active_paths." },
+                    { fmt: "Datasets", what: "A selection with no dataset in it", msg: "selects no dataset ... Select at least one", fix: "Tick at least one dataset. In config.yaml, list at least one index in paths.active_paths, or write null to process every dataset." },
                     { fmt: "RAW", what: ".raw, .cr2, .nef or .arw", msg: "Camera RAW support was removed from PIVTOOLs", fix: "Convert to 16-bit TIFF and point image_format at those." },
                   ].map((row, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>

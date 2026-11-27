@@ -580,7 +580,7 @@ pivtools-cli apply-calibration --board scale_factor --all-paths`}
               <code className="bg-gray-100 px-2 py-1 rounded text-sm">global_coordinates</code> block in the
               per-source settings sidecar, not in <code className="bg-gray-100 px-2 py-1 rounded text-sm">config.yaml</code>.
               Anything written under <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibration:</code> in the
-              config is stripped on the next save. It applies to the global-frame path only: the joint solve shares a
+              config is refused when the config is read. It applies to the global-frame path only: the joint solve shares a
               frame intrinsically and needs no such block.
             </p>
 

@@ -12,6 +12,7 @@ import {
   CheckCircle,
   ArrowRight,
   ChevronDown,
+  AlertTriangle,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -493,10 +494,9 @@ export default function CLIReferencePage() {
                 <code className="bg-blue-100 px-1 rounded">PIVTOOLS_DEBUG=1</code>. The{' '}
                 <code className="bg-blue-100 px-1 rounded">calibration.source</code> config key is no longer read. Use{' '}
                 <code className="bg-blue-100 px-1 rounded">calibration_sources</code> with{' '}
-                <code className="bg-blue-100 px-1 rounded">source_idx</code>. A config that still contains{' '}
-                <code className="bg-blue-100 px-1 rounded">images.time_resolved</code> or{' '}
-                <code className="bg-blue-100 px-1 rounded">images.pairing_mode</code> is refused, and the error names the
-                replacement keys.
+                <code className="bg-blue-100 px-1 rounded">source_idx</code>. A config.yaml with an unknown, missing,
+                mistyped or removed key is refused, with one line per problem: see{' '}
+                <a href="#config-refused" className="underline font-medium">Config Refused</a>.
               </p>
             </div>
             <div className="bg-gray-900 rounded-xl p-6 mb-8">
@@ -677,12 +677,129 @@ pivtools-cli apply-calibration --board charuco --all-paths`}</CodeBlock>
 #     omp_threads: 4`}</CodeBlock>
           </Section>
 
+          {/* Config refused */}
+          <Section title="Config Refused" icon={<AlertTriangle size={28} />} id="config-refused">
+            <p className="text-gray-700 mb-4">
+              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">config.yaml</code> is checked every
+              time the CLI or the GUI reads it. The whole file is checked, including sections the command does not
+              use. A file with any problem is refused: nothing runs and nothing is written. Every problem is listed at
+              once, so one edit can fix them all.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">The rules</h3>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 mb-6">
+              <li>Every key a fresh config holds is required. <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">pivtools-cli init</code> writes one.</li>
+              <li>An unknown key is refused. The hint names the nearest valid key, or lists the keys allowed there.</li>
+              <li>Each outlier test, infill method and filter entry carries every parameter of its method. A parameter that belongs to another method is refused.</li>
+              <li>Numbers and <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">true</code> / <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">false</code> are written without quotes. <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">&quot;4&quot;</code> and <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">&quot;false&quot;</code> are text, and are refused.</li>
+              <li>Removed keys and values are refused, and the hint names the replacement.</li>
+              <li>Only the pointer keys live under <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">calibration:</code>. Board geometry, <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">dt</code> and calibration image settings belong in <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">&lt;source&gt;/calibration/settings.yaml</code>.</li>
+              <li>With <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">cluster_type: slurm</code>, <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">processing.slurm.nnodes</code> is required. It has no default.</li>
+              <li>Option names (methods, kernels, window types) are accepted in any capitalisation.</li>
+            </ul>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">What a refusal looks like</h3>
+            <p className="text-gray-700 mb-4">
+              The CLI prints the problems and exits with status 1. A misspelt <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">threshold</code> in
+              the first outlier test gives two lines: the unknown key, and the key it should have been.
+            </p>
+            <div className="mb-6">
+              <CodeBlock title="pivtools-cli instantaneous">{`config.yaml was refused: 2 problems.
+  outlier_detection.methods[0].treshold: unknown key (did you mean 'threshold'?)
+  outlier_detection.methods[0].threshold: required key is missing (add 'threshold: 0.2', the value a fresh config has)
+How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#config-refused`}</CodeBlock>
+            </div>
+            <p className="text-gray-700 mb-6">
+              Each line is <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">path: message (hint)</code>.
+              The path walks down from the top of the file. <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">methods[0]</code> is
+              the first entry of the <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">methods</code> list,
+              counting from 0. The message says what is wrong. The hint says what to write instead.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Fixing each kind of problem</h3>
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Message</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Cause</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Fix</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { msg: "outlier_detection.methods[0].treshold: unknown key (did you mean 'threshold'?)", cause: 'A misspelt key', fix: 'Rename it to the key in the hint.' },
+                    { msg: 'batches.batch_size: unknown key (allowed here: size)', cause: 'A key that does not exist there, or one that was renamed', fix: 'Delete it, or move its value to the right key from the list.' },
+                    { msg: "batches.size: required key is missing (add 'size: 10', the value a fresh config has)", cause: 'A key the file never had, often from an older version', fix: 'Add the line the hint gives. For a named option the hint lists the allowed values. Or copy the key from a fresh config (pivtools-cli init in an empty folder).' },
+                    { msg: "statistics.enabled_methods.reynolds_stress: was removed (renamed 'mean_stresses')", cause: 'A key or value that no longer exists', fix: 'Write the replacement the hint names, or delete the key.' },
+                    { msg: "processing.omp_threads: must be a whole number, got str '4' (quoted in YAML? write it without quotes)", cause: 'A quoted number or true/false', fix: 'Remove the quotes: omp_threads: 4, debug: false.' },
+                    { msg: "infilling.mid_pass.parameters.n_neighbors: unknown key ('nearest' takes no parameters; delete it)", cause: "A parameter left over from the entry's previous method", fix: 'Delete it. Each method lists its parameters on the PIV Processing and Preprocessing pages.' },
+                    { msg: 'calibration.dt: unknown key (calibration settings live in the per-source settings sidecar, <source>/calibration/settings.yaml; config.yaml holds only calibration_sources, source_idx and active, so delete this key)', cause: 'Calibration settings written in config.yaml', fix: 'Move the value into <source>/calibration/settings.yaml and delete it here.' },
+                    { msg: 'C:\\data\\experiment\\config.yaml: line 14, column 15: not valid YAML: mapping values are not allowed here', cause: 'A syntax error, such as a missing colon or bad indentation', fix: 'Fix the line. The parser reports where it stopped, which is often the line after the mistake.' },
+                  ].map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-xs text-red-700">{row.msg}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.cause}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.fix}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mb-6">
+              <CodeBlock title="A YAML syntax error (num_images 100, colon missing, on line 13)">{`config.yaml was refused: 1 problem.
+  C:\\data\\experiment\\config.yaml: line 14, column 15: not valid YAML: mapping values are not allowed here
+How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#config-refused`}</CodeBlock>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">When to start from a clean config</h3>
+            <p className="text-gray-700 mb-4">
+              Above 5 problems a fresh config is faster than editing, and the refusal says so. Move config.yaml
+              aside and restart the GUI, or run <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">pivtools-cli init</code> in
+              the workspace folder. Either writes a fresh config.yaml. Then copy your settings across from the old file.
+            </p>
+            <div className="mb-6">
+              <CodeBlock title="A config from an older version">{`config.yaml was refused: 7 problems.
+  processing.debug: must be true or false, got str 'false' (quoted in YAML? write it without quotes)
+  outlier_detection.methods[0].treshold: unknown key (did you mean 'threshold'?)
+  outlier_detection.methods[0].threshold: required key is missing (add 'threshold: 0.2', the value a fresh config has)
+  infilling.mid_pass.parameters.n_neighbors: unknown key ('nearest' takes no parameters; delete it)
+  infilling.final_pass.method: 'biharmonic' is not one of nearest, harmonic, knn, griddata_linear, rbf_local (removed: it amplified donor noise and its unbounded fill gave negative Reynolds stresses in the ensemble final pass; 'harmonic' is the final-pass default)
+  statistics.enabled_methods.reynolds_stress: was removed (renamed 'mean_stresses')
+  calibration.dt: unknown key (calibration settings live in the per-source settings sidecar, <source>/calibration/settings.yaml; config.yaml holds only calibration_sources, source_idx and active, so delete this key)
+How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#config-refused
+With this many problems, starting from a clean default config is faster than editing: move config.yaml aside and restart the GUI, or run \`pivtools-cli init\` in the workspace folder; either writes a fresh config.yaml. Then copy your settings across.`}</CodeBlock>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">In the GUI</h3>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 mb-4">
+              <li>
+                Opening a refused config shows <strong>Configuration Refused</strong> with the same lines and the
+                link to this section, then: &quot;Edit config.yaml in the workspace folder, then press Retry. The GUI
+                does not need restarting.&quot; The workspace folder is the one you started the GUI from.
+              </li>
+              <li>
+                A change the rules refuse is not saved, and the file is left as it was. A message names the setting
+                and lists the problems:
+              </li>
+            </ul>
+            <div className="mb-4">
+              <CodeBlock title="Refused save">{`The change was not saved (config.yaml is unchanged): 1 problem.
+  instantaneous_piv.overlap[3]: must be < 100, got 100
+How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#config-refused`}</CodeBlock>
+            </div>
+            <p className="text-gray-700">
+              A run started from the GUI on a refused file fails before it starts, and Run PIV shows the same lines.
+            </p>
+          </Section>
+
           {/* Help */}
           <Section title="Getting Help" icon={<Terminal size={28} />} id="help">
             <p className="text-gray-700 mb-4">
               A command that fails exits non-zero, the PIV commands included, so scripts and batch schedulers see the
               failure. A refusal (a missing key or file, a run that cannot be paired) prints{' '}
-              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">error: &lt;message&gt;</code> and exits with status 1.{' '}
+              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">error: &lt;message&gt;</code> and exits with status 1.
+              A refused config.yaml prints its problems instead (<a href="#config-refused" className="underline">Config Refused</a>).{' '}
               <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--debug</code> (before the command) or{' '}
               <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">PIVTOOLS_DEBUG=1</code> shows the full traceback.
             </p>

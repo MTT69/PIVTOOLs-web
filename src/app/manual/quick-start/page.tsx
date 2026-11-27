@@ -190,7 +190,9 @@ export default function QuickStartPage() {
                 Either way, a default{' '}
                 <code className="bg-green-100 px-2 py-1 rounded text-sm">config.yaml</code> is
                 created in the current directory. The GUI and CLI share this file — configure
-                visually, run from the terminal, or the other way round.
+                visually, run from the terminal, or the other way round. Every read checks the
+                whole file, and a file with an unknown, missing or mistyped key is refused with one
+                line per problem (<a href="/manual/cli-reference#config-refused" className="underline font-medium">Config Refused</a>).
               </p>
             </div>
           </Step>
