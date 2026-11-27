@@ -221,6 +221,13 @@ export default function PIVProcessingPage() {
               </table>
             </div>
 
+            <p className="text-gray-700 mb-6">
+              In the GUI, a box whose text is not a number turns red with the reason under it, and the tab shows
+              &quot;Not saved: correct the field marked in red.&quot; until it is fixed. A value is saved as typed, so an
+              overlap of 0 stays 0. A save that fails, or that the config rules refuse, shows its error and changes
+              nothing (<a href="/manual/cli-reference#config-refused" className="underline">Config Refused</a>).
+            </p>
+
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
               <p className="text-blue-700 text-sm">
                 <strong>Window size convention:</strong> <code className="bg-blue-100 px-1 rounded">[Height, Width]</code> (row-major). Height = vertical (Y), Width = horizontal (X). Use rectangular windows for directional flows (e.g., <code className="bg-blue-100 px-1 rounded">[32, 64]</code> for predominantly horizontal flow).
@@ -294,7 +301,7 @@ instantaneous_piv:
           {/* Camera Selection */}
           <Section title="Camera Selection" icon={<Camera size={32} />} id="camera-selection">
             <p className="text-gray-700 text-lg mb-4">
-              Select which cameras to process via numbered chips in the GUI. At least one must be selected. In YAML, set <code className="bg-gray-100 px-1 rounded">paths.camera_numbers</code>.
+              The cameras to process are chosen on Setup, under <a href="/manual/image-configuration#cameras-to-process" className="underline">Cameras to process</a>. The Instantaneous and Ensemble tabs show the selection read-only, with a link to Setup. At least one must be selected. In YAML, set <code className="bg-gray-100 px-1 rounded">paths.camera_numbers</code>.
             </p>
           </Section>
 
@@ -536,7 +543,7 @@ ensemble_piv:
                     { setting: "slurm.nnodes", default: "(none)", desc: "Number of compute nodes. Required when cluster_type is slurm; it has no default." },
                     { setting: "slurm.walltime", default: "01:00:00", desc: "Job walltime for SLURM submissions" },
                     { setting: "slurm.partition", default: "normal", desc: "SLURM partition name" },
-                    { setting: "post_processing_workers", default: "auto", desc: "Max parallel workers for calibration, statistics, merge, and transform. auto = min(cpu_count, 16)" },
+                    { setting: "post_processing_workers", default: "auto", desc: "Max parallel workers for calibration, statistics, merge, and transform. auto = min(cpu_count, 16); null in YAML, a blank box in the GUI" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-purple-600">{row.setting}</td>
@@ -609,7 +616,7 @@ ensemble_piv:
                   <tr className="bg-gray-50">
                     <td className="px-4 py-3 font-mono text-purple-600">div_vort</td>
                     <td className="px-4 py-3 text-gray-600">div_thresh, vort_thresh</td>
-                    <td className="px-4 py-3 text-gray-600">Reject on divergence and vorticity magnitude. Set either to null for an automatic MAD-based threshold. CLI only, not exposed in the GUI.</td>
+                    <td className="px-4 py-3 text-gray-600">Reject on divergence and vorticity magnitude. Set either to null for an automatic threshold of 6 x MAD. In the GUI (Divergence / Vorticity), a blank threshold box means automatic.</td>
                   </tr>
                 </tbody>
               </table>

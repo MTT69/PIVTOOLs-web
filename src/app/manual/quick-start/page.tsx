@@ -201,8 +201,10 @@ export default function QuickStartPage() {
           <Step number="3" title="Point it at your data" id="configure">
             <p className="text-gray-600 mb-4 text-lg">
               Edit <code className="bg-gray-100 px-2 py-1 rounded text-lg">config.yaml</code> to
-              set the image source path, the number of cameras, and the file format. In the GUI
-              this is the <strong className="text-gray-900">Image Configuration</strong> tab.
+              set the image source path, the number of cameras, and the file format. In the GUI,
+              press <strong className="text-gray-900">Browse</strong> beside the source box on the{' '}
+              <strong className="text-gray-900">Setup</strong> tab and pick your images: the image settings fill
+              from the files, with a one-line summary and Undo.
             </p>
             <a
               href="/manual/image-configuration"
