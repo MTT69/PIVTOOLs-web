@@ -230,9 +230,12 @@ export default function ImageConfigurationPage() {
               inside it, picks the <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code>; opening the
               data folder in Browse lands on the folder above it with the recording selected. A{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code> without a data folder of image
-              streams is not a recording (a DaVis project or result file): it is listed greyed under Other files,
-              with why, and cannot be picked. The reason is <em>no data folder Properties/ beside it</em>, or{' '}
-              <em>its folder camera1/ holds no frame streams (StreamSet.xml or *-0.ims)</em>.
+              streams is not a recording (a DaVis project or result file): it is listed greyed as{' '}
+              <em>DaVis project file</em> under Other files and cannot be picked. Typed into the box, it fills
+              nothing and the line says why: &quot;The image settings were not changed: Properties.set is not a
+              recording: no data folder Properties/ beside it. It is a DaVis project file, or a recording whose data
+              folder was not copied with it.&quot; A folder without frames reads &quot;its folder camera1/ holds no
+              frame streams (StreamSet.xml or *-0.ims)&quot; instead.
             </p>
 
             {/* Batch Processing */}
@@ -276,14 +279,15 @@ export default function ImageConfigurationPage() {
                 "Undo puts every filled setting back as it was before the fill. The path you picked stays. The line and its Undo go once you edit any of the filled settings.",
                 "A folder holding one recording takes it. A folder holding several shows \"N recordings here. Pick one:\" with the recordings listed under the box, and nothing changes until you pick one.",
                 "A setting the files cannot tell is left as it was, and the line ends with \"not set:\" and the reason.",
-                "When nothing usable is found (an empty folder, a .set that is not a recording, a folder holding two image types), the settings are left as they were, the line says why, and validation shows its message and fix buttons as before.",
-                "A folder holding two image types fills nothing, however few files of the second type there are, and the line gives each type's count: \"D:/data/run1 holds image files of 2 types (3 .im7 files, 1 .tif file), so the image type cannot be told. Pick a folder holding one type.\"",
+                "When nothing usable is found (an empty folder, a .set that is not a recording, a folder holding two image types), the settings are left as they were, the line reads \"The image settings were not changed:\" and the reason (here and on the calibration tabs), and validation shows its message and fix buttons as before.",
+                "A folder holding two image types fills nothing, however few files of the second type there are, and the line gives each type's count: \"The image settings were not changed: D:/data/run1 holds image files of 2 types (3 .im7 files, 1 .tif file), so the image type cannot be told. Pick a folder holding one type.\"",
                 "Only the first source fills the settings, because every source shares them. A later source is only compared: if it differs, a warning names each difference, for example \"Source 2 differs from the image settings, which come from source 1: image type ... here, ... in Setup. Nothing was changed.\" The cameras to process are your choice, so they are not compared.",
                 "A fill that cannot be saved shows why under the box, with no summary and no Undo.",
               ]}
             />
             <p className="text-gray-700 leading-relaxed mb-6">
-              Every image setting is on one Image Settings card on Setup: image type, count and loops first, then
+              Every image setting is on one Image Settings card on Setup, directly under the source box, with
+              Output Directories as its own card after it. The card holds image type, count and loops first, then
               the camera count and Cameras to process, then camera folders, pairing (with the first frame number),
               and the filename patterns. Shaded settings were filled from the source. A setting loses its shade when
               you change it, and gets it back if you set it back to the filled value.
@@ -321,7 +325,7 @@ export default function ImageConfigurationPage() {
               </table>
             </div>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Picking a run of images sets the folder and its filename pattern. Picking inside a camera folder takes
+              Picking a run of images saves its folder, which the box then shows, and sets its filename pattern. Picking inside a camera folder takes
               the folder above it. The first frame number is read from the files. You can change any setting after the
               fill, and the pairing menu keeps every option for the image type, Custom included.
             </p>
@@ -1075,7 +1079,7 @@ paths:
                 <li>-- <strong>Files not found:</strong> Check source path and filename pattern (capitalisation, padding, underscores). The &quot;Did you mean&quot; suggestion uses the number that changes between files as the frame number and copies its zero padding exactly. When it cannot tell which number that is, it gives no suggestion and says why.</li>
                 <li>-- <strong>Wrong count:</strong> Verify num_images matches actual file count. Number of Image Files cannot be saved blank.</li>
                 <li>-- <strong>CINE type with a non-cine file:</strong> the error names the mismatch between the image type and the file.</li>
-                <li>-- <strong>First file missing:</strong> Check start_index (0 vs 1). The error adds the start-index hint and the switch button when the files start at the other value. The hint and its Switch button also show after a successful validation.</li>
+                <li>-- <strong>First file missing:</strong> Check start_index (0 vs 1). The error adds the start-index hint and the switch button when the files start at the other value. After a successful validation the hint still shows, without the button.</li>
                 <li>-- <strong>A refusal by name:</strong> the reader says what it will not read and why. Look it up in the table below.</li>
               </ul>
             </div>

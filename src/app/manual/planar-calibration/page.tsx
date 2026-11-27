@@ -270,7 +270,10 @@ export default function PlanarCalibrationPage() {
               under the box says what was set. There is no Undo on the calibration tabs, so pick again or edit a
               setting to change it. Pairing is never set. A folder holding several recordings lists them to pick from,
               and files numbered from anything other than 0 or 1 are not filled, because calibration reads files
-              numbered from 0 or 1.
+              numbered from 0 or 1. A path that gives nothing to fill reads &quot;The image settings were not
+              changed:&quot; and the reason. A fill that stops part-way says what landed: &quot;The detected settings
+              were saved only in part. Saved: the calibration source path. Not saved: the image settings
+              (settings.yaml): &quot; and the reason.
             </p>
             <p className="text-gray-700 mb-6">
               The cameras belong to Setup, so the fill never changes them. When the images hold a different number of
@@ -353,8 +356,8 @@ export default function PlanarCalibrationPage() {
               <h5 className="font-semibold text-blue-800 mb-2">What Validation Tells You</h5>
               <ul className="text-blue-700 text-sm space-y-1">
                 <li><strong>Did you mean:</strong> when the format matches no file, the suggestion is built from the files in the folder. The frame number is the one number that changes from file to file, and its zero padding is copied exactly (<code className="bg-blue-100 px-1 rounded">Cam1_00001.tif</code> suggests <code className="bg-blue-100 px-1 rounded">Cam1_%05d.tif</code>). If no single number can be identified, there is no suggestion and the message says why (&quot;could not tell which number is the frame index&quot;).</li>
-                <li><strong>Start index:</strong> files numbered from 0 under a 1-based setting (or the reverse) give &quot;Files start at 0 but the start index is 1 — switch to 0-based indexing&quot;. Picking the images sets <code className="bg-blue-100 px-1 rounded">zero_based_indexing</code> from the files. To change it, use First Frame Number on the tab, or set it in the settings sidecar.</li>
-                <li><strong>First-frame hint after success:</strong> the 0 versus 1 hint also shows after a successful validation, with a Switch button. Zero-based indexing is refused for <code className="bg-blue-100 px-1 rounded">.set</code> and <code className="bg-blue-100 px-1 rounded">.cine</code> sources, with a message to set First Frame Number back to 1.</li>
+                <li><strong>Start index:</strong> files numbered from 0 under a 1-based setting (or the reverse) give &quot;Files start at 0 but the start index is 1 — switch to 0-based indexing&quot;. Its <strong>Switch to 0-based</strong> (or <strong>Switch to 1-based</strong>) button sets <code className="bg-blue-100 px-1 rounded">zero_based_indexing</code>. Picking the images sets it from the files too, and First Frame Number on the tab or the settings sidecar changes it by hand.</li>
+                <li><strong>Only on a failure:</strong> the 0 versus 1 hint shows when a file is missing, not after a successful validation. Zero-based indexing is refused for <code className="bg-blue-100 px-1 rounded">.set</code> and <code className="bg-blue-100 px-1 rounded">.cine</code> sources, with a message to set First Frame Number back to 1.</li>
                 <li><strong>Every view is checked:</strong> with Number of Views blank, validation checks the whole range detection will read, not just the first file.</li>
                 <li><strong>Unreadable containers:</strong> a <code className="bg-blue-100 px-1 rounded">.set</code> or <code className="bg-blue-100 px-1 rounded">.cine</code> whose image count cannot be read fails validation with the file name and the reason.</li>
                 <li><strong>Unknown frame count:</strong> if the viewer cannot count the frames it still shows them, as <code className="bg-blue-100 px-1 rounded">N / ?</code> with the reason underneath.</li>
