@@ -230,8 +230,9 @@ export default function ImageConfigurationPage() {
               inside it, picks the <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code>; opening the
               data folder in Browse lands on the folder above it with the recording selected. A{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code> without a data folder of image
-              streams is not a recording (a DaVis project or result file): it is listed greyed as{' '}
-              <em>DaVis project file</em> under Other files and cannot be picked.
+              streams is not a recording (a DaVis project or result file): it is listed greyed under Other files,
+              with why, and cannot be picked. The reason is <em>no data folder Properties/ beside it</em>, or{' '}
+              <em>its folder camera1/ holds no frame streams (StreamSet.xml or *-0.ims)</em>.
             </p>
 
             {/* Batch Processing */}
@@ -275,7 +276,8 @@ export default function ImageConfigurationPage() {
                 "Undo puts every filled setting back as it was before the fill. The path you picked stays. The line and its Undo go once you edit any of the filled settings.",
                 "A folder holding one recording takes it. A folder holding several shows \"N recordings here. Pick one:\" with the recordings listed under the box, and nothing changes until you pick one.",
                 "A setting the files cannot tell is left as it was, and the line ends with \"not set:\" and the reason.",
-                "When nothing usable is found (an empty folder, a folder holding two image types equally, a DaVis project file), the settings are left as they were and validation shows its message and fix buttons as before.",
+                "When nothing usable is found (an empty folder, a .set that is not a recording, a folder holding two image types), the settings are left as they were, the line says why, and validation shows its message and fix buttons as before.",
+                "A folder holding two image types fills nothing, however few files of the second type there are, and the line gives each type's count: \"D:/data/run1 holds image files of 2 types (3 .im7 files, 1 .tif file), so the image type cannot be told. Pick a folder holding one type.\"",
                 "Only the first source fills the settings, because every source shares them. A later source is only compared: if it differs, a warning names each difference, for example \"Source 2 differs from the image settings, which come from source 1: image type ... here, ... in Setup. Nothing was changed.\" The cameras to process are your choice, so they are not compared.",
                 "A fill that cannot be saved shows why under the box, with no summary and no Undo.",
               ]}
@@ -1074,7 +1076,6 @@ paths:
                 <li>-- <strong>Wrong count:</strong> Verify num_images matches actual file count. Number of Image Files cannot be saved blank.</li>
                 <li>-- <strong>CINE type with a non-cine file:</strong> the error names the mismatch between the image type and the file.</li>
                 <li>-- <strong>First file missing:</strong> Check start_index (0 vs 1). The error adds the start-index hint and the switch button when the files start at the other value. The hint and its Switch button also show after a successful validation.</li>
-                <li>-- <strong>RAW formats:</strong> .raw/.cr2/.nef/.arw are read via rawpy, a core dependency -- no extra install needed.</li>
                 <li>-- <strong>A refusal by name:</strong> the reader says what it will not read and why. Look it up in the table below.</li>
               </ul>
             </div>
