@@ -299,6 +299,12 @@ export default function StereoCalibrationPage() {
               self-calibration, first check that the calibration images and the PIV images share a pixel frame
               (see <a href="/manual/planar-calibration#frame-match" className="underline">planar calibration</a>).
             </p>
+            <p className="text-gray-700 leading-relaxed mb-6">
+              The Calibration Images Location box works as on the planar tabs: pick the images and the tab fills its
+              own image settings from the files, with no Undo, and a camera count that differs from Setup&apos;s is
+              offered as <strong>Set camera count to N (also changes Setup)</strong> (see{' '}
+              <a href="/manual/planar-calibration#picking-images" className="underline">Picking the images</a>).
+            </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">Directory Structure</h3>
             <p className="text-gray-700 mb-4">
@@ -425,9 +431,9 @@ image:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "camera_pair", desc: "Camera numbers forming the stereo pair", def: "[1, 2]" },
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "15.0" },
-                    { param: "datum_frame", desc: "Image index defining the world frame (1-based)", def: "1" },
-                    { param: "dt", desc: "Time between frames (seconds)", def: "1.0" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "none, required" },
+                    { param: "datum_frame", desc: "Image index defining the world frame (1-based, a whole number, 1 or more)", def: "1" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "none, required" },
                     { param: "fix_k2", desc: "Pin the r^4 radial term to zero (toggle appears below 3 frames; on by default there)", def: "false" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -545,13 +551,13 @@ methods:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "camera_pair", desc: "Camera numbers forming the stereo pair", def: "[1, 2]" },
-                    { param: "squares_h", desc: "Horizontal square count", def: "10" },
-                    { param: "squares_v", desc: "Vertical square count", def: "9" },
-                    { param: "square_size", desc: "Square size in metres", def: "0.03" },
+                    { param: "squares_h", desc: "Horizontal square count", def: "none, required" },
+                    { param: "squares_v", desc: "Vertical square count", def: "none, required" },
+                    { param: "square_size", desc: "Square size in metres", def: "none, required" },
                     { param: "marker_ratio", desc: "Marker size relative to square", def: "0.5" },
                     { param: "aruco_dict", desc: "ArUco dictionary type", def: "DICT_4X4_1000" },
                     { param: "min_corners", desc: "Minimum corners to accept a frame", def: "6" },
-                    { param: "dt", desc: "Time between frames (seconds)", def: "0.0057553" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "none, required" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
@@ -653,12 +659,12 @@ methods:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "camera_pair", desc: "Camera numbers forming the stereo pair (Camera 1 is the world reference)", def: "[1, 2]" },
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "15.0" },
-                    { param: "step_height_mm", desc: "Height between peak and trough levels (mm)", def: "3.0" },
-                    { param: "board_thickness_mm", desc: "Total thickness of the board (mm)", def: "14.8" },
-                    { param: "datum_frame", desc: "World origin image, 1-based, both cameras", def: "1" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "none, required" },
+                    { param: "step_height_mm", desc: "Height between peak and trough levels (mm)", def: "none, required" },
+                    { param: "board_thickness_mm", desc: "Total thickness of the board (mm)", def: "none, required" },
+                    { param: "datum_frame", desc: "World origin image, 1-based (a whole number, 1 or more), both cameras", def: "1" },
                     { param: "stereo_config", desc: "Rig geometry: auto (from clicks), same_side, or transmission", def: "auto" },
-                    { param: "dt", desc: "Time between frames (seconds)", def: "1.0" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "none, required" },
                     { param: "fix_k2", desc: "Pin the r^4 radial term to zero (toggle appears below 3 usable poses)", def: "on when shown" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -1118,7 +1124,7 @@ pivtools-cli statistics --source-endpoint stereo`}
               defaultOpen={true}
               code={`# ============================================================
 # config.yaml -- a four-key pointer, nothing more.
-# Anything else under calibration: is stripped on the next save.
+# Anything else under calibration: is refused at read.
 # ============================================================
 calibration:
   calibration_sources:
@@ -1199,8 +1205,8 @@ methods:
                       { gui: "Camera 1", yaml: "settings.yaml -> rig.camera_pair[0]", values: "Integer (1-based)" },
                       { gui: "Camera 2", yaml: "settings.yaml -> rig.camera_pair[1]", values: "Integer (1-based)" },
                       { gui: "dt", yaml: "settings.yaml -> rig.dt", values: "Float (seconds); required, never defaulted" },
-                      { gui: "Datum Frame", yaml: "settings.yaml -> rig.datum_frame", values: "Integer (1-based)" },
-                      { gui: "Dot Spacing (mm)", yaml: "settings.yaml -> methods.dotboard.dot_spacing_mm", values: "Float (mm); required" },
+                      { gui: "Datum Frame", yaml: "settings.yaml -> rig.datum_frame", values: "Integer (1-based), 1 or more" },
+                      { gui: "Dot Spacing (mm)", yaml: "settings.yaml -> methods.dotboard.dot_spacing_mm", values: "Float (mm); required. A blank box leaves it unset" },
                       { gui: "Fix radial k2 = 0", yaml: "settings.yaml -> methods.<board>.fix_k2", values: "Boolean. Not templated: absent means false, and it only appears in the GUI below 3 usable poses" },
                       { gui: "Squares H", yaml: "settings.yaml -> methods.charuco.squares_h", values: "Integer; required" },
                       { gui: "Squares V", yaml: "settings.yaml -> methods.charuco.squares_v", values: "Integer; required" },

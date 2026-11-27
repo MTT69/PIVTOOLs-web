@@ -260,6 +260,28 @@ export default function PlanarCalibrationPage() {
               source before running detection.
             </p>
 
+            <h3 className="text-xl font-bold text-gray-900 mb-4" id="picking-images">Picking the images</h3>
+            <p className="text-gray-700 mb-4">
+              The Calibration Images Location box on each tab is the same picker as the Setup source box: type for
+              suggestions, or press Browse (<a href="/manual/image-configuration#picker" className="underline">Picking a path</a>).
+              When you pick a path, or type one and leave the box, the tab fills its own image settings from the
+              files: image type, filename pattern, camera folders, the .im7 one-folder-per-camera switch and the
+              first frame number (zero-based indexing). They are saved in that folder&apos;s settings file, and the line
+              under the box says what was set. There is no Undo on the calibration tabs, so pick again or edit a
+              setting to change it. Pairing is never set. A folder holding several recordings lists them to pick from,
+              and files numbered from anything other than 0 or 1 are not filled, because calibration reads files
+              numbered from 0 or 1. A path that gives nothing to fill reads &quot;The image settings were not
+              changed:&quot; and the reason. A fill that stops part-way says what landed: &quot;The detected settings
+              were saved only in part. Saved: the calibration source path. Not saved: the image settings
+              (settings.yaml): &quot; and the reason.
+            </p>
+            <p className="text-gray-700 mb-6">
+              The cameras belong to Setup, so the fill never changes them. When the images hold a different number of
+              cameras from Setup, the line says so (&quot;These calibration images have 2 cameras; Setup has 1.&quot;)
+              with a button, <strong>Set camera count to 2 (also changes Setup)</strong>. Nothing changes in Setup
+              until you click it.
+            </p>
+
             <h3 className="text-xl font-bold text-gray-900 mb-4">Directory Structure</h3>
             <p className="text-gray-700 mb-4">
               <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibration_sources</code> holds
@@ -315,8 +337,8 @@ export default function PlanarCalibrationPage() {
                     { setting: "Calibration Sources", yaml: "calibration_sources", desc: "Direct paths to calibration image locations" },
                     { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib%05d.tif)" },
                     { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process. Leave blank to use every image found. The tab then shows the count and where it came from, e.g. \"auto: 19 (from files found)\" (or .set index, .cine header, saved detections)" },
-                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset)" },
-                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set it in settings.yaml (the tabs have no switch for it). Refused for .set and .cine sources, whose entries are numbered by the reader; set First Frame Number back to 1" },
+                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7. Required: set from the files when you pick the images, or written in settings.yaml" },
+                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set from the files when you pick the images; change it with First Frame Number (0 or 1) on the tab, or in settings.yaml. Refused for .set and .cine sources, whose entries are numbered by the reader; set First Frame Number back to 1" },
                     { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Used only by .im7 (one camera per file in subfolders). Standard formats ignore it, and the subfolder rule above applies instead" },
                     { setting: "Subfolder Names", yaml: "camera_subfolders", desc: "Explicit folder names for a multi-camera rig (default Cam1, Cam2, ...)" },
                   ].map((row, idx) => (
@@ -334,8 +356,8 @@ export default function PlanarCalibrationPage() {
               <h5 className="font-semibold text-blue-800 mb-2">What Validation Tells You</h5>
               <ul className="text-blue-700 text-sm space-y-1">
                 <li><strong>Did you mean:</strong> when the format matches no file, the suggestion is built from the files in the folder. The frame number is the one number that changes from file to file, and its zero padding is copied exactly (<code className="bg-blue-100 px-1 rounded">Cam1_00001.tif</code> suggests <code className="bg-blue-100 px-1 rounded">Cam1_%05d.tif</code>). If no single number can be identified, there is no suggestion and the message says why (&quot;could not tell which number is the frame index&quot;).</li>
-                <li><strong>Start index:</strong> files numbered from 0 under a 1-based setting (or the reverse) give &quot;Files start at 0 but the start index is 1 — switch to 0-based indexing&quot;. Set <code className="bg-blue-100 px-1 rounded">zero_based_indexing</code> in the settings sidecar to match.</li>
-                <li><strong>First-frame hint after success:</strong> the 0 versus 1 hint also shows after a successful validation, with a Switch button. Zero-based indexing is refused for <code className="bg-blue-100 px-1 rounded">.set</code> and <code className="bg-blue-100 px-1 rounded">.cine</code> sources, with a message to set First Frame Number back to 1.</li>
+                <li><strong>Start index:</strong> files numbered from 0 under a 1-based setting (or the reverse) give &quot;Files start at 0 but the start index is 1 — switch to 0-based indexing&quot;. Its <strong>Switch to 0-based</strong> (or <strong>Switch to 1-based</strong>) button sets <code className="bg-blue-100 px-1 rounded">zero_based_indexing</code>. Picking the images sets it from the files too, and First Frame Number on the tab or the settings sidecar changes it by hand.</li>
+                <li><strong>Only on a failure:</strong> the 0 versus 1 hint shows when a file is missing, not after a successful validation. Zero-based indexing is refused for <code className="bg-blue-100 px-1 rounded">.set</code> and <code className="bg-blue-100 px-1 rounded">.cine</code> sources, with a message to set First Frame Number back to 1.</li>
                 <li><strong>Every view is checked:</strong> with Number of Views blank, validation checks the whole range detection will read, not just the first file.</li>
                 <li><strong>Unreadable containers:</strong> a <code className="bg-blue-100 px-1 rounded">.set</code> or <code className="bg-blue-100 px-1 rounded">.cine</code> whose image count cannot be read fails validation with the file name and the reason.</li>
                 <li><strong>Unknown frame count:</strong> if the viewer cannot count the frames it still shows them, as <code className="bg-blue-100 px-1 rounded">N / ?</code> with the reason underneath.</li>
@@ -481,7 +503,7 @@ image:
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <ol className="space-y-2 mb-6">
               {[
-                "Set the Calibration Images Location (one reference image is enough). With no images on disk, switch \"Use calibration images\" off and set the Calibration Folder instead -- the model is saved there and the origin is typed in px",
+                "Set the Calibration Images Location (one reference image is enough); its image settings fill from the files as on the other tabs. With no images on disk, switch \"Use calibration images\" off and set the Calibration Folder instead (a folder box, with no fill) -- the model is saved there and the origin is typed in px",
                 "Enter dt (seconds) and px_per_mm -- the two-point measure helper can fill px_per_mm from a known distance",
                 "Click \"Pick Origin\" and click the world origin on the image (or type Origin X/Y in px); optionally type the origin's world position in mm",
                 "Set the +X and +Y directions (defaults +X right, +Y up)",
@@ -544,7 +566,8 @@ methods:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "15.0" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm). A blank box leaves it unset", def: "none, required" },
+                    { param: "datum_frame", desc: "Calibration image that defines the world origin. A whole number, 1 or more", def: "1" },
                     { param: "k_neighbors", desc: "Neighbours per dot in the grid walk", def: "9" },
                     { param: "model_type", desc: "Camera model: pinhole or polynomial", def: "pinhole" },
                     { param: "fix_k2", desc: "Pin the r^4 radial term (only for few-view fits)", def: "false" },
@@ -693,9 +716,9 @@ methods:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "squares_h", desc: "Horizontal square count", def: "10" },
-                    { param: "squares_v", desc: "Vertical square count", def: "7" },
-                    { param: "square_size", desc: "Square size in metres", def: "0.03" },
+                    { param: "squares_h", desc: "Horizontal square count", def: "none, required" },
+                    { param: "squares_v", desc: "Vertical square count", def: "none, required" },
+                    { param: "square_size", desc: "Square size in metres", def: "none, required" },
                     { param: "marker_ratio", desc: "Marker size relative to square", def: "0.5" },
                     { param: "aruco_dict", desc: "ArUco dictionary type", def: "DICT_4X4_1000" },
                     { param: "min_corners", desc: "Minimum corners to accept a frame", def: "6" },
@@ -903,8 +926,8 @@ methods:
             </p>
             <p className="text-gray-700 mb-6">
               Writing board geometry under <code className="bg-gray-100 px-1 rounded text-sm">calibration:</code> in
-              config.yaml has no effect. Those keys are stripped the next time the config is saved, and the values you
-              expected to be used silently disappear.
+              config.yaml is refused when the config is read. The error names each key and says to move it to the
+              sidecar (see <a href="/manual/cli-reference#config-refused" className="underline">Config Refused</a>).
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Caching</h3>
@@ -1101,7 +1124,7 @@ pivtools-cli apply-calibration --board dotboard --all-paths`}
               defaultOpen={true}
               code={`# ============================================================
 # config.yaml -- a four-key pointer, nothing more.
-# Anything else written under calibration: is stripped on save.
+# Anything else written under calibration: is refused at read.
 # ============================================================
 calibration:
   calibration_sources:

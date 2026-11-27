@@ -277,6 +277,14 @@ export default function TransformsPage() {
                 </tbody>
               </table>
             </div>
+
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">A frame transformed by an older version</h4>
+            <p className="text-gray-700 mb-4">
+              A frame given two or more transformations by an older PIVTOOLs, and never applied to all frames, is
+              refused when you open, transform or apply from it, because its queue cannot be read exactly. Press
+              Clear Transforms on that frame, then build the queue and apply it again.
+            </p>
+            <CodeBlock title="Results Viewer" code={`C:\\data\\experiment\\calibrated_piv\\1000\\Cam1\\instantaneous\\00001.mat: pending_transformations is saved as a text array, which pads the shorter names with spaces, so the transformations applied to this frame cannot be read exactly. Press Clear Transforms on this frame in the vector viewer, then apply the transformations again.`} />
           </Section>
 
           {/* CLI Usage */}

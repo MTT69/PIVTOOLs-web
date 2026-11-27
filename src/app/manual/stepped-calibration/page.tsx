@@ -463,7 +463,7 @@ methods:
             <ol className="space-y-2 mb-6">
               {[
                 "Set board parameters: dot spacing, step height, board thickness, dt",
-                "Configure calibration images: format, count, source path (camera images live in Cam<N>/ or the explicit subfolder entry). With the count blank, both cameras must hold the same number of views (views pair by index); unequal counts are reported and block detection",
+                "Configure calibration images: pick the source path with Browse and the format and camera folders fill from the files (see Picking the images on the planar calibration page). Camera images live in Cam<N>/ or the explicit subfolder entry. With the count blank, both cameras must hold the same number of views (views pair by index); unequal counts are reported and block detection",
                 "Set camera pair (e.g. Camera 1 and Camera 2)",
                 "Browse to the datum frame and click three fiducial points per camera (origin, X-axis, Y-axis)",
                 "Navigate to each non-datum pose and click-to-label one dot per camera",
@@ -566,8 +566,8 @@ pivtools-cli statistics --source-endpoint stereo`}
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
               <p className="text-yellow-800 text-sm">
                 <strong>Almost nothing lives in config.yaml.</strong> The <code className="bg-yellow-100 px-1 rounded">calibration:</code> block
-                is a four-key pointer, and anything else written under it is stripped out the next time the config is
-                saved. Board geometry, the rig <code className="bg-yellow-100 px-1 rounded">dt</code>, and the image
+                is a four-key pointer, and anything else written under it is refused when the config is read. Board
+                geometry, the rig <code className="bg-yellow-100 px-1 rounded">dt</code>, and the image
                 settings all live in a per-source sidecar at <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>.
                 Create one with <code className="bg-yellow-100 px-1 rounded">pivtools-cli init-settings --source &lt;dir&gt;</code> or
                 by filling in the calibration tab in the GUI.
