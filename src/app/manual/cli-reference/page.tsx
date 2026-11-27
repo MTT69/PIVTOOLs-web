@@ -182,7 +182,7 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices (e.g., "0,1,2")' },
         { flag: '--camera', short: '-c', description: 'Camera number to process (default: all from config)' },
-        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting (the GUI overwrite dialog does the same), whichever PIVTOOLs version wrote it. A folder that a live run is still writing is never cleared, and the refusal names that process. Without the flag, a run into a folder that already holds results is refused before anything is written' },
+        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting (the GUI overwrite dialog does the same), whichever PIVTOOLs version wrote it. A folder that a live run is still writing is never cleared, and the refusal names that process. Nor is a folder whose run manifest cannot be read: the refusal says to open the manifest, and to delete the folder by hand if no PIV run is writing it. Without the flag, a run into a folder that already holds results is refused before anything is written' },
       ],
       examples: [
         'pivtools-cli instantaneous',
@@ -197,7 +197,7 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
         { flag: '--camera', short: '-c', description: 'Camera number to process (default: all from config)' },
-        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting, whichever PIVTOOLs version wrote it, except one a live run is still writing. Refused together with resume_from_pass > 0, since a resume needs the folder it would clear' },
+        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting, whichever PIVTOOLs version wrote it, except one a live run is still writing or whose run manifest cannot be read. Refused together with resume_from_pass > 0, since a resume needs the folder it would clear' },
         { flag: '--allow-code-change', description: 'Resume (resume_from_pass > 0) a folder that different code started (another PIVTOOLs version, or another git commit when run from a checkout). Without it such a resume is refused, because the earlier and later passes would come from different code' },
       ],
       examples: [
@@ -294,17 +294,17 @@ export default function CLIReferencePage() {
     },
     {
       command: 'pivtools-cli apply-calibration',
-      description: 'Apply a mono model to vectors (pixels to m/s)',
+      description: "Apply a mono model to vectors (pixels to m/s). Reads the source's settings.yaml and is refused without one, whatever the flags, except for a scale factor made without images, which then takes the result type and the camera from the flags only",
       options: [
         { flag: '--board', description: 'Model type: charuco | dotboard | stepped | scale_factor (default: the board of calibration.active, which must then be set)' },
-        { flag: '--camera', description: 'Camera number (default: all). Cannot be combined with --all-paths' },
+        { flag: '--camera', description: "Camera whose model an explicit --uncalibrated-dir run applies (default: rig.camera in the source's settings.yaml). --all-paths applies every configured camera, so it takes no --camera" },
         { flag: '--source', description: 'Calibration source directory' },
         { flag: '--dt', description: 'Time between frames (s)' },
         { flag: '--z-world', description: 'Light-sheet plane Z in mm (default 0.0, which is the calibration-board plane)' },
         { flag: '--tilt-x / --tilt-y', description: 'Sheet tilt in radians, not degrees. The plane is Z = z_world + X*tan(tilt_y) + Y*tan(tilt_x)' },
         { flag: '--uncalibrated-dir / --calibrated-dir', description: 'Explicit input/output vector directories (instead of --all-paths)' },
-        { flag: '--all-paths', description: 'Derive every base_path x camera from config (like the GUI). With a stereo active method this applies the stereo model, which needs the settings.yaml of the source. Without one it is refused, and the refusal ends "Or run apply-stereo with --interpolator linear|cubic|lanczos.": create the file, or do that. For explicit directories use apply-stereo' },
-        { flag: '--type-name', description: 'PIV result type for --all-paths (default: instantaneous)' },
+        { flag: '--all-paths', description: 'Derive every base_path x camera from config (like the GUI). With a stereo active method this applies the stereo model. For explicit directories use apply-stereo' },
+        { flag: '--type-name', description: "PIV result type --all-paths calibrates, instantaneous or ensemble (default: rig.piv_type in the source's settings.yaml)" },
         { flag: '--model-type', description: 'pinhole | polynomial | polynomial3d | scale_factor' },
       ],
       examples: [
@@ -316,18 +316,18 @@ export default function CLIReferencePage() {
     },
     {
       command: 'pivtools-cli apply-stereo',
-      description: 'Stereo 3D reconstruction (ux, uy, uz)',
+      description: "Stereo 3D reconstruction (ux, uy, uz). Reads the source's settings.yaml and is refused without one, whatever the flags",
       options: [
         { flag: '--board', description: 'Stereo model type: charuco | dotboard | stepped (default: the board of calibration.active, which must then be set)' },
         { flag: '--camera-pair', description: 'Camera pair as "1,2" (default: from config)' },
         { flag: '--source', description: 'Calibration source directory' },
         { flag: '--dt', description: 'Time between frames (s)' },
-        { flag: '--interpolator', description: "Cam2 resample kernel: linear | cubic | lanczos (default: rig.interpolator in the source's settings.yaml). Required when the source has no settings.yaml: without it the command is refused" },
+        { flag: '--interpolator', description: "Cam2 resample kernel: linear | cubic | lanczos (default: rig.interpolator in the source's settings.yaml, which apply-stereo always needs: it also gives the camera pair and the model type)" },
         { flag: '--uncalibrated-dir-cam1', description: 'Explicit camera-1 uncalibrated vector directory' },
         { flag: '--uncalibrated-dir-cam2', description: 'Explicit camera-2 uncalibrated vector directory' },
         { flag: '--calibrated-dir', description: 'Explicit calibrated vector directory (instead of --all-paths)' },
         { flag: '--all-paths', description: 'Derive every base_path from config (like the GUI)' },
-        { flag: '--type-name', description: 'PIV result type for --all-paths (default: instantaneous)' },
+        { flag: '--type-name', description: "PIV result type --all-paths calibrates, instantaneous or ensemble (default: rig.piv_type in the source's settings.yaml)" },
         { flag: '--model-type', description: 'pinhole or polynomial3d' },
         { flag: '--z-world', description: 'Light-sheet plane Z in mm (default: the self-calibration value stored in the record, else 0.0)' },
         { flag: '--tilt-x', description: 'Sheet tilt about X in radians, not degrees' },
@@ -362,7 +362,7 @@ export default function CLIReferencePage() {
     },
     {
       command: 'pivtools-cli global-frame',
-      description: 'Bake the multi-camera global frame (datum + overlap from the calibration settings sidecar) into each model',
+      description: 'Bake the multi-camera global frame (datum + overlap from the calibration settings sidecar) into each model. Refused when the source has no settings.yaml',
       options: [
         { flag: '--board', description: 'Model type: charuco | dotboard | scale_factor (default: the board of calibration.active, which must then be set)' },
         { flag: '--source', description: 'Calibration source directory (models live here)' },
@@ -825,6 +825,7 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#conf
               <li>An unknown key is refused, with the nearest valid name. A removed key is refused, with what replaced it.</li>
               <li>Each value has the type, names and range its reader needs: <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">rig.dt</code> above 0, ChArUco squares at least 2 a side, <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">marker_ratio</code> between 0 and 1. Numbers are written without quotes.</li>
               <li><code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">image.image_format</code> and <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">image.image_type</code> may be <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">null</code>, so a new file opens. Reading calibration images with either unset is refused: &quot;Calibration settings &lt;file&gt; has image.image_type unset. Set it in the GUI Calibration tab or in the file.&quot; Board geometry and <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">rig.dt</code> may be <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">null</code> until you generate a model.</li>
+              <li>Every calibration apply (<code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">apply-calibration</code>, <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">apply-stereo</code>, <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">global-frame</code> and the GUI&apos;s apply) reads the file, and a missing one is refused whatever the flags: &quot;global-frame: No calibration settings for source &apos;&lt;source&gt;&apos; (expected &lt;source&gt;/calibration/settings.yaml). ...&quot;. The one exception is a scale factor made without images. The result type and the explicit camera come from the flag, else from <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">rig.piv_type</code> and <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">rig.camera</code>.</li>
             </ul>
 
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
@@ -894,12 +895,15 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#cali
             <h3 className="text-xl font-bold text-gray-900 mb-3">In the GUI</h3>
             <ul className="list-disc list-inside text-gray-700 space-y-2 mb-4">
               <li>
-                A refused settings.yaml shows <strong>Calibration Settings Refused</strong> above the calibration tabs,
-                with the same lines and then &quot;Once the file is fixed, press Retry. The GUI does not need
-                restarting.&quot; The tabs stay usable for another source.
+                A refused settings.yaml shows <strong>Calibration Settings Refused</strong> above the calibration tabs
+                while its source is the one selected on the open tab, with the same lines and then &quot;Once the file
+                is fixed, press Retry. The GUI does not need restarting.&quot; Retry reads the file again in place. The
+                tabs stay usable for another source.
               </li>
               <li>
-                A change the rules refuse is not saved, and the file is left as it was. The message lists the problems:
+                A change the rules refuse is not saved, and the file is left as it was. The message lists the problems.
+                When the source has no settings.yaml yet, the first line reads &quot;The change was not saved (nothing
+                was written to &lt;path&gt;): 1 problem.&quot; instead:
               </li>
             </ul>
             <div className="mb-4">

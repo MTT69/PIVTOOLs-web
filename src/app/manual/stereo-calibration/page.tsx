@@ -551,8 +551,8 @@ methods:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "camera_pair", desc: "Camera numbers forming the stereo pair", def: "[1, 2]" },
-                    { param: "squares_h", desc: "Horizontal square count", def: "none, required" },
-                    { param: "squares_v", desc: "Vertical square count", def: "none, required" },
+                    { param: "squares_h", desc: "Horizontal square count, at least 2", def: "none, required" },
+                    { param: "squares_v", desc: "Vertical square count, at least 2", def: "none, required" },
                     { param: "square_size", desc: "Square size in metres", def: "none, required" },
                     { param: "marker_ratio", desc: "Marker size relative to square", def: "0.5" },
                     { param: "aruco_dict", desc: "ArUco dictionary type", def: "DICT_4X4_1000" },
@@ -1078,8 +1078,8 @@ pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
                     { flag: "--camera-pair", desc: "Camera pair as \"1,2\"", def: "From config" },
                     { flag: "--dt", desc: "Time between frames (seconds)", def: "From model / config" },
                     { flag: "--all-paths", desc: "Derive every base_path from config (like the GUI)", def: "off" },
-                    { flag: "--type-name", desc: "PIV result type for --all-paths: instantaneous or ensemble", def: "instantaneous" },
-                    { flag: "--interpolator", desc: "Resample kernel: linear, cubic or lanczos. Required when the source has no settings.yaml", def: "rig.interpolator in settings.yaml" },
+                    { flag: "--type-name", desc: "PIV result type for --all-paths: instantaneous or ensemble", def: "rig.piv_type in settings.yaml" },
+                    { flag: "--interpolator", desc: "Resample kernel: linear, cubic or lanczos", def: "rig.interpolator in settings.yaml" },
                     { flag: "--model-type", desc: "Which stereo record to load when several exist in the model dir", def: "pinhole" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -1099,14 +1099,14 @@ pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
                 The error says which.
               </p>
               <p className="text-yellow-700 text-sm mt-2">
-                A source with no settings.yaml is refused unless <code className="bg-yellow-100 px-1 rounded">--interpolator</code> is
-                given, since the resample kernel is read from <code className="bg-yellow-100 px-1 rounded">rig.interpolator</code>:
+                Every apply reads the source&apos;s settings.yaml, which gives the interpolator, the camera pair, the
+                model type and the result type, so a source with no settings.yaml is refused whatever the flags:
                 &quot;apply-stereo: No calibration settings for source &apos;D:\data\calib&apos; (expected
-                D:\data\calib\calibration\settings.yaml). ... Or pass --interpolator linear|cubic|lanczos.&quot;
+                D:\data\calib\calibration\settings.yaml). Open this source in the GUI Calibration tab (which seeds and
+                saves settings) or run &apos;pivtools-cli init-settings --source &quot;D:\data\calib&quot;&apos; and fill in
+                the required fields.&quot;{' '}
                 <code className="bg-yellow-100 px-1 rounded">apply-calibration --all-paths</code> with a stereo active method
-                is refused the same way, with &quot;apply-calibration:&quot; in front and the last sentence &quot;Or run
-                apply-stereo with --interpolator linear|cubic|lanczos.&quot;, since apply-calibration takes no{' '}
-                <code className="bg-yellow-100 px-1 rounded">--interpolator</code>. Create the settings.yaml, or run apply-stereo.
+                is refused the same way, with &quot;apply-calibration:&quot; in front.
               </p>
             </div>
 
