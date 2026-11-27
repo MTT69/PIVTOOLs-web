@@ -281,7 +281,10 @@ export default function ImageConfigurationPage() {
               ]}
             />
             <p className="text-gray-700 leading-relaxed mb-6">
-              In the Image Settings card, the fields the last fill set stay tinted until you edit them.
+              Every image setting is on one Image Settings card on Setup: image type, count and loops first, then
+              the camera count and Cameras to process, then camera folders, pairing (with the first frame number),
+              and the filename patterns. Shaded settings were filled from the source. A setting loses its shade when
+              you change it, and gets it back if you set it back to the filled value.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-4">What the fill sets</h3>
@@ -435,10 +438,13 @@ export default function ImageConfigurationPage() {
             <div className="bg-gray-50 rounded-lg p-6 mb-6" id="cameras-to-process">
               <h4 className="text-lg font-semibold text-gray-900 mb-2">Cameras to process</h4>
               <p className="text-gray-600">
-                Which cameras a run processes is set here on Setup, under <strong>Cameras to process</strong>, and
-                saved as <code className="bg-gray-200 px-1 rounded">paths.camera_numbers</code>. At least one must be
-                ticked. The PIV tabs show the selection without changing it, with a link back to Setup. Picking a
-                recording fills it from the camera labels (<a href="#silent-fill" className="underline">Silent Fill</a>).
+                Which cameras a run processes is set on Setup, under <strong>Cameras to process</strong> beside the
+                camera count in the Image Settings card, and saved as{' '}
+                <code className="bg-gray-200 px-1 rounded">paths.camera_numbers</code>. At least one must be ticked.
+                With one camera there are no camera buttons, only a note that it is processed. The Instantaneous and
+                Ensemble tabs show the saved selection read-only, at every camera count, with a{' '}
+                <strong>Change in Setup</strong> link. Picking a recording fills the selection from the camera labels
+                (<a href="#silent-fill" className="underline">Silent Fill</a>).
               </p>
             </div>
 
