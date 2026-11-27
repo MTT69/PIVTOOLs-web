@@ -566,8 +566,8 @@ pivtools-cli statistics --source-endpoint stereo`}
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
               <p className="text-yellow-800 text-sm">
                 <strong>Almost nothing lives in config.yaml.</strong> The <code className="bg-yellow-100 px-1 rounded">calibration:</code> block
-                is a four-key pointer, and anything else written under it is stripped out the next time the config is
-                saved. Board geometry, the rig <code className="bg-yellow-100 px-1 rounded">dt</code>, and the image
+                is a four-key pointer, and anything else written under it is refused when the config is read. Board
+                geometry, the rig <code className="bg-yellow-100 px-1 rounded">dt</code>, and the image
                 settings all live in a per-source sidecar at <code className="bg-yellow-100 px-1 rounded">&lt;source&gt;/calibration/settings.yaml</code>.
                 Create one with <code className="bg-yellow-100 px-1 rounded">pivtools-cli init-settings --source &lt;dir&gt;</code> or
                 by filling in the calibration tab in the GUI.

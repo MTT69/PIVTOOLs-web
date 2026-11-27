@@ -151,7 +151,7 @@ export default function PIVProcessingPage() {
             <ol className="space-y-2 text-gray-700">
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Pick a mode: <strong>Instantaneous</strong> for per-pair velocity fields, <strong>Ensemble</strong> for time-averaged flow + Reynolds stresses from many pairs.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Window table <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">[128,128] &rarr; [64,64] &rarr; [32,32]</code> at <strong>50% overlap</strong> covers the vast majority of setups. Drop the final pass to <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">[16,16]</code> with <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">single</code> mode for ensemble at max resolution.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Leave the peak finder at default (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">gauss6</code> for both). Leave outlier detection and infilling <strong>on</strong>.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Leave the instantaneous peak finder at its default (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">gauss6</code>). Leave outlier detection and infilling <strong>on</strong>.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Ensemble users: leave <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">fit_method: kspace</code> alone. It is the only ensemble fitter, and it estimates the Reynolds stresses jointly with the noise floor so noise does not bias them.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Click <strong>Run PIV</strong> (GUI) or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pivtools-cli instantaneous</code> / <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">ensemble</code>. Come back to this page if results look wrong.</span></li>
             </ol>
@@ -207,7 +207,7 @@ export default function PIVProcessingPage() {
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "window_size", format: "[Height, Width]", desc: "Interrogation window in pixels per pass. Each axis must be a built FFT size (8, 12, 16, 24, 32, 48, 64, 96, 128). On an ensemble single-mode pass this is instead the Frame-A mask support inside sum_window rather than an FFT length, so 4 and 6 are also legal there and the grid spacing follows it. Rectangular windows supported." },
-                    { param: "overlap", format: "integer (%)", desc: "Overlap percentage per pass. 50% doubles grid density." },
+                    { param: "overlap", format: "number (%)", desc: "Overlap percentage per pass, from 0 up to but not including 100. Decimals are allowed (62.5). Give one value per pass, or a single value for every pass. 50% doubles grid density." },
                     { param: "runs", format: "list of pass numbers", desc: "Which passes to save (1-based). The list is honoured exactly; the last pass is saved only as a fallback when the list is empty." },
                     { param: "type (ensemble)", format: "'std' | 'single'", desc: "Standard or single-pixel mode per pass." },
                   ].map((row, idx) => (
@@ -270,7 +270,7 @@ instantaneous_piv:
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="px-4 py-3 font-mono text-purple-600">sum_fitting_window</td>
-                    <td className="px-4 py-3 text-gray-600">Central crop of the summed plane used for fitting (default [32, 32]; falls back to sum_window when unset)</td>
+                    <td className="px-4 py-3 text-gray-600">Central crop of the summed plane used for fitting (default [32, 32]; null fits the whole sum_window)</td>
                     <td className="px-4 py-3 text-gray-600">Positive, even, &lt;= sum_window. Exempt from the FFT-size restriction (it is a crop, not an FFT)</td>
                   </tr>
                 </tbody>
@@ -407,7 +407,7 @@ ensemble_piv:
                   {[
                     { setting: "persist_images", default: "false", desc: "Keep all filtered images in worker RAM across passes. Faster on HPC with lots of memory, but significantly increases RAM usage." },
                     { setting: "sum_fitting_window_enabled", default: "true", desc: "Extract a central crop from the summed correlation plane before peak fitting. Reduces memory and speeds up fitting." },
-                    { setting: "sum_fitting_window", default: "[32, 32]", desc: "Size [H, W] of the central crop. Falls back to sum_window when unset. Must be positive, even, and <= sum_window; not restricted to built FFT sizes." },
+                    { setting: "sum_fitting_window", default: "[32, 32]", desc: "Size [H, W] of the central crop; null fits the whole sum_window. Must be positive, even, and <= sum_window; not restricted to built FFT sizes." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-purple-600">{row.setting}</td>
@@ -484,7 +484,7 @@ ensemble_piv:
 
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
               <p className="text-blue-700 text-sm">
-                <strong>Two defaults changed.</strong> <code className="bg-blue-100 px-1 rounded">kspace_floor</code> is now <code className="bg-blue-100 px-1 rounded">coloured</code> rather than flat, and <code className="bg-blue-100 px-1 rounded">envelope_divide</code> is now off where the divide previously always happened. Both change your numbers, and both can be switched back to reproduce an older run. The other recent additions (<code className="bg-blue-100 px-1 rounded">window_mean</code>, <code className="bg-blue-100 px-1 rounded">per_pair_normalization</code>, <code className="bg-blue-100 px-1 rounded">predictor_rounding</code>, <code className="bg-blue-100 px-1 rounded">kspace_shape</code>) all default to the legacy or off behaviour, so existing configs otherwise run unchanged.
+                <strong>Two defaults changed.</strong> <code className="bg-blue-100 px-1 rounded">kspace_floor</code> is now <code className="bg-blue-100 px-1 rounded">coloured</code> rather than flat, and <code className="bg-blue-100 px-1 rounded">envelope_divide</code> is now off where the divide previously always happened. Both change your numbers, and both can be switched back to reproduce an older run. The other recent additions (<code className="bg-blue-100 px-1 rounded">window_mean</code>, <code className="bg-blue-100 px-1 rounded">per_pair_normalization</code>, <code className="bg-blue-100 px-1 rounded">predictor_rounding</code>, <code className="bg-blue-100 px-1 rounded">kspace_shape</code>) all default to the legacy or off behaviour. A config written before these keys existed is refused until they are added; the refusal gives each key with its default.
               </p>
             </div>
 
@@ -533,9 +533,9 @@ ensemble_piv:
                     { setting: "open_dashboard", default: "false", desc: "Auto-open the Dask performance dashboard in your browser when processing starts" },
                     { setting: "cluster_type", default: "local", desc: "'local' or 'slurm'" },
                     { setting: "auto_compute_params", default: "false", desc: "Auto-compute omp_threads, dask_workers, and dask_memory from system resources" },
-                    { setting: "n_nodes", default: "1", desc: "Number of compute nodes (SLURM cluster only)" },
-                    { setting: "slurm_walltime", default: "01:00:00", desc: "Job walltime for SLURM submissions" },
-                    { setting: "slurm_partition", default: "(none)", desc: "SLURM partition name" },
+                    { setting: "slurm.nnodes", default: "(none)", desc: "Number of compute nodes. Required when cluster_type is slurm; it has no default." },
+                    { setting: "slurm.walltime", default: "01:00:00", desc: "Job walltime for SLURM submissions" },
+                    { setting: "slurm.partition", default: "normal", desc: "SLURM partition name" },
                     { setting: "post_processing_workers", default: "auto", desc: "Max parallel workers for calibration, statistics, merge, and transform. auto = min(cpu_count, 16)" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -556,6 +556,13 @@ ensemble_piv:
   dask_max_in_flight_per_worker: 3
   open_dashboard: false
   cluster_type: local`} title="config.yaml" />
+
+            <CodeBlock code={`processing:
+  cluster_type: slurm
+  slurm:
+    nnodes: 4               # required under slurm, no default
+    walltime: 01:00:00
+    partition: normal`} title="config.yaml -- SLURM" />
 
             <p className="text-gray-700 mt-6">
               The Run PIV panel shows a <strong>Memory estimate</strong> warning when the
@@ -596,13 +603,13 @@ ensemble_piv:
                   </tr>
                   <tr className="bg-white">
                     <td className="px-4 py-3 font-mono text-purple-600">sigma</td>
-                    <td className="px-4 py-3 text-gray-600">sigma_threshold</td>
+                    <td className="px-4 py-3 text-gray-600">sigma_threshold: 2.0</td>
                     <td className="px-4 py-3 text-gray-600">Reject vectors further than N local standard deviations from the local mean.</td>
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="px-4 py-3 font-mono text-purple-600">div_vort</td>
                     <td className="px-4 py-3 text-gray-600">div_thresh, vort_thresh</td>
-                    <td className="px-4 py-3 text-gray-600">Reject on divergence and vorticity magnitude. Leave either unset for an automatic MAD-based threshold. CLI only, not exposed in the GUI.</td>
+                    <td className="px-4 py-3 text-gray-600">Reject on divergence and vorticity magnitude. Set either to null for an automatic MAD-based threshold. CLI only, not exposed in the GUI.</td>
                   </tr>
                 </tbody>
               </table>
@@ -610,7 +617,8 @@ ensemble_piv:
             <p className="text-gray-600 text-sm mb-6">
               A method whose <code className="bg-gray-100 px-1 rounded font-mono text-xs">type</code> is not one of these
               four is refused when the config is read, before any output folder is touched, even when outlier detection is
-              disabled.
+              disabled. Each test carries every parameter of its type, and only those: a missing one is refused with its
+              default as the hint.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -652,7 +660,7 @@ ensemble_piv:
                   {[
                     { method: "nearest", params: "(none)", desc: "Nearest valid vector via distance transform. Fastest, robust for clustered gaps." },
                     { method: "harmonic", params: "(none)", desc: "Harmonic least-squares inpainting. Filled values stay within the range of their neighbours, so it is robust to noisy donors. Default for final_pass." },
-                    { method: "knn", params: "n_neighbors: 32, weights: 'distance'", desc: "Distance-weighted regression. Sparse data." },
+                    { method: "knn", params: "n_neighbors: 32, weights: distance, algorithm: kd_tree", desc: "Distance-weighted regression. Sparse data." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-green-600">{row.method}</td>
@@ -666,10 +674,17 @@ ensemble_piv:
 
             <CodeBlock code={`infilling:                  # or ensemble_infilling:
   mid_pass:
-    method: nearest           # no parameters needed
+    method: nearest
+    parameters: {}            # nearest takes no parameters
   final_pass:
     enabled: true
-    method: harmonic          # no parameters needed`} title="config.yaml" />
+    method: harmonic
+    parameters: {}            # harmonic takes no parameters`} title="config.yaml" />
+            <p className="text-gray-600 text-sm mt-4">
+              Each pass holds <code className="bg-gray-100 px-1 rounded font-mono text-xs">parameters</code> with every
+              parameter of its method, and only those. Parameters left from a previous method are refused, so change
+              the method and its parameters together.
+            </p>
           </Section>
 
           {/* NaN Reason Codes */}
@@ -779,7 +794,7 @@ ensemble_piv:
                 <li>Every output folder (one dataset, one camera, one mode) holds a <code className="bg-gray-100 px-1 rounded font-mono text-sm">run_manifest.json</code>. It says <strong>running</strong> from before the first result file, <strong>complete</strong> once the folder is finished, and <strong>failed</strong> with the error.</li>
                 <li>On Windows with long paths off, a run is refused before it starts if any output file path would exceed 259 characters, the most Windows allows; the refusal names the path and its length. Use a shorter <code className="bg-gray-100 px-1 rounded font-mono text-sm">base_paths</code> folder, or enable Windows long paths (<code className="bg-gray-100 px-1 rounded font-mono text-sm">LongPathsEnabled</code> = 1, as an administrator) and start PIVTOOLs again.</li>
                 <li>A run into a folder that already holds results is refused before anything is written, naming the folder. Clear it with the Run PIV dialog or <code className="bg-gray-100 px-1 rounded font-mono text-sm">--overwrite</code>. When a processing setting changed since that folder was written, the refusal names it, as <code className="bg-gray-100 px-1 rounded font-mono text-sm">key: old -&gt; new</code>.</li>
-                <li>An ensemble resume (<code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> &gt; 0) needs a running or failed folder written with identical processing settings, and <code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> at most one more than the passes it saved. An empty folder, or one written before run manifests existed, cannot be resumed. The resume also needs the code that started the run: on different code Run PIV shows the old and new code (for example 0.7.0 → 0.7.1) and asks whether to continue, and the CLI refuses unless given <code className="bg-gray-100 px-1 rounded font-mono text-sm">--allow-code-change</code>. The code is the installed package version, plus the git commit when PIVTOOLs runs from a git checkout, so a pip install is compared by version and a development checkout by commit too; an uninstalled source tree has no version and always counts as a change. An allowed change is written to the log and the run manifest records the new code. Uncommitted edits and rebuilt C libraries are not detected. Every pass in <code className="bg-gray-100 px-1 rounded font-mono text-sm">ensemble_result.mat</code> must hold its <code className="bg-gray-100 px-1 rounded font-mono text-sm">window_size</code>; an older file without it is refused, so re-run from pass 1.</li>
+                <li>An ensemble resume (<code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> &gt; 0) needs a running or failed folder written with identical processing settings, and <code className="bg-gray-100 px-1 rounded font-mono text-sm">resume_from_pass</code> at most one more than the passes it saved. An empty folder, or one written before run manifests existed, cannot be resumed. The resume also needs the code that started the run: on different code Run PIV shows the old and new code (for example 0.7.0 → 0.7.1) and asks whether to continue, and the CLI refuses unless given <code className="bg-gray-100 px-1 rounded font-mono text-sm">--allow-code-change</code>. The code is the installed package version, plus the git commit when PIVTOOLs runs from a git checkout, so a pip install is compared by version and a development checkout by commit too; an uninstalled source tree has no version and always counts as a change. An allowed change is written to the log and the run manifest records the new code. Uncommitted edits and rebuilt C libraries are not detected. Every pass in <code className="bg-gray-100 px-1 rounded font-mono text-sm">ensemble_result.mat</code> must hold its <code className="bg-gray-100 px-1 rounded font-mono text-sm">window_size</code>; an older file without it is refused, so re-run from pass 1. A folder written before this version cannot be resumed or added to: the refusal says &quot;settings format changed in this version; start the run again&quot;. Re-run it with <code className="bg-gray-100 px-1 rounded font-mono text-sm">--overwrite</code> or the Run PIV clear dialog.</li>
                 <li>Option names (window types, warp kernels, infill and outlier methods, filter types, the image type and the other named processing choices) are accepted in any capitalisation; <code className="bg-gray-100 px-1 rounded font-mono text-sm">Gaussian</code> and <code className="bg-gray-100 px-1 rounded font-mono text-sm">gaussian</code> are the same.</li>
                 <li>When one dataset fails, it is marked failed, the others still finish, and the run exits non-zero naming every failure. Run PIV shows <em>Failed</em> with the error line and lists the failed datasets.</li>
                 <li>A run stops with an error that names the pair and the image file when a frame is constant (every pixel the same value, or no finite pixel), when a pair has no valid vector in a pass (instantaneous) or a pass has no valid vector (ensemble; the message counts the vectors each rejection reason removed), when an ensemble batch fails or a pass sums a different number of pairs than the run has, and when a Dask worker dies (often out of memory). A worker death during an ensemble run is reported within 5 minutes.</li>
@@ -824,7 +839,7 @@ processing:
                     { path: '*_piv.window_size', inst: 'Y', ens: 'Y', desc: 'List of [H, W] per pass' },
                     { path: '*_piv.overlap', inst: 'Y', ens: 'Y', desc: 'Overlap % per pass' },
                     { path: '*_piv.runs', inst: 'Y', ens: 'Y', desc: 'Passes to save (1-based)' },
-                    { path: '*_piv.peak_finder', inst: 'Y', ens: 'Y', desc: 'gauss3 / gauss4 / gauss5 / gauss6 (default gauss6 for both)' },
+                    { path: 'instantaneous_piv.peak_finder', inst: 'Y', ens: '-', desc: 'gauss3 / gauss4 / gauss5 / gauss6 (default gauss6)' },
                     { path: '*_piv.predictor_smoothing', inst: 'Y', ens: 'Y', desc: 'Smooth predictor between passes (inst: true, ens: false)' },
                     { path: 'instantaneous_piv.secondary_peak', inst: 'Y', ens: '-', desc: 'Detect secondary correlation peak (default false)' },
                     { path: 'instantaneous_piv.num_peaks', inst: 'Y', ens: '-', desc: 'Number of peaks to detect (default 1)' },
@@ -843,7 +858,7 @@ processing:
                     { path: 'instantaneous_piv.save_mode', inst: 'Y', ens: '-', desc: 'minimal (3 fields) or full (13 fields)' },
                     { path: 'instantaneous_piv.save_compression', inst: 'Y', ens: '-', desc: 'ZLIB compression on .mat files (default false)' },
                     { path: 'ensemble_piv.sum_fitting_window_enabled', inst: '-', ens: 'Y', desc: 'Crop summed plane before fitting (default true)' },
-                    { path: 'ensemble_piv.sum_fitting_window', inst: '-', ens: 'Y', desc: '[H, W] crop size (default [32, 32]; falls back to sum_window)' },
+                    { path: 'ensemble_piv.sum_fitting_window', inst: '-', ens: 'Y', desc: '[H, W] crop size (default [32, 32]; null fits the whole sum_window)' },
                     { path: 'ensemble_piv.store_planes', inst: '-', ens: 'Y', desc: 'Save correlation planes' },
                     { path: 'ensemble_piv.save_diagnostics', inst: '-', ens: 'Y', desc: 'Warped-image + LM fit diagnostics (default false)' },
                     { path: 'ensemble_piv.resume_from_pass', inst: '-', ens: 'Y', desc: '0 = fresh, N = resume from pass N' },

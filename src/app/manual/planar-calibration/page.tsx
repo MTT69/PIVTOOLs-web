@@ -903,8 +903,8 @@ methods:
             </p>
             <p className="text-gray-700 mb-6">
               Writing board geometry under <code className="bg-gray-100 px-1 rounded text-sm">calibration:</code> in
-              config.yaml has no effect. Those keys are stripped the next time the config is saved, and the values you
-              expected to be used silently disappear.
+              config.yaml is refused when the config is read. The error names each key and says to move it to the
+              sidecar (see <a href="/manual/cli-reference#config-refused" className="underline">Config Refused</a>).
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Caching</h3>
@@ -1101,7 +1101,7 @@ pivtools-cli apply-calibration --board dotboard --all-paths`}
               defaultOpen={true}
               code={`# ============================================================
 # config.yaml -- a four-key pointer, nothing more.
-# Anything else written under calibration: is stripped on save.
+# Anything else written under calibration: is refused at read.
 # ============================================================
 calibration:
   calibration_sources:

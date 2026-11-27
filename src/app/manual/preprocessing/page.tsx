@@ -226,6 +226,8 @@ export default function PreprocessingPage() {
               code={`filters:
   - type: time
   - type: pod
+    eps_auto_psi: 0.01
+    eps_auto_sigma: 0.01
 
 batches:
   size: 30    # Frames per batch (10-20 for testing, 50+ for production)`}
@@ -275,7 +277,8 @@ batches:
               A filter whose <code className="bg-gray-100 px-1 rounded font-mono text-xs">type</code> is not one of
               these (or <code className="bg-gray-100 px-1 rounded font-mono text-xs">time</code> and{' '}
               <code className="bg-gray-100 px-1 rounded font-mono text-xs">pod</code>) is refused when the config is read,
-              naming the entry and the allowed types. It is never skipped silently.
+              naming the entry and the allowed types. It is never skipped silently. Each entry carries every parameter
+              its type lists above, and only those; a missing one is refused with its default as the hint.
             </p>
           </Section>
 
@@ -323,6 +326,8 @@ batches:
   # Temporal (require batch processing)
   - type: time
   - type: pod
+    eps_auto_psi: 0.01      # float > 0: eigenvector mean threshold
+    eps_auto_sigma: 0.01    # float > 0: eigenvalue difference threshold
 
   # Spatial (per-frame, order matters)
   - type: gaussian

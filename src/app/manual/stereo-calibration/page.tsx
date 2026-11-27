@@ -1118,7 +1118,7 @@ pivtools-cli statistics --source-endpoint stereo`}
               defaultOpen={true}
               code={`# ============================================================
 # config.yaml -- a four-key pointer, nothing more.
-# Anything else under calibration: is stripped on the next save.
+# Anything else under calibration: is refused at read.
 # ============================================================
 calibration:
   calibration_sources:
