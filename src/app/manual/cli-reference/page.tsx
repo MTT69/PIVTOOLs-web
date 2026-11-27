@@ -736,6 +736,7 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#conf
                     { msg: "infilling.mid_pass.parameters.n_neighbors: unknown key ('nearest' takes no parameters; delete it)", cause: "A parameter left over from the entry's previous method", fix: 'Delete it. Each method lists its parameters on the PIV Processing and Preprocessing pages.' },
                     { msg: 'calibration.dt: unknown key (calibration settings live in the per-source settings sidecar, <source>/calibration/settings.yaml; config.yaml holds only calibration_sources, source_idx and active, so delete this key)', cause: 'Calibration settings written in config.yaml', fix: 'Move the value into <source>/calibration/settings.yaml and delete it here.' },
                     { msg: 'C:\\data\\experiment\\config.yaml: line 14, column 15: not valid YAML: mapping values are not allowed here', cause: 'A syntax error, such as a missing colon or bad indentation', fix: 'Fix the line. The parser reports where it stopped, which is often the line after the mistake.' },
+                    { msg: 'C:\\data\\experiment\\config.yaml changed on disk since it was read; the change was not saved. Reload and try again.', cause: 'config.yaml was edited by hand, or saved by another GUI or CLI, after this one read it', fix: 'Reload the GUI page (or run the command again), then repeat the change. config.yaml keeps the edit made on disk.' },
                   ].map((row, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-xs text-red-700">{row.msg}</td>
@@ -747,9 +748,11 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#conf
               </table>
             </div>
             <div className="mb-6">
-              <CodeBlock title="A YAML syntax error (num_images 100, colon missing, on line 13)">{`config.yaml was refused: 1 problem.
-  C:\\data\\experiment\\config.yaml: line 14, column 15: not valid YAML: mapping values are not allowed here
-How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#config-refused`}</CodeBlock>
+              <p className="text-gray-700 mb-4">
+                A file that is not valid YAML has no keys to check, so the refusal is one line naming the file and
+                where the parser stopped.
+              </p>
+              <CodeBlock title="A YAML syntax error (num_images 100, colon missing, on line 13)">{`C:\\data\\experiment\\config.yaml: line 14, column 15: not valid YAML: mapping values are not allowed here`}</CodeBlock>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">When to start from a clean config</h3>
@@ -788,9 +791,21 @@ With this many problems, starting from a clean default config is faster than edi
   instantaneous_piv.overlap[3]: must be < 100, got 100
 How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#config-refused`}</CodeBlock>
             </div>
-            <p className="text-gray-700">
+            <p className="text-gray-700 mb-4">
               A run started from the GUI on a refused file fails before it starts, and Run PIV shows the same lines.
             </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">A save refused because config.yaml changed</h3>
+            <p className="text-gray-700 mb-4">
+              A GUI or CLI save is refused when config.yaml changed on disk after it was read: edited by hand, or saved
+              by another GUI or CLI. Nothing is written, so the edit on disk is kept. Reload the GUI page, or run the
+              command again, then repeat the change. The CLI saves config.yaml only for{' '}
+              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">transform --source-endpoint</code>, and for{' '}
+              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">statistics</code> given a merged or
+              stereo <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--source-endpoint</code> or{' '}
+              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--workflow</code>.
+            </p>
+            <CodeBlock title="pivtools-cli transform --source-endpoint regular, with config.yaml edited meanwhile">{`C:\\data\\experiment\\config.yaml changed on disk since it was read; the change was not saved. Reload and try again.`}</CodeBlock>
           </Section>
 
           {/* Help */}
