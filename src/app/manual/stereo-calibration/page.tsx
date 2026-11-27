@@ -1104,8 +1104,9 @@ pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
                 &quot;apply-stereo: No calibration settings for source &apos;D:\data\calib&apos; (expected
                 D:\data\calib\calibration\settings.yaml). ... Or pass --interpolator linear|cubic|lanczos.&quot;
                 <code className="bg-yellow-100 px-1 rounded">apply-calibration --all-paths</code> with a stereo active method
-                is refused the same way, but takes no <code className="bg-yellow-100 px-1 rounded">--interpolator</code>: create
-                the settings.yaml, or run apply-stereo.
+                is refused the same way, with &quot;apply-calibration:&quot; in front and the last sentence &quot;Or run
+                apply-stereo with --interpolator linear|cubic|lanczos.&quot;, since apply-calibration takes no{' '}
+                <code className="bg-yellow-100 px-1 rounded">--interpolator</code>. Create the settings.yaml, or run apply-stereo.
               </p>
             </div>
 
