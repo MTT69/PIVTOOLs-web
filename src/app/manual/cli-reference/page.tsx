@@ -303,7 +303,7 @@ export default function CLIReferencePage() {
         { flag: '--z-world', description: 'Light-sheet plane Z in mm (default 0.0, which is the calibration-board plane)' },
         { flag: '--tilt-x / --tilt-y', description: 'Sheet tilt in radians, not degrees. The plane is Z = z_world + X*tan(tilt_y) + Y*tan(tilt_x)' },
         { flag: '--uncalibrated-dir / --calibrated-dir', description: 'Explicit input/output vector directories (instead of --all-paths)' },
-        { flag: '--all-paths', description: 'Derive every base_path x camera from config (like the GUI). With a stereo active method this applies the stereo model, which needs the settings.yaml of the source (refused without one: create it, or run apply-stereo with --interpolator). For explicit directories use apply-stereo' },
+        { flag: '--all-paths', description: 'Derive every base_path x camera from config (like the GUI). With a stereo active method this applies the stereo model, which needs the settings.yaml of the source. Without one it is refused, and the refusal ends "Or run apply-stereo with --interpolator linear|cubic|lanczos.": create the file, or do that. For explicit directories use apply-stereo' },
         { flag: '--type-name', description: 'PIV result type for --all-paths (default: instantaneous)' },
         { flag: '--model-type', description: 'pinhole | polynomial | polynomial3d | scale_factor' },
       ],
