@@ -668,6 +668,8 @@ ensemble_piv:
                     { method: "nearest", params: "(none)", desc: "Nearest valid vector via distance transform. Fastest, robust for clustered gaps." },
                     { method: "harmonic", params: "(none)", desc: "Harmonic least-squares inpainting. Filled values stay within the range of their neighbours, so it is robust to noisy donors. Default for final_pass." },
                     { method: "knn", params: "n_neighbors: 32, weights: distance, algorithm: kd_tree", desc: "Distance-weighted regression. Sparse data." },
+                    { method: "griddata_linear", params: "method: linear (or cubic, nearest)", desc: "Interpolation over a triangulation of the valid vectors. Gaps outside the triangulation, at the field edges, take the nearest valid vector." },
+                    { method: "rbf_local", params: "neighbors: 64, kernel: thin_plate_spline, epsilon: null, smoothing: 0.0", desc: "Radial basis functions fitted to the nearest valid vectors. epsilon must be a number for the multiquadric, inverse_multiquadric, inverse_quadratic and gaussian kernels. Raise smoothing for noisy data." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-green-600">{row.method}</td>
