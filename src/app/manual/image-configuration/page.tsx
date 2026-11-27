@@ -280,7 +280,6 @@ export default function ImageConfigurationPage() {
                 "A fill that cannot be saved shows why under the box, with no summary and no Undo.",
               ]}
             />
-            {/* F5 */}
             <p className="text-gray-700 leading-relaxed mb-6">
               In the Image Settings card, the fields the last fill set stay tinted until you edit them.
             </p>
@@ -433,7 +432,6 @@ export default function ImageConfigurationPage() {
               </div>
             </div>
 
-            {/* F5 */}
             <div className="bg-gray-50 rounded-lg p-6 mb-6" id="cameras-to-process">
               <h4 className="text-lg font-semibold text-gray-900 mb-2">Cameras to process</h4>
               <p className="text-gray-600">
@@ -1104,7 +1102,7 @@ paths:
                     { fmt: ".set", what: "Camera count differs from the camera labels", msg: "holds N cameras by its own camera labels", fix: "Set the camera count to N (validation offers it)." },
                     { fmt: ".set", what: "No labels, and no unique split of the streams by shape", msg: "cannot split into N cameras / the mapping is ambiguous. Camera counts that fit: ...", fix: "Set a camera count that fits." },
                     { fmt: ".set", what: "Camera labels on some streams only, or changing between images", msg: "Which camera those streams belong to is unknown", fix: "Send us the recording." },
-                    { fmt: ".set", what: "A single-frame camera selected for A/B pairs", msg: "is a single-frame camera, so it has no A/B pairs", fix: "Untick it in Cameras to process on Setup, or process it time-resolved." /* F5 */ },
+                    { fmt: ".set", what: "A single-frame camera selected for A/B pairs", msg: "is a single-frame camera, so it has no A/B pairs", fix: "Untick it in Cameras to process on Setup, or process it time-resolved." },
                     { fmt: ".set", what: "Two geometries on one camera, or one correction declared twice", msg: "declares two geometric transformers / declares ... twice", fix: "Correct the camera's corrections in DaVis and export again." },
                     { fmt: ".set", what: "white-image-correction, add-offset or image-intensity-correction-2", msg: "a DaVis transformer whose effect PIVTOOLs has no measurement of", fix: "Deselect that camera; the others read. Send us a sample recording." },
                     { fmt: ".set", what: "A transformer id PIVTOOLs does not know", msg: "not one of the 13 DaVis transformer ids PIVTOOLs knows", fix: "With camera labels only that camera is blocked, so deselect it. Send us a sample recording." },

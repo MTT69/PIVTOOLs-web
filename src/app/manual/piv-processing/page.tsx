@@ -301,7 +301,6 @@ instantaneous_piv:
           {/* Camera Selection */}
           <Section title="Camera Selection" icon={<Camera size={32} />} id="camera-selection">
             <p className="text-gray-700 text-lg mb-4">
-              {/* F5 */}
               The cameras to process are chosen on Setup, under <a href="/manual/image-configuration#cameras-to-process" className="underline">Cameras to process</a>. The Instantaneous and Ensemble tabs show the selection read-only, with a link to Setup. At least one must be selected. In YAML, set <code className="bg-gray-100 px-1 rounded">paths.camera_numbers</code>.
             </p>
           </Section>
