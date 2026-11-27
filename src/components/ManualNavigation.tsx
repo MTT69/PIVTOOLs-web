@@ -288,7 +288,6 @@ export default function ManualNavigation() {
         prev.includes(currentSection.title) ? prev : [...prev, currentSection.title]
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   const toggleSection = (title: string) => {

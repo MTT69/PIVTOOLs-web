@@ -182,7 +182,7 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices (e.g., "0,1,2")' },
         { flag: '--camera', short: '-c', description: 'Camera number to process (default: all from config)' },
-        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting (the GUI overwrite dialog does the same). Without it, a run into a folder that already holds results is refused before anything is written' },
+        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting (the GUI overwrite dialog does the same), whichever PIVTOOLs version wrote it. A folder that a live run is still writing is never cleared, and the refusal names that process. Without the flag, a run into a folder that already holds results is refused before anything is written' },
       ],
       examples: [
         'pivtools-cli instantaneous',
@@ -197,7 +197,7 @@ export default function CLIReferencePage() {
       options: [
         { flag: '--active-paths', short: '-p', description: 'Comma-separated path indices' },
         { flag: '--camera', short: '-c', description: 'Camera number to process (default: all from config)' },
-        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting. Refused together with resume_from_pass > 0, since a resume needs the folder it would clear' },
+        { flag: '--overwrite', description: 'Clear every output folder this run writes before starting, whichever PIVTOOLs version wrote it, except one a live run is still writing. Refused together with resume_from_pass > 0, since a resume needs the folder it would clear' },
         { flag: '--allow-code-change', description: 'Resume (resume_from_pass > 0) a folder that different code started (another PIVTOOLs version, or another git commit when run from a checkout). Without it such a resume is refused, because the earlier and later passes would come from different code' },
       ],
       examples: [
@@ -303,7 +303,7 @@ export default function CLIReferencePage() {
         { flag: '--z-world', description: 'Light-sheet plane Z in mm (default 0.0, which is the calibration-board plane)' },
         { flag: '--tilt-x / --tilt-y', description: 'Sheet tilt in radians, not degrees. The plane is Z = z_world + X*tan(tilt_y) + Y*tan(tilt_x)' },
         { flag: '--uncalibrated-dir / --calibrated-dir', description: 'Explicit input/output vector directories (instead of --all-paths)' },
-        { flag: '--all-paths', description: 'Derive every base_path x camera from config (like the GUI). With a stereo active method this applies the stereo model. For explicit directories use apply-stereo' },
+        { flag: '--all-paths', description: 'Derive every base_path x camera from config (like the GUI). With a stereo active method this applies the stereo model, which needs the settings.yaml of the source. Without one it is refused, and the refusal ends "Or run apply-stereo with --interpolator linear|cubic|lanczos.": create the file, or do that. For explicit directories use apply-stereo' },
         { flag: '--type-name', description: 'PIV result type for --all-paths (default: instantaneous)' },
         { flag: '--model-type', description: 'pinhole | polynomial | polynomial3d | scale_factor' },
       ],
@@ -322,7 +322,7 @@ export default function CLIReferencePage() {
         { flag: '--camera-pair', description: 'Camera pair as "1,2" (default: from config)' },
         { flag: '--source', description: 'Calibration source directory' },
         { flag: '--dt', description: 'Time between frames (s)' },
-        { flag: '--interpolator', description: 'Cam2 resample kernel: cubic or lanczos (default: lanczos)' },
+        { flag: '--interpolator', description: "Cam2 resample kernel: linear | cubic | lanczos (default: rig.interpolator in the source's settings.yaml). Required when the source has no settings.yaml: without it the command is refused" },
         { flag: '--uncalibrated-dir-cam1', description: 'Explicit camera-1 uncalibrated vector directory' },
         { flag: '--uncalibrated-dir-cam2', description: 'Explicit camera-2 uncalibrated vector directory' },
         { flag: '--calibrated-dir', description: 'Explicit calibrated vector directory (instead of --all-paths)' },
@@ -807,6 +807,106 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#conf
               <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">--workflow</code>.
             </p>
             <CodeBlock title="pivtools-cli transform --source-endpoint regular, with config.yaml edited meanwhile">{`C:\\data\\experiment\\config.yaml changed on disk since it was read; the change was not saved. Reload and try again.`}</CodeBlock>
+          </Section>
+
+          {/* Calibration settings refused */}
+          <Section title="Calibration Settings Refused" icon={<AlertTriangle size={28} />} id="calibration-settings-refused">
+            <p className="text-gray-700 mb-4">
+              Each calibration source keeps its settings in{' '}
+              <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">&lt;source&gt;/calibration/settings.yaml</code>.
+              The file is checked every time the CLI or the GUI reads it, and before every save. A file with any
+              problem is refused: the calibration command prints the problems and exits with status 1, and nothing is
+              written. Every problem is listed at once.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">The rules</h3>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 mb-6">
+              <li>Every key a new settings.yaml holds is required. <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">pivtools-cli init-settings --source &lt;source&gt;</code> writes one, and so does the GUI Calibration tab the first time it saves a source.</li>
+              <li>An unknown key is refused, with the nearest valid name. A removed key is refused, with what replaced it.</li>
+              <li>Each value has the type, names and range its reader needs: <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">rig.dt</code> above 0, ChArUco squares at least 2 a side, <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">marker_ratio</code> between 0 and 1. Numbers are written without quotes.</li>
+              <li><code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">image.image_format</code> and <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">image.image_type</code> may be <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">null</code>, so a new file opens. Reading calibration images with either unset is refused: &quot;Calibration settings &lt;file&gt; has image.image_type unset. Set it in the GUI Calibration tab or in the file.&quot; Board geometry and <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">rig.dt</code> may be <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">null</code> until you generate a model.</li>
+            </ul>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-800 text-sm mb-3">
+                <strong>A settings.yaml written before 18 Oct 2026 is refused.</strong> It still holds{' '}
+                <code className="bg-yellow-100 px-1 rounded">image.start_index</code> and lacks{' '}
+                <code className="bg-yellow-100 px-1 rounded">methods.scale_factor.use_images</code>. Either delete the{' '}
+                <code className="bg-yellow-100 px-1 rounded">start_index</code> line (set{' '}
+                <code className="bg-yellow-100 px-1 rounded">image.zero_based_indexing: true</code> if the first file is
+                numbered 0) and add <code className="bg-yellow-100 px-1 rounded">use_images: true</code> under{' '}
+                <code className="bg-yellow-100 px-1 rounded">methods.scale_factor</code>. Or move the file aside and
+                reopen the source on the GUI Calibration tab, which seeds a new one from the calibration models saved
+                in the source (board geometry, dt and the cameras among them), then pick the images again to fill
+                the image settings.
+              </p>
+              <p className="text-yellow-800 text-sm">
+                A save from the GUI does not repair a refused file. The save is refused with the same problems until
+                the file is fixed.
+              </p>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">What a refusal looks like</h3>
+            <div className="mb-6">
+              <CodeBlock title="pivtools-cli detect-charuco, on a settings.yaml from before 18 Oct 2026">{`Calibration settings C:\\data\\calib\\calibration\\settings.yaml were refused: 2 problems.
+  image.start_index: was removed (delete it: calibration frames are numbered 1..N (removed 18 Oct 2026); set image.zero_based_indexing: true when the first file is numbered 0)
+  methods.scale_factor.use_images: required key is missing (add 'use_images: true', the value a new settings.yaml has)
+Fix the file in a text editor, or move it aside and reopen the source in the GUI Calibration tab, which seeds a new one from the model records on disk (\`pivtools-cli init-settings --source <source>\` writes a blank one).
+How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#calibration-settings-refused`}</CodeBlock>
+            </div>
+            <p className="text-gray-700 mb-6">
+              The lines read as for config.yaml: <code className="text-green-700 bg-green-50 px-2 py-0.5 rounded">path: message (hint)</code>,
+              the path walking down from the top of settings.yaml.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Fixing each kind of problem</h3>
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Message</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Cause</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Fix</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { msg: "rig.dtt: unknown key (did you mean 'dt'?)", cause: 'A misspelt key', fix: 'Rename it to the key in the hint.' },
+                    { msg: "rig.dt: required key is missing (add 'dt: null', the value a new settings.yaml has)", cause: 'A key the file never had, often from an older version', fix: 'Add the line the hint gives, then set its value.' },
+                    { msg: 'image.start_index: was removed (delete it: calibration frames are numbered 1..N (removed 18 Oct 2026); set image.zero_based_indexing: true when the first file is numbered 0)', cause: 'A key that no longer exists', fix: 'Do what the hint says.' },
+                    { msg: "rig.dt: must be a finite number, got str '0.0057' (quoted in YAML? write it without quotes)", cause: 'A quoted number or true/false', fix: 'Remove the quotes: dt: 0.0057.' },
+                    { msg: "rig.interpolator: 'bicubic' is not one of linear, cubic, lanczos (did you mean 'cubic'?)", cause: 'A name the reader does not know', fix: 'Write one of the names listed.' },
+                    { msg: 'methods.charuco.marker_ratio: must be < 1, got 1.2', cause: 'A value outside the range its reader accepts', fix: 'Write a value inside the range.' },
+                    { msg: 'global_coordinates: required section is missing (every settings.yaml written today has it; see the fix line at the end of this message)', cause: 'A whole section missing', fix: 'Move the file aside and reopen the source in the GUI, or copy the section from a blank file: pivtools-cli init-settings --source <an empty folder>.' },
+                    { msg: 'schema_version: is 2; this PIVTOOLs reads version 1 (the file was written by another version)', cause: 'A file written by another PIVTOOLs version', fix: 'Open it with that version, or move it aside and reopen the source in the GUI.' },
+                    { msg: "<root>: line 4, column 1: not valid YAML: could not find expected ':'", cause: 'A syntax error, such as a missing colon', fix: 'Fix the line. The parser reports where it stopped, which is often the line after the mistake.' },
+                  ].map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 font-mono text-xs text-red-700">{row.msg}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.cause}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.fix}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3">In the GUI</h3>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 mb-4">
+              <li>
+                A refused settings.yaml shows <strong>Calibration Settings Refused</strong> above the calibration tabs,
+                with the same lines and then &quot;Once the file is fixed, press Retry. The GUI does not need
+                restarting.&quot; The tabs stay usable for another source.
+              </li>
+              <li>
+                A change the rules refuse is not saved, and the file is left as it was. The message lists the problems:
+              </li>
+            </ul>
+            <div className="mb-4">
+              <CodeBlock title="Refused save (dt -1)">{`The change was not saved (C:\\data\\calib\\calibration\\settings.yaml is unchanged): 1 problem.
+  rig.dt: must be > 0, got -1
+How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#calibration-settings-refused`}</CodeBlock>
+            </div>
           </Section>
 
           {/* Help */}

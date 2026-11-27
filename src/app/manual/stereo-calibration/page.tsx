@@ -388,8 +388,8 @@ calibration:
 
 # <source>/calibration/settings.yaml
 image:
-  image_format: calib_%03d.tif  # REQUIRED
-  image_type: standard          # REQUIRED
+  image_format: calib_%03d.tif  # must be set before reading images
+  image_type: standard          # must be set before reading images
   n_views: 15                   # calibration views, NOT images.num_images
   zero_based_indexing: false
   use_camera_subfolders: false  # .im7 only
@@ -517,11 +517,11 @@ calibration:
 # <source>/calibration/settings.yaml
 rig:
   camera_pair: [1, 2]
-  dt: 0.0006                # REQUIRED before generate; never defaulted
+  dt: 0.0006                # must be set before generating a model; never defaulted
   datum_frame: 1
 methods:
   dotboard:                 # shared with the planar dotboard tab
-    dot_spacing_mm: null    # REQUIRED at generate
+    dot_spacing_mm: null    # must be set before generating a model
     k_neighbors: 9
     model_type: pinhole`}
             />
@@ -606,13 +606,13 @@ calibration:
 # <source>/calibration/settings.yaml
 rig:
   camera_pair: [1, 2]
-  dt: 0.0006                # REQUIRED before generate; never defaulted
+  dt: 0.0006                # must be set before generating a model; never defaulted
   datum_frame: 1
 methods:
   charuco:                  # shared with the planar ChArUco tab
-    squares_h: null         # REQUIRED at generate
-    squares_v: null         # REQUIRED at generate
-    square_size: null       # REQUIRED at generate; metres
+    squares_h: null         # must be set before generating a model
+    squares_v: null         # must be set before generating a model
+    square_size: null       # must be set before generating a model; metres
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6`}
@@ -738,12 +738,12 @@ calibration:
 # <source>/calibration/settings.yaml
 rig:
   camera_pair: [1, 2]
-  dt: 0.0006                # REQUIRED before generate; never defaulted
+  dt: 0.0006                # must be set before generating a model; never defaulted
   datum_frame: 1
 methods:
   stepped:                  # physical board geometry (shared seed)
-    dot_spacing_mm: null    # REQUIRED at generate
-    step_height_mm: null    # REQUIRED at generate
+    dot_spacing_mm: null    # must be set before generating a model
+    step_height_mm: null    # must be set before generating a model
     board_thickness_mm: null
     level_offset_mm: null   # null derives dot_spacing_mm / 2
   stepped_stereo:           # stereo-only selections
@@ -1079,7 +1079,7 @@ pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
                     { flag: "--dt", desc: "Time between frames (seconds)", def: "From model / config" },
                     { flag: "--all-paths", desc: "Derive every base_path from config (like the GUI)", def: "off" },
                     { flag: "--type-name", desc: "PIV result type for --all-paths: instantaneous or ensemble", def: "instantaneous" },
-                    { flag: "--interpolator", desc: "Resample kernel: cubic or lanczos", def: "lanczos" },
+                    { flag: "--interpolator", desc: "Resample kernel: linear, cubic or lanczos. Required when the source has no settings.yaml", def: "rig.interpolator in settings.yaml" },
                     { flag: "--model-type", desc: "Which stereo record to load when several exist in the model dir", def: "pinhole" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -1097,6 +1097,16 @@ pivtools-cli self-calibrate --board dotboard --camera-pair 1,2 \\
                 <strong>Apply refuses rather than continuing silently</strong> when the two cameras have different
                 vector frame sets, when no vector files match, or when an ensemble pass has no coordinates entry.
                 The error says which.
+              </p>
+              <p className="text-yellow-700 text-sm mt-2">
+                A source with no settings.yaml is refused unless <code className="bg-yellow-100 px-1 rounded">--interpolator</code> is
+                given, since the resample kernel is read from <code className="bg-yellow-100 px-1 rounded">rig.interpolator</code>:
+                &quot;apply-stereo: No calibration settings for source &apos;D:\data\calib&apos; (expected
+                D:\data\calib\calibration\settings.yaml). ... Or pass --interpolator linear|cubic|lanczos.&quot;
+                <code className="bg-yellow-100 px-1 rounded">apply-calibration --all-paths</code> with a stereo active method
+                is refused the same way, with &quot;apply-calibration:&quot; in front and the last sentence &quot;Or run
+                apply-stereo with --interpolator linear|cubic|lanczos.&quot;, since apply-calibration takes no{' '}
+                <code className="bg-yellow-100 px-1 rounded">--interpolator</code>. Create the settings.yaml, or run apply-stereo.
               </p>
             </div>
 
@@ -1130,15 +1140,16 @@ calibration:
   calibration_sources:
     - /data/experiment/calibration
   source_idx: 0
-  active: stereo_dotboard   # REQUIRED. stereo_dotboard | stereo_charuco | stereo_stepped
+  active: stereo_dotboard   # stereo_dotboard | stereo_charuco | stereo_stepped
 
 # ============================================================
 # <source>/calibration/settings.yaml
 # Seed it with: pivtools-cli init-settings --source <dir>
+# Excerpt: a file is refused unless it holds every key init-settings writes.
 # ============================================================
 image:
-  image_format: calib_%03d.tif  # REQUIRED at read
-  image_type: standard          # REQUIRED at read
+  image_format: calib_%03d.tif  # must be set before reading images
+  image_type: standard          # must be set before reading images
   n_views: 15                   # calibration views (NOT images.num_images)
   zero_based_indexing: false
   use_camera_subfolders: false  # .im7 only
@@ -1146,9 +1157,9 @@ image:
 
 rig:
   camera_pair: [1, 2]
-  dt: 0.0006                    # REQUIRED before generate; never defaulted
+  dt: 0.0006                    # must be set before generating a model; never defaulted
   datum_frame: 1                # 1-based
-  interpolator: lanczos         # cubic | lanczos
+  interpolator: lanczos         # linear | cubic | lanczos
   piv_type: instantaneous
 
 fit:
@@ -1160,13 +1171,13 @@ fit:
 # flows. The mono/stereo distinction lives in calibration.active.
 methods:
   dotboard:
-    dot_spacing_mm: null        # REQUIRED at generate
+    dot_spacing_mm: null        # must be set before generating a model
     k_neighbors: 9
     model_type: pinhole
   charuco:
-    squares_h: null             # REQUIRED at generate
-    squares_v: null             # REQUIRED at generate
-    square_size: null           # REQUIRED at generate; metres
+    squares_h: null             # must be set before generating a model
+    squares_v: null             # must be set before generating a model
+    square_size: null           # must be set before generating a model; metres
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6
