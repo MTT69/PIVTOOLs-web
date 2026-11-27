@@ -1135,6 +1135,7 @@ calibration:
 # ============================================================
 # <source>/calibration/settings.yaml
 # Seed it with: pivtools-cli init-settings --source <dir>
+# Excerpt: a file is refused unless it holds every key init-settings writes.
 # ============================================================
 image:
   image_format: calib_%03d.tif  # REQUIRED at read

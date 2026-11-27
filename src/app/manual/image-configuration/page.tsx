@@ -570,6 +570,45 @@ export default function ImageConfigurationPage() {
               />
             </div>
 
+            {/* Fixed frame (BOS) */}
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6" id="fixed-frame">
+              <h4 className="text-lg font-semibold text-gray-900 mb-3">A Fixed Frame (BOS)</h4>
+              <p className="text-gray-600 mb-4">
+                For standard image files with two patterns (A/B), one pattern may be a file name with no{' '}
+                <code className="bg-gray-100 px-1 rounded">%</code>. That file is used as that frame of every pair, as
+                background-oriented schlieren correlates each image with one reference image. The images are counted
+                from the numbered pattern. The fixed file must exist in each camera folder and be the same size as the
+                numbered images.
+              </p>
+              <div className="text-sm text-gray-600 bg-gray-50 rounded p-3 mb-3 font-mono">
+                B00001_A.tif + background.tif -- Pair 1<br />
+                B00002_A.tif + background.tif -- Pair 2
+              </div>
+              <YamlDropdown
+                code={`images:
+  pairing_preset: ab_format
+  frame_stride: 0
+  pair_stride: 1
+  image_format:
+    - B%05d_A.tif     # Frame A: numbered
+    - background.tif  # Frame B: the same file in every pair
+# Frame A fixed instead: [background.tif, B%05d_B.tif]`}
+              />
+              <p className="text-gray-600 text-sm mt-4 mb-2">Refused before a run, by name:</p>
+              <ul className="list-disc list-inside text-gray-600 text-sm space-y-1 mb-4">
+                <li>Both patterns fixed: &quot;both frames name one fixed file: every pair would be the same image&quot;.</li>
+                <li>A single pattern with no <code className="bg-gray-100 px-1 rounded">%</code>: &quot;names one fixed file for both frames, so there is no pair to form&quot;.</li>
+                <li>A pattern with two <code className="bg-gray-100 px-1 rounded">%</code> fields: &quot;&apos;B%05d_%d.tif&apos; must hold exactly one frame-number field such as %05d&quot;.</li>
+                <li>A missing fixed file: &quot;Camera 1: the fixed frame B file background.tif is missing in &lt;folder&gt;&quot;.</li>
+                <li>A fixed file of another size: &quot;frames A and B have different shapes (1024, 1280) and (1080, 1280)&quot;.</li>
+              </ul>
+              <p className="text-gray-600 text-sm">
+                In the GUI, the A/B pattern boxes say that A or B may be one fixed file name. The folder picker does not
+                detect a BOS folder, so set the fixed frame by hand after picking the source. Picking the source again
+                overwrites it.
+              </p>
+            </div>
+
             {/* Time-Resolved example */}
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-6">
               <h4 className="text-lg font-semibold text-gray-900 mb-3">Time-Resolved (Overlapping Pairs)</h4>

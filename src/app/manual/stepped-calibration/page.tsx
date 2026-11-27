@@ -587,7 +587,8 @@ pivtools-cli statistics --source-endpoint stereo`}
             <YamlDropdown
               title="<source>/calibration/settings.yaml - stepped stereo"
               defaultOpen={true}
-              code={`image:
+              code={`# Excerpt: a file is refused unless it holds every key init-settings writes.
+image:
   image_format: calib%05d.tif   # REQUIRED, no default
   image_type: standard          # REQUIRED
   n_views: 19

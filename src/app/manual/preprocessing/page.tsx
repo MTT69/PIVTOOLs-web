@@ -239,7 +239,11 @@ batches:
             <p className="text-gray-700 text-lg mb-6">
               Applied per-frame. Filters run in the order you list them, so spatial and temporal filters can be
               interleaved -- running temporal filters first is a recommendation, not something the pipeline enforces.
-              Kernel sizes are auto-adjusted to be odd.
+              Kernel sizes (<code className="bg-gray-100 px-1 rounded">size: [h, w]</code>) must be odd on both
+              sides. An even size is refused when config.yaml is read, with the odd sizes either side:{' '}
+              <code className="bg-gray-100 px-1 rounded">filters[0].size: [4, 4] must be odd: use [3, 3] or [5, 5]</code>.
+              The GUI&apos;s kernel boxes refuse an even value the same way, and their arrow keys step from one odd
+              size to the next.
             </p>
 
             <div className="overflow-x-auto mb-6">

@@ -928,6 +928,8 @@ methods:
               Writing board geometry under <code className="bg-gray-100 px-1 rounded text-sm">calibration:</code> in
               config.yaml is refused when the config is read. The error names each key and says to move it to the
               sidecar (see <a href="/manual/cli-reference#config-refused" className="underline">Config Refused</a>).
+              The settings.yaml sidecar is itself checked when it is read and before every save (see{' '}
+              <a href="/manual/cli-reference#calibration-settings-refused" className="underline">Calibration Settings Refused</a>).
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Caching</h3>
@@ -1136,11 +1138,12 @@ calibration:
 # ============================================================
 # <source>/calibration/settings.yaml -- everything else.
 # Seed it with: pivtools-cli init-settings --source <dir>
+# Excerpt: a file is refused unless it holds every key init-settings writes.
 # ============================================================
 image:
   image_format: calib%05d.tif # REQUIRED at read; no default
   image_type: standard        # REQUIRED. standard | cine | lavision_set | lavision_im7
-  n_views: 19                 # optional; frame-count auto-detect is the fallback
+  n_views: 19                 # null = every image found
   zero_based_indexing: false
   use_camera_subfolders: false # .im7 only
   camera_subfolders: []        # explicit names; empty means Cam1, Cam2, ...

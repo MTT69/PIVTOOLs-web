@@ -598,10 +598,14 @@ pivtools-cli apply-calibration --board scale_factor --all-paths`}
       camera_b: 2
       pixel_on_a: [950.0, 400.0]    # Shared feature pixel on camera_a
       pixel_on_b: [120.0, 400.0]    # Same feature pixel on camera_b
+      frame_a: 1                    # Calibration frame pixel_on_a is picked on
+      frame_b: 1                    # Calibration frame pixel_on_b is picked on
     - camera_a: 2
       camera_b: 3
       pixel_on_a: [930.0, 410.0]
-      pixel_on_b: [100.0, 405.0]`}
+      pixel_on_b: [100.0, 405.0]
+      frame_a: 1
+      frame_b: 1`}
             />
 
             <div className="mt-8">
@@ -627,6 +631,8 @@ pivtools-cli apply-calibration --board scale_factor --all-paths`}
                       { field: "overlap_pairs[].camera_b", type: "int", desc: "Second camera in the pair" },
                       { field: "overlap_pairs[].pixel_on_a", type: "[x, y]", desc: "Shared feature pixel on camera_a" },
                       { field: "overlap_pairs[].pixel_on_b", type: "[x, y]", desc: "Same feature pixel on camera_b" },
+                      { field: "overlap_pairs[].frame_a", type: "int", desc: "Calibration frame (1-based) the feature is picked on in camera_a" },
+                      { field: "overlap_pairs[].frame_b", type: "int", desc: "Calibration frame (1-based) the feature is picked on in camera_b" },
                     ].map((row, index) => (
                       <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-4 py-3 text-sm font-mono text-soton-blue">{row.field}</td>
