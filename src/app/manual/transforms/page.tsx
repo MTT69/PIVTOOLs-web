@@ -284,7 +284,7 @@ export default function TransformsPage() {
               refused when you open, transform or apply from it, because its queue cannot be read exactly. Press
               Clear Transforms on that frame (the message calls it Reset), then build the queue and apply it again.
             </p>
-            <CodeBlock title="Results Viewer">{`C:\\data\\experiment\\calibrated_piv\\1000\\Cam1\\instantaneous\\00001.mat: pending_transformations is saved as a text array, which pads the shorter names with spaces, so the transformations applied to this frame cannot be read exactly. Reset the frame's transformations and apply them again.`}</CodeBlock>
+            <CodeBlock title="Results Viewer" code={`C:\\data\\experiment\\calibrated_piv\\1000\\Cam1\\instantaneous\\00001.mat: pending_transformations is saved as a text array, which pads the shorter names with spaces, so the transformations applied to this frame cannot be read exactly. Reset the frame's transformations and apply them again.`} />
           </Section>
 
           {/* CLI Usage */}
