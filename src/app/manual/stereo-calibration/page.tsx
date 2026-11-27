@@ -388,8 +388,8 @@ calibration:
 
 # <source>/calibration/settings.yaml
 image:
-  image_format: calib_%03d.tif  # REQUIRED
-  image_type: standard          # REQUIRED
+  image_format: calib_%03d.tif  # must be set before reading images
+  image_type: standard          # must be set before reading images
   n_views: 15                   # calibration views, NOT images.num_images
   zero_based_indexing: false
   use_camera_subfolders: false  # .im7 only
@@ -517,11 +517,11 @@ calibration:
 # <source>/calibration/settings.yaml
 rig:
   camera_pair: [1, 2]
-  dt: 0.0006                # REQUIRED before generate; never defaulted
+  dt: 0.0006                # must be set before generating a model; never defaulted
   datum_frame: 1
 methods:
   dotboard:                 # shared with the planar dotboard tab
-    dot_spacing_mm: null    # REQUIRED at generate
+    dot_spacing_mm: null    # must be set before generating a model
     k_neighbors: 9
     model_type: pinhole`}
             />
@@ -606,13 +606,13 @@ calibration:
 # <source>/calibration/settings.yaml
 rig:
   camera_pair: [1, 2]
-  dt: 0.0006                # REQUIRED before generate; never defaulted
+  dt: 0.0006                # must be set before generating a model; never defaulted
   datum_frame: 1
 methods:
   charuco:                  # shared with the planar ChArUco tab
-    squares_h: null         # REQUIRED at generate
-    squares_v: null         # REQUIRED at generate
-    square_size: null       # REQUIRED at generate; metres
+    squares_h: null         # must be set before generating a model
+    squares_v: null         # must be set before generating a model
+    square_size: null       # must be set before generating a model; metres
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6`}
@@ -738,12 +738,12 @@ calibration:
 # <source>/calibration/settings.yaml
 rig:
   camera_pair: [1, 2]
-  dt: 0.0006                # REQUIRED before generate; never defaulted
+  dt: 0.0006                # must be set before generating a model; never defaulted
   datum_frame: 1
 methods:
   stepped:                  # physical board geometry (shared seed)
-    dot_spacing_mm: null    # REQUIRED at generate
-    step_height_mm: null    # REQUIRED at generate
+    dot_spacing_mm: null    # must be set before generating a model
+    step_height_mm: null    # must be set before generating a model
     board_thickness_mm: null
     level_offset_mm: null   # null derives dot_spacing_mm / 2
   stepped_stereo:           # stereo-only selections
@@ -1130,15 +1130,16 @@ calibration:
   calibration_sources:
     - /data/experiment/calibration
   source_idx: 0
-  active: stereo_dotboard   # REQUIRED. stereo_dotboard | stereo_charuco | stereo_stepped
+  active: stereo_dotboard   # stereo_dotboard | stereo_charuco | stereo_stepped
 
 # ============================================================
 # <source>/calibration/settings.yaml
 # Seed it with: pivtools-cli init-settings --source <dir>
+# Excerpt: a file is refused unless it holds every key init-settings writes.
 # ============================================================
 image:
-  image_format: calib_%03d.tif  # REQUIRED at read
-  image_type: standard          # REQUIRED at read
+  image_format: calib_%03d.tif  # must be set before reading images
+  image_type: standard          # must be set before reading images
   n_views: 15                   # calibration views (NOT images.num_images)
   zero_based_indexing: false
   use_camera_subfolders: false  # .im7 only
@@ -1146,7 +1147,7 @@ image:
 
 rig:
   camera_pair: [1, 2]
-  dt: 0.0006                    # REQUIRED before generate; never defaulted
+  dt: 0.0006                    # must be set before generating a model; never defaulted
   datum_frame: 1                # 1-based
   interpolator: lanczos         # cubic | lanczos
   piv_type: instantaneous
@@ -1160,13 +1161,13 @@ fit:
 # flows. The mono/stereo distinction lives in calibration.active.
 methods:
   dotboard:
-    dot_spacing_mm: null        # REQUIRED at generate
+    dot_spacing_mm: null        # must be set before generating a model
     k_neighbors: 9
     model_type: pinhole
   charuco:
-    squares_h: null             # REQUIRED at generate
-    squares_v: null             # REQUIRED at generate
-    square_size: null           # REQUIRED at generate; metres
+    squares_h: null             # must be set before generating a model
+    squares_v: null             # must be set before generating a model
+    square_size: null           # must be set before generating a model; metres
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6

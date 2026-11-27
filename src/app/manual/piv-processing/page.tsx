@@ -208,7 +208,7 @@ export default function PIVProcessingPage() {
                   {[
                     { param: "window_size", format: "[Height, Width]", desc: "Interrogation window in pixels per pass. Each axis must be a built FFT size (8, 12, 16, 24, 32, 48, 64, 96, 128). On an ensemble single-mode pass this is instead the Frame-A mask support inside sum_window rather than an FFT length, so 4 and 6 are also legal there and the grid spacing follows it. Rectangular windows supported." },
                     { param: "overlap", format: "number (%)", desc: "Overlap percentage per pass, from 0 up to but not including 100. Decimals are allowed (62.5). Give one value per pass, or a single value for every pass. 50% doubles grid density." },
-                    { param: "runs", format: "list of pass numbers", desc: "Which passes to save (1-based). The list is honoured exactly; the last pass is saved only as a fallback when the list is empty." },
+                    { param: "runs", format: "list of pass numbers", desc: "Which passes to save (1-based). The list is honoured exactly. An empty list is refused when config.yaml is read: \"instantaneous_piv.runs: no passes to save (list the pass numbers, e.g. [4] for the last pass)\"." },
                     { param: "type (ensemble)", format: "'std' | 'single'", desc: "Standard or single-pixel mode per pass." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>

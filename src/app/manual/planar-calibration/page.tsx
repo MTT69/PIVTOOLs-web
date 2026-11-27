@@ -447,8 +447,8 @@ calibration:
 
 # <source>/calibration/settings.yaml -- everything else
 image:
-  image_format: calib%05d.tif   # REQUIRED, no default
-  image_type: standard          # REQUIRED
+  image_format: calib%05d.tif   # must be set before reading images
+  image_type: standard          # must be set before reading images
   n_views: 19
   zero_based_indexing: false
   use_camera_subfolders: true
@@ -537,7 +537,7 @@ calibration:
 
 # <source>/calibration/settings.yaml
 rig:
-  dt: 0.56                # REQUIRED before generating a model
+  dt: 0.56                # must be set before generating a model
 methods:
   scale_factor:
     px_per_mm: 3.41
@@ -683,10 +683,10 @@ calibration:
 
 # <source>/calibration/settings.yaml
 rig:
-  dt: 0.0057553          # REQUIRED; shared by every board on this source
+  dt: 0.0057553          # must be set before generating a model; shared by every board on this source
 methods:
   dotboard:
-    dot_spacing_mm: 15.0 # REQUIRED; no default
+    dot_spacing_mm: 15.0 # must be set before generating a model
     k_neighbors: 9
     model_type: pinhole  # pinhole | polynomial
 # World-frame clicks are NOT stored in either file -- they live in the
@@ -785,12 +785,12 @@ calibration:
 
 # <source>/calibration/settings.yaml
 rig:
-  dt: 0.0057553          # REQUIRED; shared by every board on this source
+  dt: 0.0057553          # must be set before generating a model; shared by every board on this source
 methods:
   charuco:
-    squares_h: 10        # REQUIRED; no default
-    squares_v: 7         # REQUIRED; no default
-    square_size: 0.03    # REQUIRED; metres (ChArUco native unit)
+    squares_h: 10        # must be set before generating a model
+    squares_v: 7         # must be set before generating a model
+    square_size: 0.03    # must be set before generating a model; metres (ChArUco native unit)
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6
@@ -928,6 +928,8 @@ methods:
               Writing board geometry under <code className="bg-gray-100 px-1 rounded text-sm">calibration:</code> in
               config.yaml is refused when the config is read. The error names each key and says to move it to the
               sidecar (see <a href="/manual/cli-reference#config-refused" className="underline">Config Refused</a>).
+              The settings.yaml sidecar is itself checked when it is read and before every save (see{' '}
+              <a href="/manual/cli-reference#calibration-settings-refused" className="underline">Calibration Settings Refused</a>).
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Detection Caching</h3>
@@ -1130,24 +1132,25 @@ calibration:
   calibration_sources:
     - /data/experiment/calibration
   source_idx: 0
-  active: dotboard            # REQUIRED. charuco | dotboard | scale_factor
+  active: dotboard            # charuco | dotboard | scale_factor
                               # | stereo_charuco | stereo_dotboard | stereo_stepped
 
 # ============================================================
 # <source>/calibration/settings.yaml -- everything else.
 # Seed it with: pivtools-cli init-settings --source <dir>
+# Excerpt: a file is refused unless it holds every key init-settings writes.
 # ============================================================
 image:
-  image_format: calib%05d.tif # REQUIRED at read; no default
-  image_type: standard        # REQUIRED. standard | cine | lavision_set | lavision_im7
-  n_views: 19                 # optional; frame-count auto-detect is the fallback
+  image_format: calib%05d.tif # must be set before reading images
+  image_type: standard        # must be set before reading images; standard | cine | lavision_set | lavision_im7
+  n_views: 19                 # null = every image found
   zero_based_indexing: false
   use_camera_subfolders: false # .im7 only
   camera_subfolders: []        # explicit names; empty means Cam1, Cam2, ...
 
 rig:
   camera: 1
-  dt: 0.0057553               # REQUIRED before generate; never defaulted
+  dt: 0.0057553               # must be set before generating a model; never defaulted
   datum_frame: 1              # 1-based
   interpolator: lanczos
   piv_type: instantaneous     # data type for Calibrate Vectors
@@ -1160,19 +1163,19 @@ fit:
 # flows. The mono/stereo distinction lives in calibration.active.
 methods:
   dotboard:
-    dot_spacing_mm: null      # REQUIRED at generate; no default
+    dot_spacing_mm: null      # must be set before generating a model
     k_neighbors: 9
     model_type: pinhole       # pinhole | polynomial
   charuco:
-    squares_h: null           # REQUIRED at generate
-    squares_v: null           # REQUIRED at generate
-    square_size: null         # REQUIRED at generate; metres
+    squares_h: null           # must be set before generating a model
+    squares_v: null           # must be set before generating a model
+    square_size: null         # must be set before generating a model; metres
     marker_ratio: 0.5
     aruco_dict: DICT_4X4_1000
     min_corners: 6
     model_type: pinhole
   scale_factor:
-    px_per_mm: null           # REQUIRED at generate
+    px_per_mm: null           # must be set before generating a model
 
 # Multi-camera global frame (scale-factor path -- see Global Coordinates)
 global_coordinates:
