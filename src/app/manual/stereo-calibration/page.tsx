@@ -431,9 +431,9 @@ image:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "camera_pair", desc: "Camera numbers forming the stereo pair", def: "[1, 2]" },
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "15.0" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "none, required" },
                     { param: "datum_frame", desc: "Image index defining the world frame (1-based, a whole number, 1 or more)", def: "1" },
-                    { param: "dt", desc: "Time between frames (seconds)", def: "1.0" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "none, required" },
                     { param: "fix_k2", desc: "Pin the r^4 radial term to zero (toggle appears below 3 frames; on by default there)", def: "false" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -551,13 +551,13 @@ methods:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "camera_pair", desc: "Camera numbers forming the stereo pair", def: "[1, 2]" },
-                    { param: "squares_h", desc: "Horizontal square count", def: "10" },
-                    { param: "squares_v", desc: "Vertical square count", def: "9" },
-                    { param: "square_size", desc: "Square size in metres", def: "0.03" },
+                    { param: "squares_h", desc: "Horizontal square count", def: "none, required" },
+                    { param: "squares_v", desc: "Vertical square count", def: "none, required" },
+                    { param: "square_size", desc: "Square size in metres", def: "none, required" },
                     { param: "marker_ratio", desc: "Marker size relative to square", def: "0.5" },
                     { param: "aruco_dict", desc: "ArUco dictionary type", def: "DICT_4X4_1000" },
                     { param: "min_corners", desc: "Minimum corners to accept a frame", def: "6" },
-                    { param: "dt", desc: "Time between frames (seconds)", def: "0.0057553" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "none, required" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-6 py-4 text-sm font-mono text-soton-blue">{row.param}</td>
@@ -659,12 +659,12 @@ methods:
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "camera_pair", desc: "Camera numbers forming the stereo pair (Camera 1 is the world reference)", def: "[1, 2]" },
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "15.0" },
-                    { param: "step_height_mm", desc: "Height between peak and trough levels (mm)", def: "3.0" },
-                    { param: "board_thickness_mm", desc: "Total thickness of the board (mm)", def: "14.8" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "none, required" },
+                    { param: "step_height_mm", desc: "Height between peak and trough levels (mm)", def: "none, required" },
+                    { param: "board_thickness_mm", desc: "Total thickness of the board (mm)", def: "none, required" },
                     { param: "datum_frame", desc: "World origin image, 1-based (a whole number, 1 or more), both cameras", def: "1" },
                     { param: "stereo_config", desc: "Rig geometry: auto (from clicks), same_side, or transmission", def: "auto" },
-                    { param: "dt", desc: "Time between frames (seconds)", def: "1.0" },
+                    { param: "dt", desc: "Time between frames (seconds)", def: "none, required" },
                     { param: "fix_k2", desc: "Pin the r^4 radial term to zero (toggle appears below 3 usable poses)", def: "on when shown" },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>

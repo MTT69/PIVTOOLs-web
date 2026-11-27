@@ -334,8 +334,8 @@ export default function PlanarCalibrationPage() {
                     { setting: "Calibration Sources", yaml: "calibration_sources", desc: "Direct paths to calibration image locations" },
                     { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib%05d.tif)" },
                     { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process. Leave blank to use every image found. The tab then shows the count and where it came from, e.g. \"auto: 19 (from files found)\" (or .set index, .cine header, saved detections)" },
-                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset)" },
-                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set from the files when you pick the images; otherwise set it in settings.yaml (the tabs have no switch for it). Refused for .set and .cine sources, whose entries are numbered by the reader; set First Frame Number back to 1" },
+                    { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7. Required: set from the files when you pick the images, or written in settings.yaml" },
+                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set from the files when you pick the images; change it with First Frame Number (0 or 1) on the tab, or in settings.yaml. Refused for .set and .cine sources, whose entries are numbered by the reader; set First Frame Number back to 1" },
                     { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Used only by .im7 (one camera per file in subfolders). Standard formats ignore it, and the subfolder rule above applies instead" },
                     { setting: "Subfolder Names", yaml: "camera_subfolders", desc: "Explicit folder names for a multi-camera rig (default Cam1, Cam2, ...)" },
                   ].map((row, idx) => (
@@ -353,7 +353,7 @@ export default function PlanarCalibrationPage() {
               <h5 className="font-semibold text-blue-800 mb-2">What Validation Tells You</h5>
               <ul className="text-blue-700 text-sm space-y-1">
                 <li><strong>Did you mean:</strong> when the format matches no file, the suggestion is built from the files in the folder. The frame number is the one number that changes from file to file, and its zero padding is copied exactly (<code className="bg-blue-100 px-1 rounded">Cam1_00001.tif</code> suggests <code className="bg-blue-100 px-1 rounded">Cam1_%05d.tif</code>). If no single number can be identified, there is no suggestion and the message says why (&quot;could not tell which number is the frame index&quot;).</li>
-                <li><strong>Start index:</strong> files numbered from 0 under a 1-based setting (or the reverse) give &quot;Files start at 0 but the start index is 1 — switch to 0-based indexing&quot;. Set <code className="bg-blue-100 px-1 rounded">zero_based_indexing</code> in the settings sidecar to match.</li>
+                <li><strong>Start index:</strong> files numbered from 0 under a 1-based setting (or the reverse) give &quot;Files start at 0 but the start index is 1 — switch to 0-based indexing&quot;. Picking the images sets <code className="bg-blue-100 px-1 rounded">zero_based_indexing</code> from the files. To change it, use First Frame Number on the tab, or set it in the settings sidecar.</li>
                 <li><strong>First-frame hint after success:</strong> the 0 versus 1 hint also shows after a successful validation, with a Switch button. Zero-based indexing is refused for <code className="bg-blue-100 px-1 rounded">.set</code> and <code className="bg-blue-100 px-1 rounded">.cine</code> sources, with a message to set First Frame Number back to 1.</li>
                 <li><strong>Every view is checked:</strong> with Number of Views blank, validation checks the whole range detection will read, not just the first file.</li>
                 <li><strong>Unreadable containers:</strong> a <code className="bg-blue-100 px-1 rounded">.set</code> or <code className="bg-blue-100 px-1 rounded">.cine</code> whose image count cannot be read fails validation with the file name and the reason.</li>
@@ -563,7 +563,7 @@ methods:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm). A blank box leaves it unset", def: "15.0" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm). A blank box leaves it unset", def: "none, required" },
                     { param: "datum_frame", desc: "Calibration image that defines the world origin. A whole number, 1 or more", def: "1" },
                     { param: "k_neighbors", desc: "Neighbours per dot in the grid walk", def: "9" },
                     { param: "model_type", desc: "Camera model: pinhole or polynomial", def: "pinhole" },
@@ -713,9 +713,9 @@ methods:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "squares_h", desc: "Horizontal square count", def: "10" },
-                    { param: "squares_v", desc: "Vertical square count", def: "7" },
-                    { param: "square_size", desc: "Square size in metres", def: "0.03" },
+                    { param: "squares_h", desc: "Horizontal square count", def: "none, required" },
+                    { param: "squares_v", desc: "Vertical square count", def: "none, required" },
+                    { param: "square_size", desc: "Square size in metres", def: "none, required" },
                     { param: "marker_ratio", desc: "Marker size relative to square", def: "0.5" },
                     { param: "aruco_dict", desc: "ArUco dictionary type", def: "DICT_4X4_1000" },
                     { param: "min_corners", desc: "Minimum corners to accept a frame", def: "6" },
