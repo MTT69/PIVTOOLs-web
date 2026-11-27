@@ -669,7 +669,7 @@ ensemble_piv:
                     { method: "harmonic", params: "(none)", desc: "Harmonic least-squares inpainting. Filled values stay within the range of their neighbours, so it is robust to noisy donors. Default for final_pass." },
                     { method: "knn", params: "n_neighbors: 32, weights: distance, algorithm: kd_tree", desc: "Distance-weighted regression. Sparse data." },
                     { method: "griddata_linear", params: "method: linear (or cubic, nearest)", desc: "Interpolation over a triangulation of the valid vectors. Gaps outside the triangulation, at the field edges, take the nearest valid vector." },
-                    { method: "rbf_local", params: "neighbors: 64, kernel: thin_plate_spline, epsilon: null, smoothing: 0.0", desc: "Radial basis functions fitted to the nearest valid vectors. epsilon must be a number for the multiquadric, inverse_multiquadric, inverse_quadratic and gaussian kernels. Raise smoothing for noisy data." },
+                    { method: "rbf_local", params: "neighbors: 64, kernel: thin_plate_spline, epsilon: null, smoothing: 0.0", desc: "Radial basis functions fitted to the nearest valid vectors. The multiquadric, inverse_multiquadric, inverse_quadratic and gaussian kernels need epsilon (in 1/pixel); a null one is refused when config.yaml is read. Raise smoothing for noisy data." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-green-600">{row.method}</td>
@@ -680,6 +680,11 @@ ensemble_piv:
                 </tbody>
               </table>
             </div>
+            <p className="text-gray-600 text-sm mb-6">
+              The GUI&apos;s method menu offers all five: Nearest Valid Neighbour, K-Nearest Neighbors, Harmonic,
+              Triangulated Interpolation (griddata) with its Interpolation choice, and Local Radial Basis Functions
+              with Neighbors, Kernel, Shape Parameter ε (blank = none) and Smoothing.
+            </p>
 
             <CodeBlock code={`infilling:                  # or ensemble_infilling:
   mid_pass:
