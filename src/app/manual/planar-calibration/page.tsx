@@ -716,8 +716,8 @@ methods:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "squares_h", desc: "Horizontal square count", def: "none, required" },
-                    { param: "squares_v", desc: "Vertical square count", def: "none, required" },
+                    { param: "squares_h", desc: "Horizontal square count, at least 2", def: "none, required" },
+                    { param: "squares_v", desc: "Vertical square count, at least 2", def: "none, required" },
                     { param: "square_size", desc: "Square size in metres", def: "none, required" },
                     { param: "marker_ratio", desc: "Marker size relative to square", def: "0.5" },
                     { param: "aruco_dict", desc: "ArUco dictionary type", def: "DICT_4X4_1000" },
@@ -1083,9 +1083,9 @@ pivtools-cli apply-calibration --all-paths`}
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { flag: "--board", desc: "Board / method: charuco, dotboard, stepped, scale_factor", def: "Board of calibration.active (must be set)" },
-                    { flag: "--camera", desc: "Camera number. Cannot be combined with --all-paths", def: "All cameras" },
+                    { flag: "--camera", desc: "Camera whose model an explicit --uncalibrated-dir run applies. --all-paths applies every configured camera, so it takes no --camera", def: "rig.camera in settings.yaml" },
                     { flag: "--source", desc: "Calibration source dir (where the models live)", def: "From config" },
-                    { flag: "--type-name", desc: "Data type (instantaneous / ensemble)", def: "instantaneous" },
+                    { flag: "--type-name", desc: "PIV result type --all-paths calibrates: instantaneous or ensemble", def: "rig.piv_type in settings.yaml" },
                     { flag: "--model-type", desc: "Which record to load when several exist: pinhole, polynomial, polynomial3d, scale_factor", def: "From model" },
                     { flag: "--dt", desc: "Time between frames (seconds)", def: "dt stamped in the model" },
                     { flag: "--all-paths", desc: "Apply to all source paths", def: "Off" },

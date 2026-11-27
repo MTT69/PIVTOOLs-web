@@ -242,8 +242,8 @@ batches:
               Kernel sizes (<code className="bg-gray-100 px-1 rounded">size: [h, w]</code>) must be odd on both
               sides. An even size is refused when config.yaml is read, with the odd sizes either side:{' '}
               <code className="bg-gray-100 px-1 rounded">filters[0].size: [4, 4] must be odd: use [3, 3] or [5, 5]</code>.
-              The GUI&apos;s kernel boxes refuse an even value the same way, and their arrow keys step from one odd
-              size to the next.
+              The GUI&apos;s kernel boxes refuse an even value the same way, and a value below 1 with &quot;The
+              smallest allowed is 1&quot;. Their arrow keys step from one odd size to the next.
             </p>
 
             <div className="overflow-x-auto mb-6">
@@ -266,7 +266,7 @@ batches:
                     { type: "ssmin", params: "size: [7, 7]", desc: "Sliding-minimum background subtraction: median-smooth, take the local minimum, box-smooth, subtract, clip to >= 0." },
                     { type: "lmax", params: "size: [7, 7]", desc: "Morphological dilation (local maximum). Enhances bright features." },
                     { type: "invert", params: "(none)", desc: "Invert intensities per frame: output = frame max - input." },
-                    { type: "clahe", params: "clip_limit: 2.0, tile_grid_size: [8, 8]", desc: "Contrast-limited adaptive histogram equalisation (OpenCV)." },
+                    { type: "clahe", params: "clip_limit: 2.0, tile_grid_size: [8, 8]", desc: "Contrast-limited adaptive histogram equalisation (OpenCV). tile_grid_size is a pair of tile counts, or one whole number of tiles for both, each 1 or more." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-blue-600">{row.type}</td>

@@ -207,7 +207,7 @@ export default function PIVProcessingPage() {
                 <tbody className="divide-y divide-gray-100">
                   {[
                     { param: "window_size", format: "[Height, Width]", desc: "Interrogation window in pixels per pass. Each axis must be a built FFT size (8, 12, 16, 24, 32, 48, 64, 96, 128). On an ensemble single-mode pass this is instead the Frame-A mask support inside sum_window rather than an FFT length, so 4 and 6 are also legal there and the grid spacing follows it. Rectangular windows supported." },
-                    { param: "overlap", format: "number (%)", desc: "Overlap percentage per pass, from 0 up to but not including 100. Decimals are allowed (62.5). Give one value per pass, or a single value for every pass. 50% doubles grid density." },
+                    { param: "overlap", format: "number (%)", desc: "Overlap percentage per pass, from 0 up to but not including 100 (instantaneous), or 0 to 95 (ensemble: above 95 is refused when config.yaml is read, e.g. \"ensemble_piv.overlap[0]: overlap 96% out of range (0-95%)\", and the GUI ensemble overlap box refuses it). Decimals are allowed (62.5). Give one value per pass, or a single value for every pass. 50% doubles grid density." },
                     { param: "runs", format: "list of pass numbers", desc: "Which passes to save (1-based). The list is honoured exactly. An empty list is refused when config.yaml is read: \"instantaneous_piv.runs: no passes to save (list the pass numbers, e.g. [4] for the last pass)\"." },
                     { param: "type (ensemble)", format: "'std' | 'single'", desc: "Standard or single-pixel mode per pass." },
                   ].map((row, idx) => (
@@ -606,7 +606,7 @@ ensemble_piv:
                   <tr className="bg-gray-50">
                     <td className="px-4 py-3 font-mono text-purple-600">median_2d</td>
                     <td className="px-4 py-3 text-gray-600">epsilon: 0.1, threshold: 2, size: 5</td>
-                    <td className="px-4 py-3 text-gray-600">PIVware-style normalised median test on the vector norm over a size x size neighbourhood (default 5, so 24 neighbours). The vector is judged as a whole rather than per component.</td>
+                    <td className="px-4 py-3 text-gray-600">PIVware-style normalised median test on the vector norm over a size x size neighbourhood (default 5, so 24 neighbours). size must be odd: an even one is refused when config.yaml is read (&quot;outlier_detection.methods[0].size: 4 must be odd: use 3 or 5&quot;). The vector is judged as a whole rather than per component.</td>
                   </tr>
                   <tr className="bg-white">
                     <td className="px-4 py-3 font-mono text-purple-600">sigma</td>
