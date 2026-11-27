@@ -271,7 +271,7 @@ export default function SteppedCalibrationPage() {
             <YamlDropdown
               title="<source>/calibration/settings.yaml - board geometry"
               code={`rig:
-  dt: 5.0e-06                   # REQUIRED before generating a model
+  dt: 5.0e-06                   # must be set before generating a model
   camera_pair: [1, 2]
   datum_frame: 1                # 1-based
 
@@ -589,13 +589,13 @@ pivtools-cli statistics --source-endpoint stereo`}
               defaultOpen={true}
               code={`# Excerpt: a file is refused unless it holds every key init-settings writes.
 image:
-  image_format: calib%05d.tif   # REQUIRED, no default
-  image_type: standard          # REQUIRED
+  image_format: calib%05d.tif   # must be set before reading images
+  image_type: standard          # must be set before reading images
   n_views: 19
 
 rig:
   camera_pair: [1, 2]
-  dt: 0.0006                    # REQUIRED before generating a model
+  dt: 0.0006                    # must be set before generating a model
   datum_frame: 1                # 1-based
   interpolator: lanczos
 

@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { useState } from 'react';
 import {
-  Video,
   FileText,
   Palette,
   Settings,
@@ -13,7 +12,6 @@ import {
   Info,
   Terminal,
   FolderOpen,
-  CheckCircle,
   Layers,
   Monitor,
 } from 'lucide-react';
@@ -106,21 +104,6 @@ const YamlDropdown = ({ title = "YAML Reference", code, defaultOpen = false }: Y
     </div>
   );
 };
-
-interface FeatureListProps {
-  items: string[];
-}
-
-const FeatureList = ({ items }: FeatureListProps) => (
-  <ul className="space-y-3 mb-6">
-    {items.map((item, index) => (
-      <li key={index} className="flex items-start gap-3">
-        <CheckCircle className="text-soton-gold mt-1 flex-shrink-0" size={20} />
-        <span className="text-gray-700 leading-relaxed text-lg">{item}</span>
-      </li>
-    ))}
-  </ul>
-);
 
 export default function VideoMakerPage() {
   return (
