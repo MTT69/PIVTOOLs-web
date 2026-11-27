@@ -463,7 +463,7 @@ methods:
             <ol className="space-y-2 mb-6">
               {[
                 "Set board parameters: dot spacing, step height, board thickness, dt",
-                "Configure calibration images: format, count, source path (camera images live in Cam<N>/ or the explicit subfolder entry). With the count blank, both cameras must hold the same number of views (views pair by index); unequal counts are reported and block detection",
+                "Configure calibration images: pick the source path with Browse and the format and camera folders fill from the files (see Picking the images on the planar calibration page). Camera images live in Cam<N>/ or the explicit subfolder entry. With the count blank, both cameras must hold the same number of views (views pair by index); unequal counts are reported and block detection",
                 "Set camera pair (e.g. Camera 1 and Camera 2)",
                 "Browse to the datum frame and click three fiducial points per camera (origin, X-axis, Y-axis)",
                 "Navigate to each non-datum pose and click-to-label one dot per camera",

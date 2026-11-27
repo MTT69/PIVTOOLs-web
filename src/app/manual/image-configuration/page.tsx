@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronRight,
   Info,
+  Wand2,
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -158,10 +159,10 @@ export default function ImageConfigurationPage() {
               <span className="text-sm text-gray-500 italic sm:ml-auto">opinionated defaults -- full reference below</span>
             </div>
             <ol className="space-y-2 text-gray-700">
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Add one or more <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">source_paths</code> (raw images) with matching <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">base_paths</code> (outputs). On Windows keep output folders short: a path over 259 characters is refused unless long paths are enabled.</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_type</code> (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">standard</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">cine</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_im7</code>, or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_set</code>) and <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_format</code> (e.g. <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">B%05d.tif</code>).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">1.</span><span>Press <strong>Browse</strong> beside the source box and pick the folder, the LaVision recording or the run of images (or type the path and choose a suggestion). Pick the output folder the same way. These are <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">source_paths</code> and <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">base_paths</code>. On Windows keep output folders short: a path over 259 characters is refused unless long paths are enabled.</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">2.</span><span>Read the line under the source box. PIVTOOLs has filled the image settings from the files (<a href="#silent-fill" className="underline">Silent Fill</a>) and says what it set, with <strong>Undo</strong>. In config.yaml these are <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_type</code> (<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">standard</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">cine</code>, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_im7</code>, or <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">lavision_set</code>), <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">image_format</code> (e.g. <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">B%05d.tif</code>) and the keys below.</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">3.</span><span>Set <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">num_images</code> to frame pairs <em>per acquisition loop</em> (not total files across loops).</span></li>
-              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Pick a <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pairing_preset</code> from the table below -- most users want <strong>A/B Format</strong> (separate <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_A</code>/<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_B</code> files) or <strong>Time Resolved</strong> (overlapping consecutive frames).</span></li>
+              <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">4.</span><span>Check the <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">pairing_preset</code> the fill chose against the table below -- most users want <strong>A/B Format</strong> (separate <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_A</code>/<code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">_B</code> files) or <strong>Time Resolved</strong> (overlapping consecutive frames).</span></li>
               <li className="flex gap-3"><span className="font-bold text-soton-gold flex-shrink-0 w-5">5.</span><span>Save. Validation runs automatically: green = ready to process, yellow/red = check the filename pattern, <code className="bg-white/60 px-1.5 py-0.5 rounded text-sm">start_index</code>, and count.</span></li>
             </ol>
           </motion.div>
@@ -203,6 +204,36 @@ export default function ImageConfigurationPage() {
               </div>
             </div>
 
+            <h3 className="text-xl font-bold text-gray-900 mb-4" id="picker">Picking a path</h3>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Each path box on this tab and on the calibration tabs suggests as you type: the folders and LaVision
+              recordings that match, each with what it holds (for example <em>1,200 TIFF/PNG/JPG</em> or{' '}
+              <em>2 camera folders</em>). <strong>↑ ↓</strong> move, <strong>Tab</strong> opens the highlighted folder,
+              and <strong>Enter</strong> uses it, or the typed text when nothing is highlighted. A picked path is saved
+              at once. A typed path is saved when you leave the box. <strong>Browse</strong> opens a folder browser:
+            </p>
+            <FeatureList
+              items={[
+                "The left rail lists each drive by its name (for example Desk SSD (D:)), Home, and Recent, the last six paths you picked in this browser.",
+                "A folder's contents are grouped as Folders, LaVision recordings, Images and Other files. A run of numbered images is one row, showing its first and last file, its count and its pattern.",
+                "The gold button names what you will use: Use this folder, Use this recording or Use these images. Double-click opens a folder.",
+                "Files the box cannot take are greyed. An output folder box takes folders only.",
+                "An empty box opens Browse at Home. A folder that cannot be listed says why in the pane.",
+              ]}
+            />
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4" id="recordings">LaVision recordings in the picker</h3>
+            <p className="text-gray-700 leading-relaxed mb-6">
+              A recording is a <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code> file and the
+              data folder of the same name beside it. The picker shows the two as one row, with the cameras (each
+              tagged A/B or single, with its image size) and the entry count. Picking the data folder, or any file
+              inside it, picks the <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code>; opening the
+              data folder in Browse lands on the folder above it with the recording selected. A{' '}
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm">.set</code> without a data folder of image
+              streams is not a recording (a DaVis project or result file): it is listed greyed as{' '}
+              <em>DaVis project file</em> under Other files and cannot be picked.
+            </p>
+
             {/* Batch Processing */}
             <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400 mb-6">
               <h4 className="text-lg font-semibold text-blue-800 mb-3">Batch Processing</h4>
@@ -227,6 +258,69 @@ export default function ImageConfigurationPage() {
     - 2    # Process run_003 (skip index 1)`}
               />
             </div>
+          </Section>
+
+          {/* Silent Fill */}
+          <Section title="Silent Fill" icon={<Wand2 size={32} />} id="silent-fill">
+            <p className="text-gray-700 text-lg leading-relaxed mb-6">
+              When you pick a source, or type one and leave the box, PIVTOOLs reads what is on disk and fills the
+              image settings: image type, filename pattern, pairing, camera count, cameras to process, camera folders,
+              the .im7 one-folder-per-camera switch and the first frame number. It runs only when the source path
+              changes. Opening the page, or leaving a box you did not change, never rewrites the settings. Picking the
+              same path again detects it again.
+            </p>
+            <FeatureList
+              items={[
+                "One line under the box says what was set, for example \"Standard (TIFF/PNG/JPG), 1 camera, A/B image pairs, 500 pairs\" or \"LaVision recording (.set + .ims folder), 4 cameras, processing 1 and 2 (3 and 4 single-frame, left out), pre-paired A+B, 150 entries\".",
+                "Undo puts every filled setting back as it was before the fill. The path you picked stays. The line and its Undo go once you edit any of the filled settings.",
+                "A folder holding one recording takes it. A folder holding several shows \"N recordings here. Pick one:\" with the recordings listed under the box, and nothing changes until you pick one.",
+                "A setting the files cannot tell is left as it was, and the line ends with \"not set:\" and the reason.",
+                "When nothing usable is found (an empty folder, a folder holding two image types equally, a DaVis project file), the settings are left as they were and validation shows its message and fix buttons as before.",
+                "Only the first source fills the settings, because every source shares them. A later source is only compared: if it differs, a warning names each difference, for example \"Source 2 differs from the image settings, which come from source 1: image type ... here, ... in Setup. Nothing was changed.\" The cameras to process are your choice, so they are not compared.",
+                "A fill that cannot be saved shows why under the box, with no summary and no Undo.",
+              ]}
+            />
+            {/* F5 */}
+            <p className="text-gray-700 leading-relaxed mb-6">
+              In the Image Settings card, the fields the last fill set stay tinted until you edit them.
+            </p>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-4">What the fill sets</h3>
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">On disk</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Pairing</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Cameras</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { disk: "Images named _A and _B (B00001_A.tif + B00001_B.tif)", pairing: "A/B Format", cams: "One, or one per camera folder (Cam1/, Cam2/, ...)" },
+                    { disk: "A numbered image sequence without _A/_B", pairing: "Time Resolved", cams: "One, or one per camera folder" },
+                    { disk: "A .set with at least one double-frame camera", pairing: "Pre-Paired", cams: "From the camera labels. Single-frame cameras are left out of the cameras to process" },
+                    { disk: "A .set with only single-frame cameras", pairing: "Time Resolved", cams: "From the camera labels, all processed" },
+                    { disk: "A .set without camera labels", pairing: "Pre-Paired or Time Resolved", cams: "Only when the streams split into cameras one way. Otherwise cameras and pairing are left for you, and the line says why" },
+                    { disk: ".im7 files holding 2 frames each", pairing: "Pre-Paired", cams: "One, or one per camera folder" },
+                    { disk: ".im7 files holding 1 frame each", pairing: "Time Resolved", cams: "One, or one per camera folder" },
+                    { disk: ".im7 files holding another number of frames", pairing: "Left as it was", cams: "From the camera folders when each camera has its own. Otherwise left for you. The line says why" },
+                    { disk: "Camera1.cine, Camera2.cine, ...", pairing: "Time Resolved", cams: "One per .cine file" },
+                  ].map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-4 py-3 text-sm text-gray-900">{row.disk}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.pairing}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{row.cams}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-gray-700 leading-relaxed mb-6">
+              Picking a run of images sets the folder and its filename pattern. Picking inside a camera folder takes
+              the folder above it. The first frame number is read from the files. You can change any setting after the
+              fill, and the pairing menu keeps every option for the image type, Custom included.
+            </p>
           </Section>
 
           {/* Image Type Selection */}
@@ -337,6 +431,17 @@ export default function ImageConfigurationPage() {
   # camera_subfolders: ["View_Left", "View_Right"]  # Custom names`}
                 />
               </div>
+            </div>
+
+            {/* F5 */}
+            <div className="bg-gray-50 rounded-lg p-6 mb-6" id="cameras-to-process">
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">Cameras to process</h4>
+              <p className="text-gray-600">
+                Which cameras a run processes is set here on Setup, under <strong>Cameras to process</strong>, and
+                saved as <code className="bg-gray-200 px-1 rounded">paths.camera_numbers</code>. At least one must be
+                ticked. The PIV tabs show the selection without changing it, with a link back to Setup. Picking a
+                recording fills it from the camera labels (<a href="#silent-fill" className="underline">Silent Fill</a>).
+              </p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
@@ -644,7 +749,7 @@ export default function ImageConfigurationPage() {
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">.set</td>
                     <td className="px-4 py-3 text-sm text-gray-600">Single file with all cameras and timesteps</td>
                     <td className="px-4 py-3 text-sm font-mono text-gray-600">experiment.set</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">source_path points to the .set file itself. Copy its companion folder with it</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">source_path points to the .set file itself (picking its data folder picks it). Copy its companion folder with it</td>
                   </tr>
                 </tbody>
               </table>
@@ -683,7 +788,7 @@ export default function ImageConfigurationPage() {
             </p>
             <FeatureList
               items={[
-                "If the camera count differs from the labels, validation offers the labels' count. The cameras are pre-selected from the labels, the double-frame ones for A/B pairing and every camera for time-resolved processing, and you can change the selection.",
+                "Picking the recording fills the cameras from the labels: with any double-frame camera the pairing is pre-paired and the single-frame cameras are left out of the cameras to process; with none, every camera is processed time-resolved. You can change the selection. If the camera count is later changed away from the labels, validation offers the labels' count.",
                 "A single-frame camera (a PLIF camera, say) can be processed time-resolved. It has no A/B pairs, so selecting it for A/B pairing is refused, naming the camera.",
                 "DaVis 11.4 can write the labels on only the first part of a recording. Validation reports how many images carry them (for example 264 of 500 images), and every labelled image must agree.",
                 "Without labels (older recordings), cameras are matched to streams by image shape. A count with exactly one fitting split is used; an ambiguous count is refused, listing the counts that fit.",
@@ -930,6 +1035,12 @@ paths:
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               Validation runs automatically when you save changes. It checks that first/last frames exist and are readable for each camera.
             </p>
+            <p className="text-gray-700 leading-relaxed mb-6">
+              A number box whose text is not a number turns red with the reason under it (for example{' '}
+              <em>A number is required</em> or <em>&quot;1.5&quot; is not a whole number</em>), and nothing is saved until you fix
+              it. A value is saved as typed, so 0 stays 0. A save that fails, or that the config rules refuse, shows
+              its error and changes nothing (<a href="/manual/cli-reference#config-refused" className="underline">Config Refused</a>).
+            </p>
             <p className="text-gray-700 text-lg leading-relaxed mb-6">
               The run itself checks more. Before processing starts, a CLI run or a Run PIV job checks every frame file
               of every active source path, camera and loop by name. If any are missing, it refuses and names the first
@@ -993,7 +1104,7 @@ paths:
                     { fmt: ".set", what: "Camera count differs from the camera labels", msg: "holds N cameras by its own camera labels", fix: "Set the camera count to N (validation offers it)." },
                     { fmt: ".set", what: "No labels, and no unique split of the streams by shape", msg: "cannot split into N cameras / the mapping is ambiguous. Camera counts that fit: ...", fix: "Set a camera count that fits." },
                     { fmt: ".set", what: "Camera labels on some streams only, or changing between images", msg: "Which camera those streams belong to is unknown", fix: "Send us the recording." },
-                    { fmt: ".set", what: "A single-frame camera selected for A/B pairs", msg: "is a single-frame camera, so it has no A/B pairs", fix: "Deselect it in the PIV camera selection, or process it time-resolved." },
+                    { fmt: ".set", what: "A single-frame camera selected for A/B pairs", msg: "is a single-frame camera, so it has no A/B pairs", fix: "Untick it in Cameras to process on Setup, or process it time-resolved." /* F5 */ },
                     { fmt: ".set", what: "Two geometries on one camera, or one correction declared twice", msg: "declares two geometric transformers / declares ... twice", fix: "Correct the camera's corrections in DaVis and export again." },
                     { fmt: ".set", what: "white-image-correction, add-offset or image-intensity-correction-2", msg: "a DaVis transformer whose effect PIVTOOLs has no measurement of", fix: "Deselect that camera; the others read. Send us a sample recording." },
                     { fmt: ".set", what: "A transformer id PIVTOOLs does not know", msg: "not one of the 13 DaVis transformer ids PIVTOOLs knows", fix: "With camera labels only that camera is blocked, so deselect it. Send us a sample recording." },

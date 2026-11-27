@@ -260,6 +260,25 @@ export default function PlanarCalibrationPage() {
               source before running detection.
             </p>
 
+            <h3 className="text-xl font-bold text-gray-900 mb-4" id="picking-images">Picking the images</h3>
+            <p className="text-gray-700 mb-4">
+              The Calibration Images Location box on each tab is the same picker as the Setup source box: type for
+              suggestions, or press Browse (<a href="/manual/image-configuration#picker" className="underline">Picking a path</a>).
+              When you pick a path, or type one and leave the box, the tab fills its own image settings from the
+              files: image type, filename pattern, camera folders, the .im7 one-folder-per-camera switch and the
+              first frame number (zero-based indexing). They are saved in that folder&apos;s settings file, and the line
+              under the box says what was set. There is no Undo on the calibration tabs, so pick again or edit a
+              setting to change it. Pairing is never set. A folder holding several recordings lists them to pick from,
+              and files numbered from anything other than 0 or 1 are not filled, because calibration reads files
+              numbered from 0 or 1.
+            </p>
+            <p className="text-gray-700 mb-6">
+              The cameras belong to Setup, so the fill never changes them. When the images hold a different number of
+              cameras from Setup, the line says so (&quot;These calibration images have 2 cameras; Setup has 1.&quot;)
+              with a button, <strong>Set camera count to 2 (also changes Setup)</strong>. Nothing changes in Setup
+              until you click it.
+            </p>
+
             <h3 className="text-xl font-bold text-gray-900 mb-4">Directory Structure</h3>
             <p className="text-gray-700 mb-4">
               <code className="bg-gray-100 px-2 py-1 rounded text-sm">calibration_sources</code> holds
@@ -316,7 +335,7 @@ export default function PlanarCalibrationPage() {
                     { setting: "Image Format", yaml: "image_format", desc: "Filename pattern (e.g. calib%05d.tif)" },
                     { setting: "Number of Views", yaml: "n_views", desc: "Calibration images (board poses) to process. Leave blank to use every image found. The tab then shows the count and where it came from, e.g. \"auto: 19 (from files found)\" (or .set index, .cine header, saved detections)" },
                     { setting: "Image Type", yaml: "image_type", desc: "standard, cine, lavision_set, lavision_im7 (auto-detected from the format if unset)" },
-                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set it in settings.yaml (the tabs have no switch for it). Refused for .set and .cine sources, whose entries are numbered by the reader; set First Frame Number back to 1" },
+                    { setting: "Zero-Based Indexing", yaml: "zero_based_indexing", desc: "Start image numbering from 0. Set from the files when you pick the images; otherwise set it in settings.yaml (the tabs have no switch for it). Refused for .set and .cine sources, whose entries are numbered by the reader; set First Frame Number back to 1" },
                     { setting: "Camera Subfolders", yaml: "use_camera_subfolders", desc: "Used only by .im7 (one camera per file in subfolders). Standard formats ignore it, and the subfolder rule above applies instead" },
                     { setting: "Subfolder Names", yaml: "camera_subfolders", desc: "Explicit folder names for a multi-camera rig (default Cam1, Cam2, ...)" },
                   ].map((row, idx) => (
@@ -481,7 +500,7 @@ image:
             <h3 className="text-xl font-bold text-gray-900 mb-3">GUI Workflow</h3>
             <ol className="space-y-2 mb-6">
               {[
-                "Set the Calibration Images Location (one reference image is enough). With no images on disk, switch \"Use calibration images\" off and set the Calibration Folder instead -- the model is saved there and the origin is typed in px",
+                "Set the Calibration Images Location (one reference image is enough); its image settings fill from the files as on the other tabs. With no images on disk, switch \"Use calibration images\" off and set the Calibration Folder instead (a folder box, with no fill) -- the model is saved there and the origin is typed in px",
                 "Enter dt (seconds) and px_per_mm -- the two-point measure helper can fill px_per_mm from a known distance",
                 "Click \"Pick Origin\" and click the world origin on the image (or type Origin X/Y in px); optionally type the origin's world position in mm",
                 "Set the +X and +Y directions (defaults +X right, +Y up)",
@@ -544,7 +563,8 @@ methods:
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm)", def: "15.0" },
+                    { param: "dot_spacing_mm", desc: "Physical spacing between dot centres (mm). A blank box leaves it unset", def: "15.0" },
+                    { param: "datum_frame", desc: "Calibration image that defines the world origin. A whole number, 1 or more", def: "1" },
                     { param: "k_neighbors", desc: "Neighbours per dot in the grid walk", def: "9" },
                     { param: "model_type", desc: "Camera model: pinhole or polynomial", def: "pinhole" },
                     { param: "fix_k2", desc: "Pin the r^4 radial term (only for few-view fits)", def: "false" },
