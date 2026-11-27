@@ -602,6 +602,12 @@ export default function ImageConfigurationPage() {
                 <li>A missing fixed file: &quot;Camera 1: the fixed frame B file background.tif is missing in &lt;folder&gt;&quot;.</li>
                 <li>A fixed file of another size: &quot;frames A and B have different shapes (1024, 1280) and (1080, 1280)&quot;.</li>
               </ul>
+              <p className="text-gray-600 text-sm mb-2">
+                The run check (under NOTES) and the Setup tab name each fixed frame, so a pattern that lost its{' '}
+                <code className="bg-gray-100 px-1 rounded">%</code> to a typo shows up before a run:
+                &quot;Frame B is the fixed file background.tif, read in every pair, because its images.image_format
+                pattern has no frame-number field such as %05d.&quot;
+              </p>
               <p className="text-gray-600 text-sm">
                 In the GUI, the A/B pattern boxes say that A or B may be one fixed file name. The folder picker does not
                 detect a BOS folder, so set the fixed frame by hand after picking the source. Picking the source again
