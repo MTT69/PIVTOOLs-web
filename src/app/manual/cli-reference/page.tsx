@@ -837,14 +837,20 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#conf
                 <code className="bg-yellow-100 px-1 rounded">start_index</code> line (set{' '}
                 <code className="bg-yellow-100 px-1 rounded">image.zero_based_indexing: true</code> if the first file is
                 numbered 0) and add <code className="bg-yellow-100 px-1 rounded">use_images: true</code> under{' '}
-                <code className="bg-yellow-100 px-1 rounded">methods.scale_factor</code>. Or move the file aside and
-                reopen the source on the GUI Calibration tab, which seeds a new one from the calibration models saved
-                in the source (board geometry, dt and the cameras among them), then pick the images again to fill
-                the image settings.
+                <code className="bg-yellow-100 px-1 rounded">methods.scale_factor</code>. Or open the source on the
+                GUI Calibration tab, which shows a popup, and press <strong>Reset settings</strong>.
+              </p>
+              <p className="text-yellow-800 text-sm mb-3">
+                Reset settings keeps the old file beside your models as{' '}
+                <code className="bg-yellow-100 px-1 rounded">settings.refused-&lt;date&gt;.yaml</code> and rebuilds the
+                form from the calibration models saved in the source: board geometry, dt, views, px/mm and the cameras.
+                The models and images are not touched. The image and detector settings go back to their defaults, so
+                pick the calibration images again, then save. Show problems lists the lines below; Cancel leaves a
+                banner with Reset settings and Retry, for a file you fix by hand.
               </p>
               <p className="text-yellow-800 text-sm">
                 A save from the GUI does not repair a refused file. The save is refused with the same problems until
-                the file is fixed.
+                the file is fixed or reset.
               </p>
             </div>
 
@@ -853,7 +859,7 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#conf
               <CodeBlock title="pivtools-cli detect-charuco, on a settings.yaml from before 18 Oct 2026">{`Calibration settings C:\\data\\calib\\calibration\\settings.yaml were refused: 2 problems.
   image.start_index: was removed (delete it: calibration frames are numbered 1..N (removed 18 Oct 2026); set image.zero_based_indexing: true when the first file is numbered 0)
   methods.scale_factor.use_images: required key is missing (add 'use_images: true', the value a new settings.yaml has)
-Fix the file in a text editor, or move it aside and reopen the source in the GUI Calibration tab, which seeds a new one from the model records on disk (\`pivtools-cli init-settings --source <source>\` writes a blank one).
+Fix the file in a text editor, or press Reset settings on the GUI Calibration tab, which keeps it as settings.refused-<date>.yaml and rebuilds the form from the model records on disk (\`pivtools-cli init-settings --source <source>\` writes a blank one).
 How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#calibration-settings-refused`}</CodeBlock>
             </div>
             <p className="text-gray-700 mb-6">
@@ -880,8 +886,8 @@ How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#cali
                     { msg: "rig.dt: must be a finite number, got str '1e-5' (YAML reads it as text: write 1.0e-5)", cause: 'e-notation without a decimal point in the mantissa or a sign on the exponent (YAML 1.1)', fix: 'Write 1.0e-5 (and 1.0e+5, not 1e5 or 1.0e5).' },
                     { msg: "rig.interpolator: 'bicubic' is not one of linear, cubic, lanczos (did you mean 'cubic'?)", cause: 'A name the reader does not know', fix: 'Write one of the names listed.' },
                     { msg: 'methods.charuco.marker_ratio: must be < 1, got 1.2', cause: 'A value outside the range its reader accepts', fix: 'Write a value inside the range.' },
-                    { msg: 'global_coordinates: required section is missing (every settings.yaml written today has it; see the fix line at the end of this message)', cause: 'A whole section missing', fix: 'Move the file aside and reopen the source in the GUI, or copy the section from a blank file: pivtools-cli init-settings --source <an empty folder>.' },
-                    { msg: 'schema_version: is 2; this PIVTOOLs reads version 1 (the file was written by another version)', cause: 'A file written by another PIVTOOLs version', fix: 'Open it with that version, or move it aside and reopen the source in the GUI.' },
+                    { msg: 'global_coordinates: required section is missing (every settings.yaml written today has it; see the fix line at the end of this message)', cause: 'A whole section missing', fix: 'Press Reset settings on the GUI Calibration tab, or copy the section from a blank file: pivtools-cli init-settings --source <an empty folder>.' },
+                    { msg: 'schema_version: is 2; this PIVTOOLs reads version 1 (the file was written by another version)', cause: 'A file written by another PIVTOOLs version', fix: 'Open it with that version, or press Reset settings on the GUI Calibration tab.' },
                     { msg: "<root>: line 4, column 1: not valid YAML: could not find expected ':'", cause: 'A syntax error, such as a missing colon', fix: 'Fix the line. The parser reports where it stopped, which is often the line after the mistake.' },
                   ].map((row, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
