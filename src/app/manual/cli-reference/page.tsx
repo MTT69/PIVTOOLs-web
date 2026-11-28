@@ -790,7 +790,7 @@ With this many problems, starting from a clean default config is faster than edi
             </ul>
             <div className="mb-4">
               <CodeBlock title="Refused save">{`The change was not saved (config.yaml is unchanged): 1 problem.
-  instantaneous_piv.overlap[3]: must be < 100, got 100
+  instantaneous_piv.overlap[3]: overlap 100% out of range (0-95%)
 How to fix each kind of problem: https://www.piv.tools/manual/cli-reference#config-refused`}</CodeBlock>
             </div>
             <p className="text-gray-700 mb-4">
