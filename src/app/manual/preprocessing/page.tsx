@@ -266,7 +266,7 @@ batches:
                     { type: "ssmin", params: "size: [7, 7]", desc: "Sliding-minimum background subtraction: median-smooth, take the local minimum, box-smooth, subtract, clip to >= 0." },
                     { type: "lmax", params: "size: [7, 7]", desc: "Morphological dilation (local maximum). Enhances bright features." },
                     { type: "invert", params: "(none)", desc: "Invert intensities per frame: output = frame max - input." },
-                    { type: "clahe", params: "clip_limit: 2.0, tile_grid_size: [8, 8]", desc: "Contrast-limited adaptive histogram equalisation (OpenCV). tile_grid_size is a pair of tile counts, or one whole number of tiles for both, each 1 or more." },
+                    { type: "clahe", params: "clip_limit: 2.0, tile_grid_size: [8, 8]", desc: "Contrast-limited adaptive histogram equalisation (OpenCV). tile_grid_size is [rows, columns] of tiles, height first like every size in config.yaml, or one whole number of tiles for both, each 1 or more. Counts run as written: [8, 8] is 8 x 8 tiles." },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-blue-600">{row.type}</td>
